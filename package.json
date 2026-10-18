@@ -1,0 +1,26 @@
+{
+  "name": "commune",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Open source community platform built on the MERN stack",
+  "license": "MIT",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,green \"npm run dev -w @commune/api\" \"npm run dev -w @commune/web\"",
+    "build": "npm run build -w @commune/shared && npm run build -w @commune/api && npm run build -w @commune/web",
+    "typecheck": "npm run build -w @commune/shared && npm run typecheck -w @commune/api && npm run typecheck -w @commune/web",
+    "test": "npm run test -w @commune/api",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0",
+    "prettier": "^3.3.0",
+    "typescript": "^5.6.0"
+  }
+}
