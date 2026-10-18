@@ -4,12 +4,12 @@ An open source community platform (profiles, posts, comments, likes, follows) bu
 
 ## Stack
 
-| Layer    | Tech                                                        |
-| -------- | ----------------------------------------------------------- |
-| Web      | React 18, Vite, TypeScript, React Router, TanStack Query    |
-| API      | Node 20, Express, TypeScript, Mongoose, Zod, JWT            |
-| Shared   | Zod schemas + inferred types used by both web and API       |
-| Tooling  | npm workspaces, Prettier, Vitest, Docker, GitHub CI |
+| Layer   | Tech                                                     |
+| ------- | -------------------------------------------------------- |
+| Web     | React 18, Vite, TypeScript, React Router, TanStack Query |
+| API     | Node 20, Express, TypeScript, Mongoose, Zod, JWT         |
+| Shared  | Zod schemas + inferred types used by both web and API    |
+| Tooling | npm workspaces, Prettier, Vitest, Docker, GitHub CI      |
 
 ## Structure
 
@@ -54,3 +54,24 @@ npm run dev                     # API on :4000, web on :5173
 ## License
 
 MIT
+
+# Commune
+
+> An open source community platform built with the MERN stack and TypeScript.
+
+Commune is a production-minded, full-stack reference project: secure authentication,
+posts, comments and likes, a shared validation layer, Docker support and CI, all in a
+clean monorepo that's easy to read, run and extend.
+
+## Features
+
+- Secure auth with short-lived JWT access tokens and rotating httpOnly refresh cookies
+- Posts, comments and likes with cursor-based pagination
+- Shared Zod schemas used by both frontend and backend
+- Helmet, rate limiting, input validation and centralized error handling
+- Docker Compose for MongoDB and the API, plus a GitHub Actions workflow
+
+## Contributing
+
+Contributions of all sizes are welcome. Look for issues labeled `good first issue`,
+read [CONTRIBUTING.md](CONTRIBUTING.md), and open a pull request.
