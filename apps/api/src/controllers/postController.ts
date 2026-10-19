@@ -2,8 +2,11 @@ import mongoose from "mongoose";
 import type { Request, Response } from "express";
 import type { Page, PostDTO } from "@commune/shared";
 import { Comment } from "../models/Comment.js";
+import { Follow } from "../models/Follow.js";
 import { Like } from "../models/Like.js";
+import { Notification } from "../models/Notification.js";
 import { Post } from "../models/Post.js";
+import { notify } from "../services/notificationService.js";
 import { badRequest, forbidden, notFound } from "../utils/errors.js";
 import {
   toCommentDTO,
@@ -31,6 +34,39 @@ async function loadPost(id: string): Promise<PopulatedPost> {
     .lean()) as unknown as PopulatedPost | null;
   if (!post) throw notFound("Post not found");
   return post;
+}
+
+/*
+ * Send one cursor-paginated page of posts matching `baseFilter`.
+ * Expects validated pagination params in res.locals.query (see the validate middleware).
+ */
+export async function sendPostPage(
+  req: Request,
+  res: Response,
+  baseFilter: Record<string, unknown>,
+) {
+  const { cursor, limit } = (res.locals as { query: { cursor?: string; limit: number } }).query;
+  if (cursor && !mongoose.isValidObjectId(cursor)) throw badRequest("Invalid cursor");
+
+  const filter = cursor ? { ...baseFilter, _id: { $lt: cursor } } : baseFilter;
+  const rows = (await Post.find(filter)
+    .sort({ _id: -1 })
+    .limit(limit + 1)
+    .populate("author", "username")
+    .lean()) as unknown as PopulatedPost[];
+
+  const hasMore = rows.length > limit;
+  const posts = hasMore ? rows.slice(0, limit) : rows;
+  const liked = await likedSet(
+    req.userId!,
+    posts.map((p) => p._id),
+  );
+
+  const body: Page<PostDTO> = {
+    items: posts.map((p) => toPostDTO(p, liked.has(p._id.toString()))),
+    nextCursor: hasMore ? (posts[posts.length - 1]?._id.toString() ?? null) : null,
+  };
+  res.json(body);
 }
 
 export async function listPosts(req: Request, res: Response) {

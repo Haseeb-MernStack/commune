@@ -20,7 +20,9 @@ export default function PostCard({ post }: { post: PostDTO }) {
   return (
     <article className="card post">
       <div className="post-meta">
-        <strong>@{post.author.username}</strong>
+        <Link to={`/u/${post.author.username}`} className="user-link">
+          @{post.author.username}
+        </Link>
         <span className="muted">· {timeAgo(post.createdAt)}</span>
       </div>
       <p className="post-body">{post.content}</p>

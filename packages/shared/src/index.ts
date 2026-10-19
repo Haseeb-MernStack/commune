@@ -26,9 +26,14 @@ export const createCommentSchema = z.object({
   content: z.string().trim().min(1).max(300),
 });
 
+export const updateProfileSchema = z.object({
+  bio: z.string().trim().max(160),
+});
+
 export const paginationSchema = z.object({
   cursor: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(50).default(20),
+  feed: z.enum(["all","following"]).default("all"),
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;
@@ -70,4 +75,24 @@ export interface AuthResponse {
 export interface Page<T> {
   items: T[];
   nextCursor: string | null;
+}
+
+
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+
+export interface ProfileDTO extends PublicUser {
+  followerCount: number;
+  followingCount: number;
+  followedByMe: boolean;
+}
+
+export type NotificationType = "like" | "comment" | "follow";
+
+export interface NotificationDTO {
+  id: string;
+  type: NotificationType;
+  actor: Pick<PublicUser, "id" | "username">;
+  postId: string | null;
+  read: boolean;
+  createdAt: string;
 }

@@ -46,7 +46,9 @@ export default function PostPage() {
       {comments.data?.map((c) => (
         <div key={c.id} className="card comment">
           <div className="post-meta">
-            <strong>@{c.author.username}</strong>
+            <Link to={`/u/${c.author.username}`} className="user-link">
+              @{c.author.username}
+            </Link>
             <span className="muted">· {timeAgo(c.createdAt)}</span>
           </div>
           <p className="post-body">{c.content}</p>

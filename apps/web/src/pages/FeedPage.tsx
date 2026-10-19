@@ -1,31 +1,41 @@
+import { useState } from "react";
 import Composer from "../components/Composer";
+import PostList from "../components/PostList";
 import PostCard from "../components/PostCard";
 import { useFeed } from "../hooks/usePosts";
+import type { FeedType } from "../hooks/usePosts";
+
+const TABS: Array<{ id: FeedType; label: string; empty: string }> = [
+  { id: "all", label: "Everyone", empty: "No posts yet. Be the first to say something." },
+  {
+    id: "following",
+    label: "Following",
+    empty: "Nothing here yet. Follow people from their profile to fill this feed.",
+  },
+];
 
 export default function FeedPage() {
-  const feed = useFeed();
-  const posts = feed.data?.pages.flatMap((p) => p.items) ?? [];
+  const [tab, setTab] = useState<FeedType>("all");
+  const feed = useFeed(tab);
+  const active = TABS.find((t) => t.id === tab)!;
 
   return (
     <>
       <Composer />
-      {feed.isLoading && <p className="muted center">Loading feed…</p>}
-      {feed.isError && <p className="error center">{feed.error.message}</p>}
-      {feed.isSuccess && posts.length === 0 && (
-        <p className="muted center">No posts yet. Be the first to say something.</p>
-      )}
-      {posts.map((post) => (
-        <PostCard key={post.id} post={post} />
-      ))}
-      {feed.hasNextPage && (
-        <button
-          className="btn btn-ghost block"
-          onClick={() => void feed.fetchNextPage()}
-          disabled={feed.isFetchingNextPage}
-        >
-          {feed.isFetchingNextPage ? "Loading…" : "Load more"}
-        </button>
-      )}
+      <div className="tabs" role="tablist">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            role="tab"
+            aria-selected={t.id === tab}
+            className={`tab ${t.id === tab ? "active" : ""}`}
+            onClick={() => setTab(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+      <PostList query={feed} emptyMessage={active.empty} />
     </>
   );
 }

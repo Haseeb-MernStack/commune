@@ -62,4 +62,14 @@ export async function api<T>(
   return res.status === 204 ? (undefined as T) : ((await res.json()) as T);
 }
 
+/** Builds "/path?a=1&b=2", skipping undefined or empty values. */
+export function withQuery(path: string, params: Record<string, string | undefined>): string {
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value) query.set(key, value);
+  }
+  const qs = query.toString();
+  return qs ? `${path}?${qs}` : path;
+}
+
 export { refresh as tryRefresh };

@@ -46,9 +46,11 @@ npm run dev                     # API on :4000, web on :5173
 
 - [x] Auth (register, login, refresh, logout)
 - [x] Posts, comments, likes
-- [ ] Follows and personalized feed
+- [x] Follows and a "Following" feed
+- [x] User profiles with editable bios
+- [x] Notifications (likes, comments, new followers) with unread badge
 - [ ] Image uploads
-- [ ] Real-time notifications
+- [ ] Real-time notifications (WebSockets / SSE instead of polling)
 - [ ] Moderation tools
 
 ## License

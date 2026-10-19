@@ -5,8 +5,10 @@ import {
   loginSchema,
   paginationSchema,
   registerSchema,
+  updateProfileSchema,
 } from "@commune/shared";
 import * as auth from "../controllers/authController.js";
+import * as notifications from "../controllers/notificationController.js";
 import * as posts from "../controllers/postController.js";
 import * as users from "../controllers/userController.js";
 import { requireAuth } from "../middleware/auth.js";
@@ -28,6 +30,20 @@ router.post("/auth/logout", asyncHandler(auth.logout));
 
 // Users
 router.get("/users/me", requireAuth, asyncHandler(users.me));
+router.patch("/users/me", requireAuth, validate(updateProfileSchema), asyncHandler(users.updateMe));
+router.get("/users/:username", requireAuth, asyncHandler(users.getProfile));
+router.get(
+  "/users/:username/posts",
+  requireAuth,
+  validate(paginationSchema, "query"),
+  asyncHandler(users.userPosts),
+);
+router.post("/users/:username/follow", requireAuth, asyncHandler(users.toggleFollow));
+
+// Notifications
+router.get("/notifications", requireAuth, asyncHandler(notifications.list));
+router.get("/notifications/unread-count", requireAuth, asyncHandler(notifications.unreadCount));
+router.post("/notifications/read", requireAuth, asyncHandler(notifications.markAllRead));
 
 // Posts
 router.get("/posts", requireAuth, validate(paginationSchema, "query"), asyncHandler(posts.listPosts));
@@ -36,6 +52,13 @@ router.get("/posts/:id", requireAuth, asyncHandler(posts.getPost));
 router.delete("/posts/:id", requireAuth, asyncHandler(posts.deletePost));
 router.post("/posts/:id/like", requireAuth, asyncHandler(posts.toggleLike));
 router.get("/posts/:id/comments", requireAuth, asyncHandler(posts.listComments));
+router.post(
+  "/posts/:id/comments",
+  requireAuth,
+  validate(createCommentSchema),
+  asyncHandler(posts.addComment),
+);
+
 router.post(
   "/posts/:id/comments",
   requireAuth,

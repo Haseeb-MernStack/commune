@@ -29,6 +29,13 @@ Commune is an npm-workspaces monorepo with three packages:
 | POST   | /api/auth/refresh         | cookie | Rotate session          |
 | POST   | /api/auth/logout          | cookie | End session             |
 | GET    | /api/users/me             | yes  | Current user              |
+| PATCH  | /api/users/me             | yes  | Update own bio            |
+| GET    | /api/users/:username      | yes  | Profile with follow counts |
+| GET    | /api/users/:username/posts | yes | A user's posts (paginated) |
+| POST   | /api/users/:username/follow | yes | Toggle follow            |
+| GET    | /api/notifications        | yes  | Latest 30 notifications   |
+| GET    | /api/notifications/unread-count | yes | Unread badge count   |
+| POST   | /api/notifications/read   | yes  | Mark all as read          |
 | GET    | /api/posts?cursor&limit   | yes  | Cursor-paginated feed     |
 | POST   | /api/posts                | yes  | Create post               |
 | GET    | /api/posts/:id            | yes  | Single post               |
@@ -44,6 +51,21 @@ Commune is an npm-workspaces monorepo with three packages:
 - **Comment**: post, author, content
 - **Like**: post, user (unique pair)
 - **RefreshToken**: user, tokenHash, expiresAt (TTL)
+- **Follow**: follower, following (unique pair). Follower counts are computed with
+  `countDocuments`, so they can never drift out of sync.
+- **Notification**: user (recipient), actor, type (`like` | `comment` | `follow`), post, read.
+  Likes and follows are upserted so like/unlike toggling does not spam the recipient.
+
+## Feeds
+
+`GET /api/posts?feed=all|following`. The following feed returns posts from people you follow
+plus your own, using the same cursor pagination as the main feed.
+
+## Notifications
+
+The web app polls `/api/notifications/unread-count` every 30 seconds for the header badge.
+Opening the notifications page marks everything as read. Replacing polling with SSE or
+WebSockets is on the roadmap.
 
 ## Deployment notes
 
