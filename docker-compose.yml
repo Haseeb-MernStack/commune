@@ -20,11 +20,15 @@ services:
     env_file: .env
     environment:
       MONGODB_URI: mongodb://mongo:27017/commune
+      UPLOAD_DIR: /data/uploads
     ports:
       - "4000:4000"
+    volumes:
+      - uploads-data:/data/uploads
     depends_on:
       mongo:
         condition: service_healthy
 
 volumes:
   mongo-data:
+  uploads-data:

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
+import Avatar from "../components/Avatar";
 import PostCard, { timeAgo } from "../components/PostCard";
 import { useAddComment, useComments, usePost } from "../hooks/usePosts";
 
@@ -44,14 +45,17 @@ export default function PostPage() {
       </form>
 
       {comments.data?.map((c) => (
-        <div key={c.id} className="card comment">
-          <div className="post-meta">
-            <Link to={`/u/${c.author.username}`} className="user-link">
-              @{c.author.username}
-            </Link>
-            <span className="muted">· {timeAgo(c.createdAt)}</span>
+        <div key={c.id} className="card comment post-head">
+          <Avatar username={c.author.username} url={c.author.avatarUrl} size={32} />
+          <div className="post-main">
+            <div className="post-meta">
+              <Link to={`/u/${c.author.username}`} className="user-link">
+                @{c.author.username}
+              </Link>
+              <span className="muted">· {timeAgo(c.createdAt)}</span>
+            </div>
+            <p className="post-body">{c.content}</p>
           </div>
-          <p className="post-body">{c.content}</p>
         </div>
       ))}
     </>

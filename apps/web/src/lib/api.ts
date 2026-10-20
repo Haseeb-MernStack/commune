@@ -1,12 +1,20 @@
 import type { AuthResponse } from "@commune/shared";
 
 const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:4000/api";
+// Uploaded files are served from the API origin, e.g. http://localhost:4000/uploads/abc.png.
+// With a relative VITE_API_URL such as "/api" this is "", so "/uploads/..." stays relative.
+const ORIGIN = BASE.replace(/\/api\/?$/, "");
 
 let accessToken: string | null = null;
 let refreshing: Promise<boolean> | null = null;
 
 export function setAccessToken(token: string | null) {
   accessToken = token;
+}
+
+/** Turns a stored upload path like "/uploads/x.png" into a URL the browser can load. */
+export function assetUrl(path: string | null | undefined): string | undefined {
+  return path ? `${ORIGIN}${path}` : undefined;
 }
 
 export class ApiError extends Error {
@@ -41,14 +49,20 @@ export async function api<T>(
   options: { method?: string; body?: unknown } = {},
   retry = true,
 ): Promise<T> {
+  const isForm = options.body instanceof FormData;
   const res = await fetch(`${BASE}${path}`, {
     method: options.method ?? "GET",
     credentials: "include",
     headers: {
-      ...(options.body ? { "Content-Type": "application/json" } : {}),
+      // For FormData the browser sets the multipart Content-Type (with boundary) itself.
+      ...(options.body && !isForm ? { "Content-Type": "application/json" } : {}),
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
     },
-    body: options.body ? JSON.stringify(options.body) : undefined,
+    body: options.body
+      ? isForm
+        ? (options.body as FormData)
+        : JSON.stringify(options.body)
+      : undefined,
   });
 
   if (res.status === 401 && retry && !path.startsWith("/auth/")) {

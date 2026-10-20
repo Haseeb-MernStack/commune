@@ -2,6 +2,7 @@ import { Link, Navigate, Route, Routes } from "react-router-dom";
 import type { ReactNode } from "react";
 import { useAuth } from "./store/auth";
 import { useUnreadCount } from "./hooks/useSocial";
+import Avatar from "./components/Avatar";
 import FeedPage from "./pages/FeedPage";
 import PostPage from "./pages/PostPage";
 import LoginPage from "./pages/LoginPage";
@@ -27,15 +28,12 @@ function Header() {
       </Link>
       {user && (
         <nav className="header-right">
-          <Link
-            to="/notifications"
-            className="nav-link"
-            aria-label={`Notifications, ${count} unread`}
-          >
+          <Link to="/notifications" className="nav-link" aria-label={`Notifications, ${count} unread`}>
             🔔
             {count > 0 && <span className="badge">{count > 99 ? "99+" : count}</span>}
           </Link>
-          <Link to={`/u/${user.username}`} className="nav-link">
+          <Link to={`/u/${user.username}`} className="nav-link nav-profile">
+            <Avatar username={user.username} url={user.avatarUrl} size={26} />
             @{user.username}
           </Link>
           <button className="btn btn-ghost" onClick={() => void logout()}>
