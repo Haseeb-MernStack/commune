@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import type { PostDTO } from "@commune/shared";
 import { useAuth } from "../store/auth";
 import { useDeletePost, useToggleLike } from "../hooks/usePosts";
+import { assetUrl } from "../lib/api";
+import Avatar from "./Avatar";
 
 export function timeAgo(iso: string): string {
   const seconds = Math.max(1, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
@@ -18,34 +20,47 @@ export default function PostCard({ post }: { post: PostDTO }) {
   const mine = user?.id === post.author.id;
 
   return (
-    <article className="card post">
-      <div className="post-meta">
-        <Link to={`/u/${post.author.username}`} className="user-link">
-          @{post.author.username}
-        </Link>
-        <span className="muted">· {timeAgo(post.createdAt)}</span>
-      </div>
-      <p className="post-body">{post.content}</p>
-      <div className="post-actions">
-        <button
-          className={`btn btn-ghost ${post.likedByMe ? "liked" : ""}`}
-          onClick={() => like.mutate(post.id)}
-          disabled={like.isPending}
-          aria-pressed={post.likedByMe}
-        >
-          {post.likedByMe ? "♥" : "♡"} {post.likeCount}
-        </button>
-        <Link className="btn btn-ghost" to={`/posts/${post.id}`}>
-          💬 {post.commentCount}
-        </Link>
-        {mine && (
-          <button
-            className="btn btn-ghost danger"
-            onClick={() => window.confirm("Delete this post?") && del.mutate(post.id)}
-          >
-            Delete
-          </button>
+    <article className="card post post-head">
+      <Avatar username={post.author.username} url={post.author.avatarUrl} />
+      <div className="post-main">
+        <div className="post-meta">
+          <Link to={`/u/${post.author.username}`} className="user-link">
+            @{post.author.username}
+          </Link>
+          <span className="muted">· {timeAgo(post.createdAt)}</span>
+        </div>
+        {post.content && <p className="post-body">{post.content}</p>}
+        {post.imageUrl && (
+          <a href={assetUrl(post.imageUrl)} target="_blank" rel="noopener noreferrer">
+            <img
+              className="post-image"
+              src={assetUrl(post.imageUrl)}
+              alt={`Image posted by @${post.author.username}`}
+              loading="lazy"
+            />
+          </a>
         )}
+        <div className="post-actions">
+          <button
+            className={`btn btn-ghost ${post.likedByMe ? "liked" : ""}`}
+            onClick={() => like.mutate(post.id)}
+            disabled={like.isPending}
+            aria-pressed={post.likedByMe}
+          >
+            {post.likedByMe ? "♥" : "♡"} {post.likeCount}
+          </button>
+          <Link className="btn btn-ghost" to={`/posts/${post.id}`}>
+            💬 {post.commentCount}
+          </Link>
+          {mine && (
+            <button
+              className="btn btn-ghost danger"
+              onClick={() => window.confirm("Delete this post?") && del.mutate(post.id)}
+            >
+              Delete
+            </button>
+          )}
+        </div>
       </div>
     </article>
   );

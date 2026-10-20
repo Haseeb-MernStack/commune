@@ -12,13 +12,21 @@ interface UserLike {
   _id: Types.ObjectId;
   username: string;
   bio?: string | null;
+  avatarUrl?: string | null;
   createdAt: Date;
+}
+
+interface PopulatedAuthor {
+  _id: Types.ObjectId;
+  username: string;
+  avatarUrl?: string | null;
 }
 
 export interface PopulatedPost {
   _id: Types.ObjectId;
   content: string;
-  author: { _id: Types.ObjectId; username: string };
+  imageUrl?: string | null;
+  author: PopulatedAuthor;
   likeCount: number;
   commentCount: number;
   createdAt: Date;
@@ -28,7 +36,7 @@ export interface PopulatedComment {
   _id: Types.ObjectId;
   post: Types.ObjectId;
   content: string;
-  author: { _id: Types.ObjectId; username: string };
+  author: PopulatedAuthor;
   createdAt: Date;
 }
 
@@ -41,11 +49,18 @@ export interface PopulatedNotification {
   createdAt: Date;
 }
 
+const toAuthor = (a: PopulatedAuthor) => ({
+  id: a._id.toString(),
+  username: a.username,
+  avatarUrl: a.avatarUrl ?? null,
+});
+
 export function toPublicUser(u: UserLike): PublicUser {
   return {
     id: u._id.toString(),
     username: u.username,
     bio: u.bio ?? "",
+    avatarUrl: u.avatarUrl ?? null,
     createdAt: u.createdAt.toISOString(),
   };
 }
@@ -62,7 +77,8 @@ export function toPostDTO(p: PopulatedPost, likedByMe: boolean): PostDTO {
   return {
     id: p._id.toString(),
     content: p.content,
-    author: { id: p.author._id.toString(), username: p.author.username },
+    imageUrl: p.imageUrl ?? null,
+    author: toAuthor(p.author),
     likeCount: p.likeCount,
     commentCount: p.commentCount,
     likedByMe,
@@ -75,7 +91,7 @@ export function toCommentDTO(c: PopulatedComment): CommentDTO {
     id: c._id.toString(),
     postId: c.post.toString(),
     content: c.content,
-    author: { id: c.author._id.toString(), username: c.author.username },
+    author: toAuthor(c.author),
     createdAt: c.createdAt.toISOString(),
   };
 }

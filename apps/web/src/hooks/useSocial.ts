@@ -1,6 +1,14 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { NotificationDTO, Page, PostDTO, ProfileDTO, PublicUser } from "@commune/shared";
+import type {
+  NotificationDTO,
+  Page,
+  PostDTO,
+  ProfileDTO,
+  PublicUser,
+  UpdateProfileInput,
+} from "@commune/shared";
 import { api, withQuery } from "../lib/api";
+import { useAuth } from "../store/auth";
 
 export function useProfile(username: string) {
   return useQuery({
@@ -34,11 +42,21 @@ export function useToggleFollow(username: string) {
   });
 }
 
+/** Updates the signed-in user's bio and/or avatar. */
 export function useUpdateProfile() {
   const qc = useQueryClient();
+  const { setUser } = useAuth();
   return useMutation({
-    mutationFn: (bio: string) => api<PublicUser>("/users/me", { method: "PATCH", body: { bio } }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["profile"] }),
+    mutationFn: (input: UpdateProfileInput) =>
+      api<PublicUser>("/users/me", { method: "PATCH", body: input }),
+    onSuccess: (user) => {
+      setUser(user);
+      void qc.invalidateQueries({ queryKey: ["profile"] });
+      // Avatars appear on posts and comments, so refresh those too.
+      void qc.invalidateQueries({ queryKey: ["feed"] });
+      void qc.invalidateQueries({ queryKey: ["post"] });
+      void qc.invalidateQueries({ queryKey: ["comments"] });
+    },
   });
 }
 

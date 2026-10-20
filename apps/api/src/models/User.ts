@@ -7,6 +7,7 @@ const userSchema = new Schema(
     email: { type: String, required: true, lowercase: true, trim: true, unique: true },
     passwordHash: { type: String, required: true, select: false },
     bio: { type: String, default: "", maxlength: 160 },
+    avatarUrl: { type: String, default: null, index: true, sparse: true },
   },
   { timestamps: true },
 );

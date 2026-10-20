@@ -10,9 +10,11 @@ import {
 import * as auth from "../controllers/authController.js";
 import * as notifications from "../controllers/notificationController.js";
 import * as posts from "../controllers/postController.js";
+import * as uploads from "../controllers/uploadController.js";
 import * as users from "../controllers/userController.js";
 import { requireAuth } from "../middleware/auth.js";
-import { authLimiter } from "../middleware/rateLimit.js";
+import { authLimiter, uploadLimiter } from "../middleware/rateLimit.js";
+import { parseImageUpload } from "../middleware/upload.js";
 import { validate } from "../middleware/validate.js";
 import { asyncHandler } from "../utils/errors.js";
 
@@ -28,7 +30,16 @@ router.post("/auth/login", authLimiter, validate(loginSchema), asyncHandler(auth
 router.post("/auth/refresh", authLimiter, asyncHandler(auth.refresh));
 router.post("/auth/logout", asyncHandler(auth.logout));
 
-// Users
+// Uploads (auth and rate limit run before the file is parsed)
+router.post(
+  "/uploads",
+  requireAuth,
+  uploadLimiter,
+  parseImageUpload,
+  asyncHandler(uploads.upload),
+);
+
+// Users. "/users/me" must be declared before "/users/:username".
 router.get("/users/me", requireAuth, asyncHandler(users.me));
 router.patch("/users/me", requireAuth, validate(updateProfileSchema), asyncHandler(users.updateMe));
 router.get("/users/:username", requireAuth, asyncHandler(users.getProfile));
@@ -52,13 +63,6 @@ router.get("/posts/:id", requireAuth, asyncHandler(posts.getPost));
 router.delete("/posts/:id", requireAuth, asyncHandler(posts.deletePost));
 router.post("/posts/:id/like", requireAuth, asyncHandler(posts.toggleLike));
 router.get("/posts/:id/comments", requireAuth, asyncHandler(posts.listComments));
-router.post(
-  "/posts/:id/comments",
-  requireAuth,
-  validate(createCommentSchema),
-  asyncHandler(posts.addComment),
-);
-
 router.post(
   "/posts/:id/comments",
   requireAuth,

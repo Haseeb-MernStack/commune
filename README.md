@@ -4,12 +4,12 @@ An open source community platform (profiles, posts, comments, likes, follows) bu
 
 ## Stack
 
-| Layer   | Tech                                                     |
-| ------- | -------------------------------------------------------- |
-| Web     | React 18, Vite, TypeScript, React Router, TanStack Query |
-| API     | Node 20, Express, TypeScript, Mongoose, Zod, JWT         |
-| Shared  | Zod schemas + inferred types used by both web and API    |
-| Tooling | npm workspaces, Prettier, Vitest, Docker, GitHub CI      |
+| Layer    | Tech                                                        |
+| -------- | ----------------------------------------------------------- |
+| Web      | React 18, Vite, TypeScript, React Router, TanStack Query    |
+| API      | Node 20, Express, TypeScript, Mongoose, Zod, JWT            |
+| Shared   | Zod schemas + inferred types used by both web and API       |
+| Tooling  | npm workspaces, Prettier, Vitest, Docker, GitHub CI |
 
 ## Structure
 
@@ -49,13 +49,14 @@ npm run dev                     # API on :4000, web on :5173
 - [x] Follows and a "Following" feed
 - [x] User profiles with editable bios
 - [x] Notifications (likes, comments, new followers) with unread badge
-- [ ] Image uploads
+- [x] Image uploads (post images and profile photos)
 - [ ] Real-time notifications (WebSockets / SSE instead of polling)
 - [ ] Moderation tools
 
 ## License
 
 MIT
+
 
 # Commune
 

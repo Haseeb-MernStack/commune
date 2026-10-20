@@ -28,7 +28,8 @@ export function useComments(id: string) {
 export function useCreatePost() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (content: string) => api<PostDTO>("/posts", { method: "POST", body: { content } }),
+    mutationFn: (input: { content: string; imageUrl?: string | null }) =>
+      api<PostDTO>("/posts", { method: "POST", body: input }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["feed"] }),
   });
 }
