@@ -15,6 +15,14 @@ const schema = z.object({
   REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().positive().default(30),
   // Where uploaded images are stored. Relative paths resolve from the API's working directory.
   UPLOAD_DIR: z.string().default("uploads"),
+  // How many reverse proxies sit in front of the API (used for correct client IPs in rate
+  // limits). 1 = a single host proxy; 2 = Vercel rewrite in front of Render.
+  TRUST_PROXY: z.coerce.number().int().min(0).default(1),
+  // Set all three to store images in Cloudinary instead of on local disk (needed on hosts
+  // with an ephemeral disk, such as Render's free plan).
+  CLOUDINARY_CLOUD_NAME: z.string().optional(),
+  CLOUDINARY_API_KEY: z.string().optional(),
+  CLOUDINARY_API_SECRET: z.string().optional(),
 });
 
 const parsed = schema.safeParse(process.env);
