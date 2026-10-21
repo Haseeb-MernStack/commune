@@ -2,23 +2,121 @@ import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { uploadUrlSchema } from "@commune/shared";
-import { env } from "../config/env.js";
+import { env, isProd } from "../config/env.js";
 import { logger } from "../config/logger.js";
 import { Post } from "../models/Post.js";
 import { User } from "../models/User.js";
+import { AppError } from "../utils/errors.js";
 import type { ImageExt } from "../utils/images.js";
 
 /**
- * Storage layer. Today files live on local disk; to move to S3 or Cloudinary, replace
- * saveImage / deleteUpload and keep returning a URL string. Nothing else needs to change.
+ * Storage layer. Two backends, chosen by environment variables:
+ *
+ *  - local disk (default): files live in UPLOAD_DIR and are served by Express.
+ *  - Cloudinary (when CLOUDINARY_* are all set): files are uploaded to Cloudinary and
+ *    /uploads/<name> redirects there.
+ *
+ * Either way the app stores and returns the same "/uploads/<id>.<ext>" reference, so nothing
+ * outside this file knows which backend is in use. To add S3 or another provider, add a branch
+ * to saveStored / removeStored.
  */
 export const uploadDir = path.resolve(process.cwd(), env.UPLOAD_DIR);
 
+const cloud =
+  env.CLOUDINARY_CLOUD_NAME && env.CLOUDINARY_API_KEY && env.CLOUDINARY_API_SECRET
+    ? {
+        name: env.CLOUDINARY_CLOUD_NAME,
+        key: env.CLOUDINARY_API_KEY,
+        secret: env.CLOUDINARY_API_SECRET,
+      }
+    : null;
+
+export const usesCloudStorage = cloud !== null;
+const FOLDER = "commune";
+
+if (isProd && !cloud) {
+  logger.warn(
+    "Uploads are stored on local disk. On hosts with an ephemeral disk they disappear on " +
+      "every restart; set the CLOUDINARY_* variables or mount a persistent volume.",
+  );
+}
+
+/** Cloudinary request signature: SHA-1 of the sorted "key=value" pairs joined by & plus the secret. */
+export function cloudinarySignature(params: Record<string, string>, secret: string): string {
+  const toSign = Object.keys(params)
+    .sort()
+    .map((key) => `${key}=${params[key]}`)
+    .join("&");
+  return crypto
+    .createHash("sha1")
+    .update(toSign + secret)
+    .digest("hex");
+}
+
+/**
+ * Public delivery URL for a stored file name like "<id>.png". f_auto and q_auto let Cloudinary
+ * pick the best format and quality for each browser.
+ */
+export function cloudImageUrl(fileName: string): string {
+  if (!cloud) throw new Error("Cloud storage is not configured");
+  const id = fileName.replace(/\.[a-z]+$/, "");
+  return `https://res.cloudinary.com/${cloud.name}/image/upload/f_auto,q_auto/${FOLDER}/${id}`;
+}
+
+async function saveStored(name: string, buffer: Buffer): Promise<void> {
+  if (!cloud) {
+    await fs.mkdir(uploadDir, { recursive: true });
+    await fs.writeFile(path.join(uploadDir, name), buffer, { flag: "wx" });
+    return;
+  }
+
+  const publicId = `${FOLDER}/${name.replace(/\.[a-z]+$/, "")}`;
+  const timestamp = String(Math.floor(Date.now() / 1000));
+  const form = new FormData();
+  form.set("file", new Blob([new Uint8Array(buffer)]), name);
+  form.set("api_key", cloud.key);
+  form.set("timestamp", timestamp);
+  form.set("public_id", publicId);
+  form.set(
+    "signature",
+    cloudinarySignature({ public_id: publicId, timestamp }, cloud.secret),
+  );
+
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${cloud.name}/image/upload`, {
+    method: "POST",
+    body: form,
+  });
+  if (!res.ok) {
+    logger.error({ status: res.status, body: await res.text() }, "Cloudinary upload failed");
+    throw new AppError(502, "Image storage is unavailable, try again later");
+  }
+}
+
+async function removeStored(name: string): Promise<void> {
+  if (!cloud) {
+    await fs.rm(path.join(uploadDir, name), { force: true });
+    return;
+  }
+
+  const publicId = `${FOLDER}/${name.replace(/\.[a-z]+$/, "")}`;
+  const timestamp = String(Math.floor(Date.now() / 1000));
+  const body = new URLSearchParams({
+    public_id: publicId,
+    timestamp,
+    api_key: cloud.key,
+    signature: cloudinarySignature({ public_id: publicId, timestamp }, cloud.secret),
+  });
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${cloud.name}/image/destroy`, {
+    method: "POST",
+    body,
+  });
+  if (!res.ok) throw new Error(`Cloudinary delete failed (${res.status})`);
+}
+
 export async function saveImage(buffer: Buffer, ext: ImageExt): Promise<string> {
-  await fs.mkdir(uploadDir, { recursive: true });
   // Random name: never use the client's filename.
   const name = `${crypto.randomBytes(16).toString("hex")}.${ext}`;
-  await fs.writeFile(path.join(uploadDir, name), buffer, { flag: "wx" });
+  await saveStored(name, buffer);
   return `/uploads/${name}`;
 }
 
@@ -35,7 +133,7 @@ export async function deleteUploadIfUnused(url: string | null | undefined): Prom
       User.exists({ avatarUrl: url }),
     ]);
     if (usedByPost || usedByUser) return;
-    await fs.rm(path.join(uploadDir, path.basename(url)), { force: true });
+    await removeStored(path.basename(url));
   } catch (err) {
     logger.warn({ err, url }, "Failed to delete upload");
   }

@@ -4,12 +4,12 @@ An open source community platform (profiles, posts, comments, likes, follows) bu
 
 ## Stack
 
-| Layer    | Tech                                                        |
-| -------- | ----------------------------------------------------------- |
-| Web      | React 18, Vite, TypeScript, React Router, TanStack Query    |
-| API      | Node 20, Express, TypeScript, Mongoose, Zod, JWT            |
-| Shared   | Zod schemas + inferred types used by both web and API       |
-| Tooling  | npm workspaces, Prettier, Vitest, Docker, GitHub CI |
+| Layer   | Tech                                                     |
+| ------- | -------------------------------------------------------- |
+| Web     | React 18, Vite, TypeScript, React Router, TanStack Query |
+| API     | Node 20, Express, TypeScript, Mongoose, Zod, JWT         |
+| Shared  | Zod schemas + inferred types used by both web and API    |
+| Tooling | npm workspaces, Prettier, Vitest, Docker, GitHub CI      |
 
 ## Structure
 
@@ -34,6 +34,11 @@ docker compose up -d mongo      # or point MONGODB_URI at your own MongoDB
 npm install
 npm run dev                     # API on :4000, web on :5173
 ```
+
+## Deploying
+
+A free production setup (Vercel + Render + MongoDB Atlas + Cloudinary) is described step by step in
+[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## Becoming an admin
 
@@ -67,7 +72,6 @@ Log out and back in, and an **Admin** link appears in the header.
 ## License
 
 MIT
-
 
 # Commune
 

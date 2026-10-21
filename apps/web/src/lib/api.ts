@@ -1,6 +1,9 @@
 import type { AuthResponse } from "@commune/shared";
 
-const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:4000/api";
+// Production builds call the same origin ("/api"), which Vercel forwards to the API (see
+// apps/web/vercel.json). That keeps the login cookie first-party. Local dev talks to :4000.
+const BASE =
+  import.meta.env.VITE_API_URL ?? (import.meta.env.PROD ? "/api" : "http://localhost:4000/api");
 // Uploaded files are served from the API origin, e.g. http://localhost:4000/uploads/abc.png.
 // With a relative VITE_API_URL such as "/api" this is "", so "/uploads/..." stays relative.
 const ORIGIN = BASE.replace(/\/api\/?$/, "");
