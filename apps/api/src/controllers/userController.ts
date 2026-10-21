@@ -9,7 +9,7 @@ import { toProfileDTO, toPublicUser } from "../utils/serializers.js";
 import { sendPostPage } from "./postController.js";
 
 /** Usernames are case-insensitive, so lookups use the same collation as the unique index. */
-async function findByUsername(raw: string | undefined) {
+export async function findByUsername(raw: string | undefined) {
   const parsed = usernameSchema.safeParse(raw);
   if (!parsed.success) throw notFound("User not found");
   const user = await User.findOne({ username: parsed.data })

@@ -1,7 +1,9 @@
 import type { RequestHandler } from "express";
-import { unauthorized } from "../utils/errors.js";
+import { User } from "../models/User.js";
+import { forbidden, unauthorized } from "../utils/errors.js";
 import { verifyAccessToken } from "../utils/tokens.js";
 
+/** Verifies the access token. Stateless: no database lookup. */
 export const requireAuth: RequestHandler = (req, _res, next) => {
   const header = req.headers.authorization;
   if (!header?.startsWith("Bearer ")) return next(unauthorized("Missing access token"));
@@ -11,4 +13,27 @@ export const requireAuth: RequestHandler = (req, _res, next) => {
   } catch {
     next(unauthorized("Invalid or expired access token"));
   }
+};
+
+/**
+ * Use after requireAuth on routes that change things. Looks the user up so that suspended
+ * accounts are blocked immediately instead of when their access token expires, and so
+ * req.userRole is available to later middleware and handlers.
+ */
+export const requireActive: RequestHandler = async (req, _res, next) => {
+  try {
+    const user = await User.findById(req.userId).select("role banned").lean();
+    if (!user) return next(unauthorized("Account not found"));
+    if (user.banned) return next(forbidden("This account has been suspended"));
+    req.userRole = user.role === "admin" ? "admin" : "user";
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
+
+/** Use after requireActive. */
+export const requireAdmin: RequestHandler = (req, _res, next) => {
+  if (req.userRole !== "admin") return next(forbidden("Admins only"));
+  next();
 };

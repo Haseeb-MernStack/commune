@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import Avatar from "../components/Avatar";
 import PostList from "../components/PostList";
 import { useProfile, useToggleFollow, useUpdateProfile, useUserPosts } from "../hooks/useSocial";
+import { useBanUser, useUnbanUser } from "../hooks/useModeration";
 import { useUploadImage } from "../hooks/useUpload";
 import { validateImage } from "../lib/images";
 import { useAuth } from "../store/auth";
@@ -16,6 +17,8 @@ export default function ProfilePage() {
   const follow = useToggleFollow(username);
   const update = useUpdateProfile();
   const upload = useUploadImage();
+  const ban = useBanUser(username);
+  const unban = useUnbanUser(username);
   const [editing, setEditing] = useState(false);
   const [bio, setBio] = useState("");
   const [photoError, setPhotoError] = useState<string | null>(null);
@@ -27,6 +30,13 @@ export default function ProfilePage() {
   const p = profile.data;
   const isMe = me?.id === p.id;
   const photoBusy = upload.isPending || update.isPending;
+  const isAdmin = me?.role === "admin";
+
+  const suspend = () => {
+    if (!window.confirm(`Suspend @${p.username}? They will be logged out and unable to post.`)) return;
+    const removePosts = window.confirm("Also delete all of their posts?");
+    ban.mutate(removePosts);
+  };
 
   const startEditing = () => {
     setBio(p.bio);
@@ -143,6 +153,28 @@ export default function ProfilePage() {
         )}
 
         {follow.isError && <p className="error">{follow.error.message}</p>}
+
+        {p.banned && <p className="suspended">This account is suspended.</p>}
+        {isAdmin && !isMe && p.role !== "admin" && (
+          <div className="row">
+            {p.banned ? (
+              <button
+                className="btn btn-outline"
+                onClick={() => unban.mutate()}
+                disabled={unban.isPending}
+              >
+                Lift suspension
+              </button>
+            ) : (
+              <button className="btn btn-danger" onClick={suspend} disabled={ban.isPending}>
+                Suspend user
+              </button>
+            )}
+          </div>
+        )}
+        {(ban.isError || unban.isError) && (
+          <p className="error">{(ban.error ?? unban.error)?.message}</p>
+        )}
 
         <div className="profile-stats">
           <span>

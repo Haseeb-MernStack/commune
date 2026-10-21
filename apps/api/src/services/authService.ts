@@ -4,7 +4,7 @@ import type { AuthResponse, LoginInput, RegisterInput } from "@commune/shared";
 import { env, isProd } from "../config/env.js";
 import { RefreshToken } from "../models/RefreshToken.js";
 import { User } from "../models/User.js";
-import { conflict, unauthorized } from "../utils/errors.js";
+import { conflict, forbidden, unauthorized } from "../utils/errors.js";
 import { toPublicUser } from "../utils/serializers.js";
 import { generateRefreshToken, hashToken, signAccessToken } from "../utils/tokens.js";
 
@@ -62,6 +62,8 @@ export async function login(input: LoginInput, res: Response) {
   const user = await User.findOne({ email: input.email }).select("+passwordHash");
   const ok = await bcrypt.compare(input.password, user?.passwordHash ?? DUMMY_HASH);
   if (!user || !ok) throw unauthorized("Invalid email or password");
+  // Checked after the password so the message can't be used to discover which emails exist.
+  if (user.banned) throw forbidden("This account has been suspended");
   return issueSession(res, user);
 }
 
@@ -74,7 +76,7 @@ export async function refresh(presented: string | undefined, res: Response) {
     throw unauthorized("Session expired");
   }
   const user = await User.findById(record.user);
-  if (!user) {
+  if (!user || user.banned) {
     clearRefreshCookie(res);
     throw unauthorized("Session expired");
   }

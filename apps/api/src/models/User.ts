@@ -8,6 +8,8 @@ const userSchema = new Schema(
     passwordHash: { type: String, required: true, select: false },
     bio: { type: String, default: "", maxlength: 160 },
     avatarUrl: { type: String, default: null, index: true, sparse: true },
+    role: { type: String, enum: ["user", "admin"], default: "user" },
+    banned: { type: Boolean, default: false },
   },
   { timestamps: true },
 );

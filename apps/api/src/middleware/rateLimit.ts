@@ -21,6 +21,15 @@ export const uploadLimiter = rateLimit({
   message: { error: "Too many uploads, try again later." },
 });
 
+export const reportLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "You're reporting too fast, try again later." },
+});
+
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 20,

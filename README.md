@@ -35,6 +35,17 @@ npm install
 npm run dev                     # API on :4000, web on :5173
 ```
 
+## Becoming an admin
+
+Admins review reported posts at `/admin`. There is no signup rule or API for this, so nobody can
+claim the role by registering first. Register your account in the app, then run:
+
+```bash
+npm run make-admin -w @commune/api -- you@example.com
+```
+
+Log out and back in, and an **Admin** link appears in the header.
+
 ## Scripts
 
 - `npm run dev` runs API and web together
@@ -51,7 +62,7 @@ npm run dev                     # API on :4000, web on :5173
 - [x] Notifications (likes, comments, new followers) with unread badge
 - [x] Image uploads (post images and profile photos)
 - [ ] Real-time notifications (WebSockets / SSE instead of polling)
-- [ ] Moderation tools
+- [x] Moderation tools (reports, admin queue, post removal, account suspension)
 
 ## License
 

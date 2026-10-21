@@ -6,6 +6,9 @@ import type {
   PostDTO,
   ProfileDTO,
   PublicUser,
+  ReportDTO,
+  ReportReason,
+  ReportStatus,
 } from "@commune/shared";
 
 interface UserLike {
@@ -13,6 +16,8 @@ interface UserLike {
   username: string;
   bio?: string | null;
   avatarUrl?: string | null;
+  role?: string | null;
+  banned?: boolean | null;
   createdAt: Date;
 }
 
@@ -49,6 +54,22 @@ export interface PopulatedNotification {
   createdAt: Date;
 }
 
+export interface PopulatedReport {
+  _id: Types.ObjectId;
+  reason: ReportReason;
+  details?: string | null;
+  status: ReportStatus;
+  reporter: { _id: Types.ObjectId; username: string };
+  post: {
+    _id: Types.ObjectId;
+    content: string;
+    imageUrl?: string | null;
+    author: PopulatedAuthor;
+  } | null;
+  createdAt: Date;
+  resolvedAt?: Date | null;
+}
+
 const toAuthor = (a: PopulatedAuthor) => ({
   id: a._id.toString(),
   username: a.username,
@@ -61,6 +82,7 @@ export function toPublicUser(u: UserLike): PublicUser {
     username: u.username,
     bio: u.bio ?? "",
     avatarUrl: u.avatarUrl ?? null,
+    role: u.role === "admin" ? "admin" : "user",
     createdAt: u.createdAt.toISOString(),
   };
 }
@@ -70,7 +92,7 @@ export function toProfileDTO(
   counts: { followerCount: number; followingCount: number },
   followedByMe: boolean,
 ): ProfileDTO {
-  return { ...toPublicUser(u), ...counts, followedByMe };
+  return { ...toPublicUser(u), ...counts, followedByMe, banned: Boolean(u.banned) };
 }
 
 export function toPostDTO(p: PopulatedPost, likedByMe: boolean): PostDTO {
@@ -104,5 +126,25 @@ export function toNotificationDTO(n: PopulatedNotification): NotificationDTO {
     postId: n.post ? n.post.toString() : null,
     read: n.read,
     createdAt: n.createdAt.toISOString(),
+  };
+}
+
+export function toReportDTO(r: PopulatedReport): ReportDTO {
+  return {
+    id: r._id.toString(),
+    reason: r.reason,
+    details: r.details ?? "",
+    status: r.status,
+    reporter: { id: r.reporter._id.toString(), username: r.reporter.username },
+    post: r.post
+      ? {
+          id: r.post._id.toString(),
+          content: r.post.content,
+          imageUrl: r.post.imageUrl ?? null,
+          author: toAuthor(r.post.author),
+        }
+      : null,
+    createdAt: r.createdAt.toISOString(),
+    resolvedAt: r.resolvedAt ? r.resolvedAt.toISOString() : null,
   };
 }
