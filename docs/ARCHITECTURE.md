@@ -28,6 +28,12 @@ Commune is an npm-workspaces monorepo with three packages:
 | POST   | /api/auth/login           | no   | Log in                    |
 | POST   | /api/auth/refresh         | cookie | Rotate session          |
 | POST   | /api/auth/logout          | cookie | End session             |
+| POST   | /api/posts/:id/report     | yes  | Report a post (once per user) |
+| GET    | /api/admin/reports?status | admin | Report queue (open, resolved, dismissed) |
+| POST   | /api/admin/reports/:id/dismiss | admin | Dismiss a report      |
+| POST   | /api/admin/reports/:id/resolve | admin | Remove the post, optionally suspend its author |
+| POST   | /api/admin/users/:username/ban | admin | Suspend a user, optionally deleting their posts |
+| POST   | /api/admin/users/:username/unban | admin | Lift a suspension   |
 | POST   | /api/uploads              | yes  | Upload one image (multipart field `file`) |
 | GET    | /uploads/:file            | no   | Serve an uploaded image   |
 | GET    | /api/users/me             | yes  | Current user              |
@@ -104,3 +110,43 @@ Files are stored on local disk in `UPLOAD_DIR` (a Docker volume in `docker-compo
 access lives in `apps/api/src/services/uploadService.ts`. To use S3 or Cloudinary, replace
 `saveImage` and `deleteUploadIfUnused` there and return the new URL. On a multi-server deployment you
 must do this, because local disk is not shared between servers.
+
+## Moderation
+
+**Roles.** Every user is `user` or `admin`. The only way to become an admin is the command-line
+script (`npm run make-admin -w @commune/api -- you@example.com`), so the role cannot be gained
+through signup or any API.
+
+**Reporting.** Any logged-in user can report someone else's post with a reason and optional details
+(`POST /api/posts/:id/report`). A user can report a given post only once (unique index), cannot
+report their own posts, and is limited to 10 reports per 15 minutes.
+
+**Admin queue.** Admins see reports at `/admin`, filtered by Open, Resolved or Dismissed. For each
+open report they can:
+
+- **Dismiss:** close it, leaving the post up.
+- **Remove post:** delete the post, its comments, likes, notifications and image. Every other open
+  report about that post is closed too.
+- **Remove post and suspend author:** the above, plus suspension.
+
+Admins can also remove any post straight from the feed, and suspend or unsuspend users from their
+profile pages.
+
+**Suspension.** Suspending a user sets `banned`, deletes all of their refresh tokens (ending every
+session) and optionally deletes all of their posts. Suspended users:
+
+- cannot log in or refresh a session;
+- are blocked from every write action (post, comment, like, follow, report, upload) immediately,
+  even with a still-valid access token, because write routes run the `requireActive` middleware,
+  which checks the database;
+- can still read for up to the 15 minute lifetime of an access token they already hold.
+
+Admins cannot suspend themselves or other admins.
+
+**Middleware order.** Write routes run `requireAuth` (token check, no database), then rate limit and
+validation, then `requireActive` (database lookup for suspension and role). Validating first means
+malformed requests are rejected without a database query. Admin routes run `requireAdmin` right after
+`requireActive`.
+
+Known limitations: there is no appeal flow or moderation log yet, suspended users' posts stay visible
+unless an admin removes them, and reports cover posts only (not comments or profiles).

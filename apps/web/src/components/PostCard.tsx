@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { PostDTO } from "@commune/shared";
 import { useAuth } from "../store/auth";
 import { useDeletePost, useToggleLike } from "../hooks/usePosts";
 import { assetUrl } from "../lib/api";
 import Avatar from "./Avatar";
+import ReportForm from "./ReportForm";
 
 export function timeAgo(iso: string): string {
   const seconds = Math.max(1, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
@@ -17,7 +19,9 @@ export default function PostCard({ post }: { post: PostDTO }) {
   const { user } = useAuth();
   const like = useToggleLike();
   const del = useDeletePost();
+  const [reporting, setReporting] = useState(false);
   const mine = user?.id === post.author.id;
+  const isAdmin = user?.role === "admin";
 
   return (
     <article className="card post post-head">
@@ -52,15 +56,28 @@ export default function PostCard({ post }: { post: PostDTO }) {
           <Link className="btn btn-ghost" to={`/posts/${post.id}`}>
             💬 {post.commentCount}
           </Link>
-          {mine && (
+          {!mine && (
+            <button
+              className="btn btn-ghost"
+              onClick={() => setReporting((r) => !r)}
+              aria-expanded={reporting}
+            >
+              ⚑ Report
+            </button>
+          )}
+          {(mine || isAdmin) && (
             <button
               className="btn btn-ghost danger"
-              onClick={() => window.confirm("Delete this post?") && del.mutate(post.id)}
+              onClick={() =>
+                window.confirm(mine ? "Delete this post?" : "Remove this post as an admin?") &&
+                del.mutate(post.id)
+              }
             >
-              Delete
+              {mine ? "Delete" : "Remove"}
             </button>
           )}
         </div>
+        {reporting && <ReportForm postId={post.id} onClose={() => setReporting(false)} />}
       </div>
     </article>
   );

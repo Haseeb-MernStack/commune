@@ -4,10 +4,9 @@ import type { Page, PostDTO } from "@commune/shared";
 import { Comment } from "../models/Comment.js";
 import { Follow } from "../models/Follow.js";
 import { Like } from "../models/Like.js";
-import { Notification } from "../models/Notification.js";
 import { Post } from "../models/Post.js";
 import { notify } from "../services/notificationService.js";
-import { deleteUploadIfUnused } from "../services/uploadService.js";
+import { removePost } from "../services/moderationService.js";
 import { badRequest, forbidden, notFound } from "../utils/errors.js";
 import {
   toCommentDTO,
@@ -102,17 +101,14 @@ export async function createPost(req: Request, res: Response) {
 
 export async function deletePost(req: Request, res: Response) {
   const id = param(req, "id");
-  const post = await Post.findById(id).select("author imageUrl");
+  const post = await Post.findById(id).select("author").lean();
   if (!post) throw notFound("Post not found");
-  if (post.author.toString() !== req.userId) throw forbidden("You can only delete your own posts");
+  // Authors can delete their own posts; admins can remove anyone's.
+  if (post.author.toString() !== req.userId && req.userRole !== "admin") {
+    throw forbidden("You can only delete your own posts");
+  }
 
-  await Promise.all([
-    post.deleteOne(),
-    Comment.deleteMany({ post: id }),
-    Like.deleteMany({ post: id }),
-    Notification.deleteMany({ post: id }),
-  ]);
-  await deleteUploadIfUnused(post.imageUrl);
+  await removePost(id, req.userId);
   res.status(204).end();
 }
 

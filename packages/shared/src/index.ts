@@ -51,18 +51,47 @@ export const paginationSchema = z.object({
   feed: z.enum(["all", "following"]).default("all"),
 });
 
+// ---- Moderation ----
+
+export const REPORT_REASONS = ["spam", "harassment", "hate", "violence", "other"] as const;
+export const REPORT_STATUSES = ["open", "resolved", "dismissed"] as const;
+
+export const createReportSchema = z.object({
+  reason: z.enum(REPORT_REASONS),
+  details: z.string().trim().max(300).optional(),
+});
+
+export const resolveReportSchema = z.object({
+  action: z.enum(["remove_post", "remove_post_and_ban"]),
+});
+
+export const banUserSchema = z.object({
+  removePosts: z.boolean().default(false),
+});
+
+export const reportQuerySchema = paginationSchema.omit({ feed: true }).extend({
+  status: z.enum(REPORT_STATUSES).default("open"),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type CreatePostInput = z.infer<typeof createPostSchema>;
 export type CreateCommentInput = z.infer<typeof createCommentSchema>;
 export type PaginationInput = z.infer<typeof paginationSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+export type CreateReportInput = z.infer<typeof createReportSchema>;
+export type ResolveReportInput = z.infer<typeof resolveReportSchema>;
+export type BanUserInput = z.infer<typeof banUserSchema>;
+export type ReportReason = (typeof REPORT_REASONS)[number];
+export type ReportStatus = (typeof REPORT_STATUSES)[number];
+export type Role = "user" | "admin";
 
 export interface PublicUser {
   id: string;
   username: string;
   bio: string;
   avatarUrl: string | null;
+  role: Role;
   createdAt: string;
 }
 
@@ -105,6 +134,7 @@ export interface ProfileDTO extends PublicUser {
   followerCount: number;
   followingCount: number;
   followedByMe: boolean;
+  banned: boolean;
 }
 
 export type NotificationType = "like" | "comment" | "follow";
@@ -120,4 +150,16 @@ export interface NotificationDTO {
 
 export interface UploadResponse {
   url: string;
+}
+
+export interface ReportDTO {
+  id: string;
+  reason: ReportReason;
+  details: string;
+  status: ReportStatus;
+  reporter: Pick<PublicUser, "id" | "username">;
+  /** null when the reported post has since been deleted */
+  post: { id: string; content: string; imageUrl: string | null; author: AuthorDTO } | null;
+  createdAt: string;
+  resolvedAt: string | null;
 }

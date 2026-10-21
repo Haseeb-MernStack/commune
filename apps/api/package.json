@@ -8,7 +8,8 @@
     "build": "tsup src/server.ts --format esm --target node20 --clean",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "make-admin": "tsx src/scripts/makeAdmin.ts"
   },
   "dependencies": {
     "@commune/shared": "*",

@@ -9,6 +9,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ProfilePage from "./pages/ProfilePage";
 import NotificationsPage from "./pages/NotificationsPage";
+import AdminPage from "./pages/AdminPage";
 
 function Protected({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -28,6 +29,11 @@ function Header() {
       </Link>
       {user && (
         <nav className="header-right">
+          {user.role === "admin" && (
+            <Link to="/admin" className="nav-link">
+              Admin
+            </Link>
+          )}
           <Link to="/notifications" className="nav-link" aria-label={`Notifications, ${count} unread`}>
             🔔
             {count > 0 && <span className="badge">{count > 99 ? "99+" : count}</span>}
@@ -82,6 +88,14 @@ export default function App() {
             element={
               <Protected>
                 <NotificationsPage />
+              </Protected>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <Protected>
+                <AdminPage />
               </Protected>
             }
           />

@@ -1,22 +1,40 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import request from "supertest";
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createPostSchema, updateProfileSchema, uploadUrlSchema } from "@commune/shared";
 import { createApp } from "../app.js";
 import { uploadDir } from "../services/uploadService.js";
 import { detectImageType } from "../utils/images.js";
 import { signAccessToken } from "../utils/tokens.js";
+import { mockUser } from "./helpers.js";
 
 const app = createApp();
 const token = signAccessToken("507f1f77bcf86cd799439011");
 const auth = { Authorization: `Bearer ${token}` };
 
 // Minimal buffers that start with each format's real signature.
-const png = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.alloc(32)]);
+const png = Buffer.concat([
+  Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+  Buffer.alloc(32),
+]);
 const jpg = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(32)]);
 const gif = Buffer.concat([Buffer.from("GIF89a"), Buffer.alloc(32)]);
-const webp = Buffer.concat([Buffer.from("RIFF"), Buffer.alloc(4), Buffer.from("WEBP"), Buffer.alloc(16)]);
+const webp = Buffer.concat([
+  Buffer.from("RIFF"),
+  Buffer.alloc(4),
+  Buffer.from("WEBP"),
+  Buffer.alloc(16),
+]);
+
+// requireActive looks the user up in the database; tests have none, so return an active user.
+beforeEach(() => {
+  mockUser({ role: "user", banned: false });
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 afterAll(async () => {
   await fs.rm(uploadDir, { recursive: true, force: true });
@@ -33,7 +51,9 @@ describe("detectImageType", () => {
   it("rejects text, html, svg and empty buffers", () => {
     expect(detectImageType(Buffer.from("hello world"))).toBeNull();
     expect(detectImageType(Buffer.from("<html><script>alert(1)</script></html>"))).toBeNull();
-    expect(detectImageType(Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"></svg>'))).toBeNull();
+    expect(
+      detectImageType(Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"></svg>')),
+    ).toBeNull();
     expect(detectImageType(Buffer.alloc(0))).toBeNull();
   });
 });
