@@ -3,7 +3,8 @@
 // login returns 404" mistake). Locally it does nothing.
 import { readFileSync } from "node:fs";
 
-if (process.env.VERCEL) {
+// Set ALLOW_PLACEHOLDER_API=1 in Vercel to deploy the frontend before the API exists.
+if (process.env.VERCEL && !process.env.ALLOW_PLACEHOLDER_API) {
   const config = readFileSync(new URL("../vercel.json", import.meta.url), "utf8");
   if (config.includes("YOUR-API-NAME")) {
     console.error(

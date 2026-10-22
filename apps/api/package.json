@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsup",
+    "build:vercel": "tsup && node -e \"require('node:fs').mkdirSync('public',{recursive:true})\"",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
