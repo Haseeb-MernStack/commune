@@ -38,3 +38,13 @@ export const authLimiter = rateLimit({
   skip,
   message: { error: "Too many attempts, try again later." },
 });
+
+/** Anything that sends an email: forgot password and resend verification. */
+export const emailLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "Too many email requests, try again later." },
+});

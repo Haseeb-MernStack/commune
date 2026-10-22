@@ -10,6 +10,7 @@ const userSchema = new Schema(
     avatarUrl: { type: String, default: null, index: true, sparse: true },
     role: { type: String, enum: ["user", "admin"], default: "user" },
     banned: { type: Boolean, default: false },
+    emailVerified: { type: Boolean, default: false },
   },
   { timestamps: true },
 );

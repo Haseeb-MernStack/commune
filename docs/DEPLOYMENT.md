@@ -2,12 +2,12 @@
 
 The production setup uses four free services:
 
-| Piece           | Service           | Why                                                                                |
-| --------------- | ----------------- | ---------------------------------------------------------------------------------- |
-| Web app (React) | **Vercel**        | Static hosting and a global CDN                                                    |
-| API (Express)   | **Render**        | A long-running Node server, which Vercel's serverless functions are a poor fit for |
-| Database        | **MongoDB Atlas** | Free M0 cluster                                                                    |
-| Images          | **Cloudinary**    | Render's free disk is wiped on every restart, so uploads need cloud storage        |
+| Piece | Service | Why |
+| --- | --- | --- |
+| Web app (React) | **Vercel** | Static hosting and a global CDN |
+| API (Express) | **Render** | A long-running Node server, which Vercel's serverless functions are a poor fit for |
+| Database | **MongoDB Atlas** | Free M0 cluster |
+| Images | **Cloudinary** | Render's free disk is wiped on every restart, so uploads need cloud storage |
 
 ```
 Browser ──> Vercel (your-app.vercel.app)
@@ -45,6 +45,8 @@ Create a free account at cloudinary.com. On the dashboard copy the **Cloud name*
 2. Fill in the variables it asks for:
    - `MONGODB_URI`: the Atlas connection string from step 2
    - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`: from step 3
+   - `RESEND_API_KEY` and `EMAIL_FROM`: optional but needed for verification and password-reset
+     emails (see "Email" below)
    - `CLIENT_ORIGIN`: put `https://placeholder.vercel.app` for now; you will fix it in step 7
 3. Deploy. When it finishes, open `https://YOUR-API-NAME.onrender.com/api/health`. You should see
    `{"status":"ok", ...}`.
@@ -87,7 +89,37 @@ Log out and back in; the **Admin** link appears.
 - Post with an image, then reload and confirm the image still shows.
 - Open the app in a private window, create a second account, follow, report, and so on.
 
+## Email (verification and password reset)
+
+Commune sends emails through [Resend](https://resend.com) (free tier, plain HTTPS, no SMTP).
+
+1. Create a Resend account and an API key; set it as `RESEND_API_KEY` on Render.
+2. To send to **any** address you must verify a domain you own in Resend and set `EMAIL_FROM` to an
+   address on it, e.g. `Commune <no-reply@yourdomain.com>`. Without a verified domain Resend only
+   delivers to your own account email, which is fine for testing.
+3. `CLIENT_ORIGIN` must be your real Vercel address, because it is used to build the links in the
+   emails.
+4. Optional: set `REQUIRE_VERIFIED_EMAIL=true` to block posting, liking, commenting and following
+   until the email is confirmed. Leave it `false` until emails are working.
+
+Without `RESEND_API_KEY`, nothing is sent: in development the email is printed in the API log (copy
+the link from there); in production it is skipped with a warning.
+
 ## Troubleshooting
+
+### Vercel build fails
+
+- **`error TS2307: Cannot find module '@commune/shared'`.** The shared package must be consumed as
+  TypeScript source. Check that `packages/shared/package.json` has `"main": "src/index.ts"`,
+  `"types": "src/index.ts"` and `"exports": { ".": "./src/index.ts" }` (no `dist`), and that
+  `apps/web/tsconfig.json` has the `paths` entry for `@commune/shared`.
+- **Same error, config is correct.** In Vercel -> Settings -> General, **Root Directory** must be
+  `apps/web` with **Include source files outside of the Root Directory** enabled; the install
+  command comes from `apps/web/vercel.json` (`cd ../.. && npm install`).
+- **`vercel.json still contains YOUR-API-NAME`.** Expected: the build stops on purpose until you
+  put your real Render address in `apps/web/vercel.json` (step 5).
+- **Build passes, but login or API calls return 404 or HTML.** The `/api` rewrite points at the
+  wrong address. Open `https://<your-vercel-app>/api/health`; it should return JSON from Render.
 
 - **First request is slow (30-60 seconds).** Render's free plan puts the API to sleep after
   15 minutes without traffic. This is normal on the free plan; a paid plan or a free uptime monitor

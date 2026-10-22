@@ -68,6 +68,7 @@ Log out and back in, and an **Admin** link appears in the header.
 - [x] Image uploads (post images and profile photos)
 - [ ] Real-time notifications (WebSockets / SSE instead of polling)
 - [x] Moderation tools (reports, admin queue, post removal, account suspension)
+- [x] Email verification and password reset (Resend)
 
 ## License
 

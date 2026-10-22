@@ -18,6 +18,23 @@ export const loginSchema = z.object({
   password: z.string().min(1).max(128),
 });
 
+const passwordField = z.string().min(8).max(128);
+// Reset and verification tokens are 48 random bytes, hex encoded.
+const tokenField = z.string().regex(/^[a-f0-9]{96}$/, "This link is invalid");
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().trim().toLowerCase().email(),
+});
+
+export const resetPasswordSchema = z.object({
+  token: tokenField,
+  password: passwordField,
+});
+
+export const verifyEmailSchema = z.object({
+  token: tokenField,
+});
+
 /** Path of a file stored by the upload endpoint, e.g. /uploads/3f2a...c9.png */
 export const uploadUrlSchema = z
   .string()
@@ -75,6 +92,9 @@ export const reportQuerySchema = paginationSchema.omit({ feed: true }).extend({
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
 export type CreatePostInput = z.infer<typeof createPostSchema>;
 export type CreateCommentInput = z.infer<typeof createCommentSchema>;
 export type PaginationInput = z.infer<typeof paginationSchema>;
@@ -92,6 +112,7 @@ export interface PublicUser {
   bio: string;
   avatarUrl: string | null;
   role: Role;
+  emailVerified: boolean;
   createdAt: string;
 }
 

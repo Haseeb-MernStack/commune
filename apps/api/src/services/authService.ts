@@ -6,6 +6,7 @@ import { RefreshToken } from "../models/RefreshToken.js";
 import { User } from "../models/User.js";
 import { conflict, forbidden, unauthorized } from "../utils/errors.js";
 import { toPublicUser } from "../utils/serializers.js";
+import { sendVerificationEmailInBackground } from "./accountService.js";
 import { generateRefreshToken, hashToken, signAccessToken } from "../utils/tokens.js";
 
 export const REFRESH_COOKIE = "commune_rt";
@@ -55,6 +56,7 @@ export async function register(input: RegisterInput, res: Response) {
     email: input.email,
     passwordHash,
   });
+  sendVerificationEmailInBackground(user);
   return issueSession(res, user);
 }
 

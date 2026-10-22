@@ -4,13 +4,17 @@ import {
   createCommentSchema,
   createPostSchema,
   createReportSchema,
+  forgotPasswordSchema,
   loginSchema,
   paginationSchema,
   registerSchema,
   reportQuerySchema,
+  resetPasswordSchema,
   resolveReportSchema,
   updateProfileSchema,
+  verifyEmailSchema,
 } from "@commune/shared";
+import * as account from "../controllers/accountController.js";
 import * as admin from "../controllers/adminController.js";
 import * as auth from "../controllers/authController.js";
 import * as notifications from "../controllers/notificationController.js";
@@ -19,7 +23,7 @@ import * as reports from "../controllers/reportController.js";
 import * as uploads from "../controllers/uploadController.js";
 import * as users from "../controllers/userController.js";
 import { requireActive, requireAdmin, requireAuth } from "../middleware/auth.js";
-import { authLimiter, reportLimiter, uploadLimiter } from "../middleware/rateLimit.js";
+import { authLimiter, emailLimiter, reportLimiter, uploadLimiter } from "../middleware/rateLimit.js";
 import { parseImageUpload } from "../middleware/upload.js";
 import { validate } from "../middleware/validate.js";
 import { asyncHandler } from "../utils/errors.js";
@@ -42,6 +46,34 @@ router.post("/auth/register", authLimiter, validate(registerSchema), asyncHandle
 router.post("/auth/login", authLimiter, validate(loginSchema), asyncHandler(auth.login));
 router.post("/auth/refresh", authLimiter, asyncHandler(auth.refresh));
 router.post("/auth/logout", asyncHandler(auth.logout));
+
+// Email verification and password reset
+router.post(
+  "/auth/forgot-password",
+  emailLimiter,
+  validate(forgotPasswordSchema),
+  asyncHandler(account.forgotPassword),
+);
+router.post(
+  "/auth/reset-password",
+  authLimiter,
+  validate(resetPasswordSchema),
+  asyncHandler(account.resetPassword),
+);
+router.post(
+  "/auth/verify-email",
+  authLimiter,
+  validate(verifyEmailSchema),
+  asyncHandler(account.verifyEmail),
+);
+router.post(
+  // No requireActive here: with REQUIRE_VERIFIED_EMAIL on, unverified users must still be able
+  // to ask for a new link. The controller rejects suspended accounts itself.
+  "/auth/resend-verification",
+  requireAuth,
+  emailLimiter,
+  asyncHandler(account.resendVerification),
+);
 
 // Uploads (auth and rate limit run before the file is parsed)
 router.post(
@@ -69,12 +101,7 @@ router.get(
   validate(paginationSchema, "query"),
   asyncHandler(users.userPosts),
 );
-router.post(
-  "/users/:username/follow",
-  requireAuth,
-  requireActive,
-  asyncHandler(users.toggleFollow),
-);
+router.post("/users/:username/follow", requireAuth, requireActive, asyncHandler(users.toggleFollow));
 
 // Notifications
 router.get("/notifications", requireAuth, asyncHandler(notifications.list));
@@ -82,12 +109,7 @@ router.get("/notifications/unread-count", requireAuth, asyncHandler(notification
 router.post("/notifications/read", requireAuth, asyncHandler(notifications.markAllRead));
 
 // Posts
-router.get(
-  "/posts",
-  requireAuth,
-  validate(paginationSchema, "query"),
-  asyncHandler(posts.listPosts),
-);
+router.get("/posts", requireAuth, validate(paginationSchema, "query"), asyncHandler(posts.listPosts));
 router.post(
   "/posts",
   requireAuth,

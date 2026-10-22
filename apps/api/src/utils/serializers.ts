@@ -18,6 +18,7 @@ interface UserLike {
   avatarUrl?: string | null;
   role?: string | null;
   banned?: boolean | null;
+  emailVerified?: boolean | null;
   createdAt: Date;
 }
 
@@ -83,6 +84,7 @@ export function toPublicUser(u: UserLike): PublicUser {
     bio: u.bio ?? "",
     avatarUrl: u.avatarUrl ?? null,
     role: u.role === "admin" ? "admin" : "user",
+    emailVerified: Boolean(u.emailVerified),
     createdAt: u.createdAt.toISOString(),
   };
 }
