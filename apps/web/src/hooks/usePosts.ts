@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { CommentDTO, Page, PostDTO } from "@commune/shared";
+import type { CommentDTO, CreatePostInput, Page, PostDTO } from "@commune/shared";
 import { api, withQuery } from "../lib/api";
 
 export type FeedType = "all" | "following";
@@ -14,8 +14,13 @@ export function useFeed(feed: FeedType = "all") {
   });
 }
 
-export function usePost(id: string) {
-  return useQuery({ queryKey: ["post", id], queryFn: () => api<PostDTO>(`/posts/${id}`) });
+/** `pollWhileLocked` re-checks every 2s: after paying, the unlock arrives via a webhook. */
+export function usePost(id: string, pollWhileLocked = false) {
+  return useQuery({
+    queryKey: ["post", id],
+    queryFn: () => api<PostDTO>(`/posts/${id}`),
+    refetchInterval: (query) => (pollWhileLocked && query.state.data?.locked ? 2000 : false),
+  });
 }
 
 export function useComments(id: string) {
@@ -28,7 +33,7 @@ export function useComments(id: string) {
 export function useCreatePost() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: { content: string; imageUrl?: string | null }) =>
+    mutationFn: (input: CreatePostInput) =>
       api<PostDTO>("/posts", { method: "POST", body: input }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["feed"] }),
   });

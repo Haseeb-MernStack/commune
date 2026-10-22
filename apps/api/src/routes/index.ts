@@ -17,13 +17,14 @@ import {
 import * as account from "../controllers/accountController.js";
 import * as admin from "../controllers/adminController.js";
 import * as auth from "../controllers/authController.js";
+import * as payments from "../controllers/paymentController.js";
 import * as notifications from "../controllers/notificationController.js";
 import * as posts from "../controllers/postController.js";
 import * as reports from "../controllers/reportController.js";
 import * as uploads from "../controllers/uploadController.js";
 import * as users from "../controllers/userController.js";
 import { requireActive, requireAdmin, requireAuth } from "../middleware/auth.js";
-import { authLimiter, emailLimiter, reportLimiter, uploadLimiter } from "../middleware/rateLimit.js";
+import { authLimiter, checkoutLimiter, emailLimiter, reportLimiter, uploadLimiter } from "../middleware/rateLimit.js";
 import { parseImageUpload } from "../middleware/upload.js";
 import { validate } from "../middleware/validate.js";
 import { asyncHandler } from "../utils/errors.js";
@@ -94,6 +95,7 @@ router.patch(
   requireActive,
   asyncHandler(users.updateMe),
 );
+router.get("/users/me/earnings", requireAuth, asyncHandler(payments.earnings));
 router.get("/users/:username", requireAuth, asyncHandler(users.getProfile));
 router.get(
   "/users/:username/posts",
@@ -120,6 +122,13 @@ router.post(
 router.get("/posts/:id", requireAuth, asyncHandler(posts.getPost));
 router.delete("/posts/:id", requireAuth, requireActive, asyncHandler(posts.deletePost));
 router.post("/posts/:id/like", requireAuth, requireActive, asyncHandler(posts.toggleLike));
+router.post(
+  "/posts/:id/checkout",
+  requireAuth,
+  checkoutLimiter,
+  requireActive,
+  asyncHandler(payments.checkout),
+);
 router.get("/posts/:id/comments", requireAuth, asyncHandler(posts.listComments));
 router.post(
   "/posts/:id/comments",

@@ -5,6 +5,9 @@ const postSchema = new Schema(
     author: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     content: { type: String, trim: true, maxlength: 500, default: "" },
     imageUrl: { type: String, default: null, index: true, sparse: true },
+    // Paid posts: price in US cents and the content that is hidden until purchase.
+    priceCents: { type: Number, default: null, min: 100 },
+    premiumContent: { type: String, default: null, maxlength: 5000 },
     likeCount: { type: Number, default: 0, min: 0 },
     commentCount: { type: Number, default: 0, min: 0 },
   },

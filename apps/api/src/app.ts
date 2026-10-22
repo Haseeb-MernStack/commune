@@ -6,8 +6,10 @@ import { pinoHttp } from "pino-http";
 import { uploadUrlSchema } from "@commune/shared";
 import { env } from "./config/env.js";
 import { logger } from "./config/logger.js";
+import { asyncHandler } from "./utils/errors.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.js";
 import { globalLimiter } from "./middleware/rateLimit.js";
+import { lemonSqueezyWebhook, rawBody } from "./controllers/paymentController.js";
 import { router } from "./routes/index.js";
 import { cloudImageUrl, uploadDir, usesCloudStorage } from "./services/uploadService.js";
 
@@ -52,6 +54,10 @@ export function createApp() {
       }),
     );
   }
+
+  // The payment webhook needs the raw bytes to check the provider's signature, so it is
+  // registered before the JSON parser.
+  app.post("/api/webhooks/lemonsqueezy", rawBody, asyncHandler(lemonSqueezyWebhook));
 
   app.use(express.json({ limit: "10kb" }));
   app.use(cookieParser());

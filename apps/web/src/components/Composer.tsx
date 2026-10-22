@@ -4,6 +4,7 @@ import { useCreatePost } from "../hooks/usePosts";
 import { useUploadImage } from "../hooks/useUpload";
 import { assetUrl } from "../lib/api";
 import { validateImage } from "../lib/images";
+import { MAX_PREMIUM_LENGTH, MAX_PRICE_CENTS, MIN_PRICE_CENTS } from "@commune/shared";
 
 const MAX = 500;
 
@@ -11,6 +12,9 @@ export default function Composer() {
   const [content, setContent] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
+  const [paid, setPaid] = useState(false);
+  const [price, setPrice] = useState("5");
+  const [premium, setPremium] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const create = useCreatePost();
   const upload = useUploadImage();
@@ -31,17 +35,23 @@ export default function Composer() {
     });
   };
 
-  const canPost = (content.trim().length > 0 || imageUrl !== null) && !upload.isPending;
+  const priceCents = Math.round(Number(price) * 100);
+  const priceOk = priceCents >= MIN_PRICE_CENTS && priceCents <= MAX_PRICE_CENTS;
+  const paidOk = !paid || (priceOk && premium.trim().length > 0);
+  const canPost =
+    (content.trim().length > 0 || imageUrl !== null) && !upload.isPending && paidOk;
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!canPost) return;
     create.mutate(
-      { content, imageUrl },
+      { content, imageUrl, ...(paid ? { priceCents, premiumContent: premium } : {}) },
       {
         onSuccess: () => {
           setContent("");
           setImageUrl(null);
+          setPaid(false);
+          setPremium("");
         },
       },
     );
@@ -56,6 +66,30 @@ export default function Composer() {
         maxLength={MAX}
         rows={3}
       />
+
+      {paid && (
+        <div className="paid-fields">
+          <label>
+            Price (USD, {MIN_PRICE_CENTS / 100} to {MAX_PRICE_CENTS / 100})
+            <input
+              type="number"
+              min={MIN_PRICE_CENTS / 100}
+              max={MAX_PRICE_CENTS / 100}
+              step="0.5"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+            />
+          </label>
+          <textarea
+            value={premium}
+            onChange={(e) => setPremium(e.target.value)}
+            placeholder="The content people pay to unlock. The text above stays free as a teaser."
+            maxLength={MAX_PREMIUM_LENGTH}
+            rows={4}
+          />
+          {!priceOk && <p className="error">Enter a price within the range.</p>}
+        </div>
+      )}
 
       {upload.isPending && <p className="muted">Uploading image…</p>}
       {imageUrl && (
@@ -91,6 +125,10 @@ export default function Composer() {
           >
             🖼️ Photo
           </button>
+          <label className="row paid-toggle">
+            <input type="checkbox" checked={paid} onChange={(e) => setPaid(e.target.checked)} />
+            Paid
+          </label>
           <span className="muted">
             {content.length}/{MAX}
           </span>

@@ -48,3 +48,12 @@ export const emailLimiter = rateLimit({
   skip,
   message: { error: "Too many email requests, try again later." },
 });
+
+export const checkoutLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "Too many checkout attempts, try again later." },
+});

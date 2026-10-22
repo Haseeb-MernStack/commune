@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import type { PostDTO } from "@commune/shared";
 import { useAuth } from "../store/auth";
 import { useDeletePost, useToggleLike } from "../hooks/usePosts";
+import { formatPrice, useCheckout } from "../hooks/usePayments";
 import { assetUrl } from "../lib/api";
 import Avatar from "./Avatar";
 import ReportForm from "./ReportForm";
@@ -19,6 +20,7 @@ export default function PostCard({ post }: { post: PostDTO }) {
   const { user } = useAuth();
   const like = useToggleLike();
   const del = useDeletePost();
+  const checkout = useCheckout();
   const [reporting, setReporting] = useState(false);
   const mine = user?.id === post.author.id;
   const isAdmin = user?.role === "admin";
@@ -32,6 +34,9 @@ export default function PostCard({ post }: { post: PostDTO }) {
             @{post.author.username}
           </Link>
           <span className="muted">· {timeAgo(post.createdAt)}</span>
+          {post.priceCents != null && (
+            <span className="price-badge">{formatPrice(post.priceCents)}</span>
+          )}
         </div>
         {post.content && <p className="post-body">{post.content}</p>}
         {post.imageUrl && (
@@ -43,6 +48,27 @@ export default function PostCard({ post }: { post: PostDTO }) {
               loading="lazy"
             />
           </a>
+        )}
+        {post.locked && post.priceCents != null && (
+          <div className="paywall">
+            <p>🔒 The rest of this post is for people who unlock it.</p>
+            <button
+              className="btn"
+              disabled={checkout.isPending}
+              onClick={() => checkout.mutate(post.id)}
+            >
+              {checkout.isPending
+                ? "Opening checkout…"
+                : `Unlock for ${formatPrice(post.priceCents)}`}
+            </button>
+            {checkout.isError && <p className="error">{checkout.error.message}</p>}
+          </div>
+        )}
+        {post.premiumContent && (
+          <div className="premium">
+            <span className="premium-label">Unlocked content</span>
+            <p className="post-body">{post.premiumContent}</p>
+          </div>
         )}
         <div className="post-actions">
           <button

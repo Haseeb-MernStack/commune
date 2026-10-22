@@ -43,14 +43,31 @@ export const uploadUrlSchema = z
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 export const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp"] as const;
 
+/** Paid-post prices are in US cents: $1.00 to $500.00. */
+export const MIN_PRICE_CENTS = 100;
+export const MAX_PRICE_CENTS = 50000;
+export const MAX_PREMIUM_LENGTH = 5000;
+
 export const createPostSchema = z
   .object({
+    // For a paid post this is the free teaser everyone can see.
     content: z.string().trim().max(500),
     imageUrl: uploadUrlSchema.nullish(),
+    // Setting a price makes the post paid: premiumContent is shown only after purchase.
+    priceCents: z.number().int().min(MIN_PRICE_CENTS).max(MAX_PRICE_CENTS).nullish(),
+    premiumContent: z.string().trim().max(MAX_PREMIUM_LENGTH).nullish(),
   })
   .refine((v) => v.content.length > 0 || Boolean(v.imageUrl), {
     message: "Write something or attach an image",
     path: ["content"],
+  })
+  .refine((v) => v.priceCents == null || (v.premiumContent?.length ?? 0) > 0, {
+    message: "Add the content people will pay to unlock",
+    path: ["premiumContent"],
+  })
+  .refine((v) => v.priceCents != null || !v.premiumContent, {
+    message: "Set a price to publish paid content",
+    path: ["priceCents"],
   });
 
 export const createCommentSchema = z.object({
@@ -130,7 +147,25 @@ export interface PostDTO {
   likeCount: number;
   commentCount: number;
   likedByMe: boolean;
+  /** Price in US cents, or null for a free post. */
+  priceCents: number | null;
+  /** True when the post is paid and the viewer has not unlocked it (and isn't the author). */
+  locked: boolean;
+  /** The paid content. Always null while `locked`, and for free posts. */
+  premiumContent: string | null;
   createdAt: string;
+}
+
+export interface CheckoutResponse {
+  url: string;
+}
+
+export interface EarningsDTO {
+  currency: string;
+  sales: number;
+  grossCents: number;
+  feeCents: number;
+  netCents: number;
 }
 
 export interface CommentDTO {

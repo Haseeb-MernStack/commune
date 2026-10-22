@@ -105,6 +105,35 @@ Commune sends emails through [Resend](https://resend.com) (free tier, plain HTTP
 Without `RESEND_API_KEY`, nothing is sent: in development the email is printed in the API log (copy
 the link from there); in production it is skipped with a warning.
 
+## Paid posts (pay per view)
+
+Authors can mark a post as paid: everyone sees a free teaser, and the rest unlocks for a one-time
+price ($1 to $500). Checkout runs on [Lemon Squeezy](https://lemonsqueezy.com), which charges the
+buyer and handles sales tax. Commune keeps `PLATFORM_FEE_PERCENT` of each sale (default 20%) and
+credits the rest to the author's earnings, shown on their profile.
+
+**Before you rely on this: check that Lemon Squeezy (or Paddle) can pay out to your country and
+bank or PayPal, and read their seller terms.** Commune only records who bought what; it does not
+move money to authors.
+
+Setup:
+
+1. In Lemon Squeezy create a store and **one** product with one variant, priced anything (for
+   example $1). Commune overrides the price per post at checkout. Use test mode first.
+2. Settings -> API: create a key -> `LEMONSQUEEZY_API_KEY`. Copy the store id -> `LEMONSQUEEZY_STORE_ID`
+   and the variant id -> `LEMONSQUEEZY_VARIANT_ID`.
+3. Settings -> Webhooks -> add `https://<your-api>/api/webhooks/lemonsqueezy` (your API address, not
+   the website's), choose the events **order_created** and **order_refunded**, and set a signing
+   secret -> `LEMONSQUEEZY_WEBHOOK_SECRET`.
+4. Set all four variables on the API host and redeploy. Then buy a post with a test card.
+
+Without these variables, local development simulates purchases (nothing is charged), and
+production refuses checkout with "Payments are not set up yet".
+
+**Paying authors.** Earnings are a ledger (database rows), not payouts. At the end of each period,
+sum each author's earnings and pay them yourself (PayPal, bank transfer), outside Commune. A refund
+in Lemon Squeezy removes the sale from the author's earnings and re-locks the post for that buyer.
+
 ## Troubleshooting
 
 ### Vercel build fails
