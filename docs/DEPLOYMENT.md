@@ -145,3 +145,20 @@ the link from there); in production it is skipped with a warning.
 - **Costs when you outgrow free tiers.** Render's paid plan (always on) and Atlas M10 are the first
   upgrades; Cloudinary's free tier covers a lot of images.
 - **Environment variables** are listed in `.env.example`.
+
+## Alternative: API on Vercel (no card needed)
+
+Instead of Render, the API can run as a Vercel serverless function from a second Vercel project.
+
+1. Vercel -> **Add New** -> **Project** -> same repository, but **Root Directory** = `apps/api`
+   (keep "Include source files outside of the Root Directory" enabled). Name it e.g. `commune-api`.
+2. Environment variables for this project: `MONGODB_URI`, `JWT_ACCESS_SECRET` (32+ random
+   characters), `CLIENT_ORIGIN` (the web project's URL), `NODE_ENV=production`, `TRUST_PROXY=2`,
+   and the three `CLOUDINARY_*` values. Uploads **must** use Cloudinary here, because a function has
+   no persistent disk. In Atlas, Network Access must allow `0.0.0.0/0`.
+3. Deploy. `https://<api-project>.vercel.app/api/health` should return `{"status":"ok", ...}`.
+4. In `apps/web/vercel.json`, point both rewrites at `https://<api-project>.vercel.app` instead of
+   Render, push, and remove `ALLOW_PLACEHOLDER_API` from the web project.
+
+Limits: the first request after idle is slower (cold start) and rate-limit counters are per
+instance, so they are weaker than on a single server.
