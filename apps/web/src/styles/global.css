@@ -356,3 +356,191 @@ a {
 .notification.unread {
   border-left: 4px solid var(--accent);
 }
+
+/* ---- Avatars and images ---- */
+.avatar {
+  flex: none;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--border);
+}
+
+.avatar-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent);
+}
+
+.post-head {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.post-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.post-image {
+  display: block;
+  max-width: 100%;
+  max-height: 480px;
+  margin: 0 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.nav-profile {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.profile-id {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.image-preview {
+  position: relative;
+  display: inline-block;
+  margin-top: 10px;
+}
+
+.image-preview img {
+  display: block;
+  max-width: 100%;
+  max-height: 240px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.image-remove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* ---- Moderation ---- */
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--danger);
+  filter: brightness(0.9);
+}
+
+.suspended {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.report-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.report-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.report-form select,
+.report-form textarea {
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.report {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.report-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.report-details {
+  margin: 0;
+  font-style: italic;
+}
+
+.report-post {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+}
+
+.report-post .post-body {
+  margin-bottom: 6px;
+}
+
+.report-actions {
+  flex-wrap: wrap;
+}
+
+/* ---- Email verification banner and notices ---- */
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 16px;
+  background: #fef3c7;
+  color: #78350f;
+  font-size: 14px;
+}
+
+.notice {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #dcfce7;
+  color: #14532d;
+  font-size: 14px;
+}
+
+.right {
+  text-align: right;
+  margin: 0;
+  font-size: 14px;
+}

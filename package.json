@@ -13,8 +13,8 @@
   },
   "scripts": {
     "dev": "concurrently -n api,web -c blue,green \"npm run dev -w @commune/api\" \"npm run dev -w @commune/web\"",
-    "build": "npm run build -w @commune/shared && npm run build -w @commune/api && npm run build -w @commune/web",
-    "typecheck": "npm run build -w @commune/shared && npm run typecheck -w @commune/api && npm run typecheck -w @commune/web",
+    "build": "npm run build -w @commune/api && npm run build -w @commune/web",
+    "typecheck": "npm run typecheck -w @commune/shared && npm run typecheck -w @commune/api && npm run typecheck -w @commune/web",
     "test": "npm run test -w @commune/api",
     "format": "prettier --write ."
   },

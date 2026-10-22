@@ -1,4 +1,5 @@
 import type { RequestHandler } from "express";
+import { env } from "../config/env.js";
 import { User } from "../models/User.js";
 import { forbidden, unauthorized } from "../utils/errors.js";
 import { verifyAccessToken } from "../utils/tokens.js";
@@ -22,9 +23,12 @@ export const requireAuth: RequestHandler = (req, _res, next) => {
  */
 export const requireActive: RequestHandler = async (req, _res, next) => {
   try {
-    const user = await User.findById(req.userId).select("role banned").lean();
+    const user = await User.findById(req.userId).select("role banned emailVerified").lean();
     if (!user) return next(unauthorized("Account not found"));
     if (user.banned) return next(forbidden("This account has been suspended"));
+    if (env.REQUIRE_VERIFIED_EMAIL && !user.emailVerified) {
+      return next(forbidden("Verify your email address to do this"));
+    }
     req.userRole = user.role === "admin" ? "admin" : "user";
     next();
   } catch (err) {

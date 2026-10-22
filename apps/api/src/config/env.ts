@@ -23,6 +23,18 @@ const schema = z.object({
   CLOUDINARY_CLOUD_NAME: z.string().optional(),
   CLOUDINARY_API_KEY: z.string().optional(),
   CLOUDINARY_API_SECRET: z.string().optional(),
+  // Transactional email through Resend (https://resend.com). Without a key, emails are only
+  // printed to the API log in development and are not sent in production.
+  RESEND_API_KEY: z.string().optional(),
+  EMAIL_FROM: z
+    .string()
+    .optional()
+    .transform((v) => v?.trim() || "Commune <onboarding@resend.dev>"),
+  // "true" blocks posting, liking, commenting and following until the email is verified.
+  REQUIRE_VERIFIED_EMAIL: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((v) => v === "true"),
 });
 
 const parsed = schema.safeParse(process.env);

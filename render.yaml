@@ -32,3 +32,10 @@ services:
         sync: false
       - key: CLOUDINARY_API_SECRET
         sync: false
+      # Email (Resend). Optional; without a key no emails are sent.
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: REQUIRE_VERIFIED_EMAIL
+        value: false

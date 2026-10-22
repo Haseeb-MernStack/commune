@@ -1,12 +1,13 @@
 import { useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { loginSchema, registerSchema } from "@commune/shared";
 import { useAuth } from "../store/auth";
 
 export default function AuthForm({ mode }: { mode: "login" | "register" }) {
   const { user, login, register } = useAuth();
   const navigate = useNavigate();
+  const notice = (useLocation().state as { notice?: string } | null)?.notice;
   const [fields, setFields] = useState({ username: "", email: "", password: "" });
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -61,7 +62,13 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
           autoComplete={mode === "login" ? "current-password" : "new-password"}
         />
       </label>
+      {notice && mode === "login" && <p className="notice">{notice}</p>}
       {error && <p className="error">{error}</p>}
+      {mode === "login" && (
+        <p className="muted right">
+          <Link to="/forgot-password">Forgot your password?</Link>
+        </p>
+      )}
       <button className="btn block" disabled={busy}>
         {busy ? "Please wait…" : mode === "login" ? "Log in" : "Create account"}
       </button>

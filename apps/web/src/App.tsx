@@ -10,6 +10,10 @@ import RegisterPage from "./pages/RegisterPage";
 import ProfilePage from "./pages/ProfilePage";
 import NotificationsPage from "./pages/NotificationsPage";
 import AdminPage from "./pages/AdminPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPassword";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
+import VerifyBanner from "./components/VerifyBanner";
 
 function Protected({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -55,10 +59,14 @@ export default function App() {
   return (
     <>
       <Header />
+      <VerifyBanner />
       <main className="container">
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route
             path="/"
             element={
