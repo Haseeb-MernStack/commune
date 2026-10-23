@@ -9,7 +9,12 @@ const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().default(4000),
   MONGODB_URI: z.string().min(1),
-  CLIENT_ORIGIN: z.string().url(),
+  // The web app's address. A trailing slash is removed: browsers send Origin without one, and
+  // CORS compares it exactly.
+  CLIENT_ORIGIN: z
+    .string()
+    .url()
+    .transform((v) => v.trim().replace(/\/+$/, "")),
   JWT_ACCESS_SECRET: z.string().min(32, "JWT_ACCESS_SECRET must be at least 32 characters"),
   ACCESS_TOKEN_TTL: z.string().default("15m"),
   REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().positive().default(30),

@@ -29,7 +29,7 @@ function Header() {
   return (
     <header className="header">
       <Link to="/" className="brand">
-        commune
+        Commune
       </Link>
       {user && (
         <nav className="header-right">
