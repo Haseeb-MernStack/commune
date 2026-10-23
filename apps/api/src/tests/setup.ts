@@ -12,6 +12,11 @@ process.env.CLOUDINARY_CLOUD_NAME = "";
 process.env.CLOUDINARY_API_KEY = "";
 process.env.CLOUDINARY_API_SECRET = "";
 process.env.RESEND_API_KEY = "";
+process.env.LEMONSQUEEZY_API_KEY = "";
+process.env.LEMONSQUEEZY_STORE_ID = "";
+process.env.LEMONSQUEEZY_VARIANT_ID = "";
+process.env.LEMONSQUEEZY_WEBHOOK_SECRET = "";
+process.env.PLATFORM_FEE_PERCENT = "20";
 process.env.REQUIRE_VERIFIED_EMAIL = "false";
 // Tests write uploaded files to a throwaway folder, never into the project.
 process.env.UPLOAD_DIR = path.join(os.tmpdir(), "commune-test-uploads");

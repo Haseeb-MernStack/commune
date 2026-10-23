@@ -32,6 +32,8 @@ export interface PopulatedPost {
   _id: Types.ObjectId;
   content: string;
   imageUrl?: string | null;
+  priceCents?: number | null;
+  premiumContent?: string | null;
   author: PopulatedAuthor;
   likeCount: number;
   commentCount: number;
@@ -97,7 +99,13 @@ export function toProfileDTO(
   return { ...toPublicUser(u), ...counts, followedByMe, banned: Boolean(u.banned) };
 }
 
-export function toPostDTO(p: PopulatedPost, likedByMe: boolean): PostDTO {
+/**
+ * `unlocked` must be true for the author and for buyers. This is the single place that decides
+ * whether premium content leaves the server, so it never defaults to true.
+ */
+export function toPostDTO(p: PopulatedPost, likedByMe: boolean, unlocked: boolean): PostDTO {
+  const paid = p.priceCents != null;
+  const locked = paid && !unlocked;
   return {
     id: p._id.toString(),
     content: p.content,
@@ -106,6 +114,9 @@ export function toPostDTO(p: PopulatedPost, likedByMe: boolean): PostDTO {
     likeCount: p.likeCount,
     commentCount: p.commentCount,
     likedByMe,
+    priceCents: p.priceCents ?? null,
+    locked,
+    premiumContent: paid && !locked ? (p.premiumContent ?? "") : null,
     createdAt: p.createdAt.toISOString(),
   };
 }

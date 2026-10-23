@@ -544,3 +544,61 @@ a {
   margin: 0;
   font-size: 14px;
 }
+
+/* ---- Paid posts ---- */
+.price-badge {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.paywall,
+.premium {
+  margin: 10px 0;
+  padding: 12px 14px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+
+.paywall p {
+  margin: 0 0 10px;
+}
+
+.premium {
+  border-style: solid;
+  border-color: var(--accent);
+}
+
+.premium-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.paid-fields {
+  display: grid;
+  gap: 8px;
+}
+
+.paid-toggle {
+  gap: 4px;
+  font-size: 14px;
+}
+
+.earnings {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.earnings div {
+  display: grid;
+}

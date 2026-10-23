@@ -1,13 +1,16 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import Avatar from "../components/Avatar";
 import PostCard, { timeAgo } from "../components/PostCard";
 import { useAddComment, useComments, usePost } from "../hooks/usePosts";
 
 export default function PostPage() {
   const { id = "" } = useParams();
-  const post = usePost(id);
+  const [params] = useSearchParams();
+  // Coming back from checkout: the unlock arrives by webhook, so keep checking for a moment.
+  const justPaid = params.get("unlocked") === "1";
+  const post = usePost(id, justPaid);
   const comments = useComments(id);
   const add = useAddComment(id);
   const [content, setContent] = useState("");
@@ -25,6 +28,9 @@ export default function PostPage() {
       </Link>
       {post.isLoading && <p className="muted center">Loading…</p>}
       {post.isError && <p className="error center">Post not found.</p>}
+      {justPaid && post.data?.locked && (
+        <p className="notice">Payment received. Unlocking your post, this takes a few seconds…</p>
+      )}
       {post.data && <PostCard post={post.data} />}
 
       <form className="card composer" onSubmit={submit}>

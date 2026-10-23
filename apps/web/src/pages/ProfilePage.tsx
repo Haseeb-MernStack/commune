@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import { useParams } from "react-router-dom";
 import Avatar from "../components/Avatar";
+import EarningsCard from "../components/EarningsCard";
 import PostList from "../components/PostList";
 import { useProfile, useToggleFollow, useUpdateProfile, useUserPosts } from "../hooks/useSocial";
 import { useBanUser, useUnbanUser } from "../hooks/useModeration";
@@ -92,6 +93,8 @@ export default function ProfilePage() {
             </button>
           )}
         </div>
+
+        {isMe && <EarningsCard />}
 
         {isMe && editing && (
           <div className="row">

@@ -6,6 +6,7 @@ import { Follow } from "../models/Follow.js";
 import { Like } from "../models/Like.js";
 import { Post } from "../models/Post.js";
 import { notify } from "../services/notificationService.js";
+import { unlockedPostIds } from "../services/purchaseService.js";
 import { removePost } from "../services/moderationService.js";
 import { badRequest, forbidden, notFound } from "../utils/errors.js";
 import {
@@ -38,6 +39,13 @@ async function loadPost(id: string): Promise<PopulatedPost> {
   return post;
 }
 
+/** Builds the DTO for a single post as seen by this viewer (paid content only if unlocked). */
+async function withViewer(userId: string, post: PopulatedPost, liked: Set<string>) {
+  const unlocked = await unlockedPostIds(userId, [post]);
+  const key = post._id.toString();
+  return toPostDTO(post, liked.has(key), unlocked.has(key) || post.priceCents == null);
+}
+
 /**
  * Sends one cursor-paginated page of posts matching `baseFilter`.
  * Expects validated pagination params in res.locals.query (see the validate middleware).
@@ -64,8 +72,12 @@ export async function sendPostPage(
     posts.map((p) => p._id),
   );
 
+  const unlocked = await unlockedPostIds(req.userId!, posts);
   const body: Page<PostDTO> = {
-    items: posts.map((p) => toPostDTO(p, liked.has(p._id.toString()))),
+    items: posts.map((p) => {
+      const key = p._id.toString();
+      return toPostDTO(p, liked.has(key), unlocked.has(key) || p.priceCents == null);
+    }),
     nextCursor: hasMore ? (posts[posts.length - 1]?._id.toString() ?? null) : null,
   };
   res.json(body);
@@ -86,7 +98,7 @@ export async function listPosts(req: Request, res: Response) {
 export async function getPost(req: Request, res: Response) {
   const post = await loadPost(param(req, "id"));
   const liked = await likedSet(req.userId!, [post._id]);
-  res.json(toPostDTO(post, liked.has(post._id.toString())));
+  res.json(await withViewer(req.userId!, post, liked));
 }
 
 export async function createPost(req: Request, res: Response) {
@@ -94,9 +106,12 @@ export async function createPost(req: Request, res: Response) {
     author: req.userId,
     content: req.body.content,
     imageUrl: req.body.imageUrl ?? null,
+    priceCents: req.body.priceCents ?? null,
+    premiumContent: req.body.priceCents != null ? req.body.premiumContent : null,
   });
   const post = await loadPost(created._id.toString());
-  res.status(201).json(toPostDTO(post, false));
+  // The author can always read their own paid content.
+  res.status(201).json(toPostDTO(post, false, true));
 }
 
 export async function deletePost(req: Request, res: Response) {
@@ -134,7 +149,7 @@ export async function toggleLike(req: Request, res: Response) {
 
   const post = await loadPost(id);
   const liked = await likedSet(req.userId!, [post._id]);
-  res.json(toPostDTO(post, liked.has(post._id.toString())));
+  res.json(await withViewer(req.userId!, post, liked));
 }
 
 export async function listComments(req: Request, res: Response) {

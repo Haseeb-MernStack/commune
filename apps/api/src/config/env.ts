@@ -30,6 +30,14 @@ const schema = z.object({
     .string()
     .optional()
     .transform((v) => v?.trim() || "Commune <onboarding@resend.dev>"),
+  // Paid posts, through Lemon Squeezy (https://lemonsqueezy.com). All four are needed for real
+  // checkouts. Outside production, with none set, purchases are simulated so you can test.
+  LEMONSQUEEZY_API_KEY: z.string().optional(),
+  LEMONSQUEEZY_STORE_ID: z.string().optional(),
+  LEMONSQUEEZY_VARIANT_ID: z.string().optional(),
+  LEMONSQUEEZY_WEBHOOK_SECRET: z.string().optional(),
+  // Share of each sale the platform keeps; the rest is credited to the post's author.
+  PLATFORM_FEE_PERCENT: z.coerce.number().min(0).max(100).default(20),
   // "true" blocks posting, liking, commenting and following until the email is verified.
   REQUIRE_VERIFIED_EMAIL: z
     .enum(["true", "false"])
