@@ -1,13 +1,13 @@
 {
-  "installCommand":"cd ../.. && npm install",
+  "installCommand":"cd ../.. && npm install --include=dev",
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://YOUR-API-NAME.onrender.com/api/:path*"
+      "destination": "https://commune-8im5.vercel.app/api/:path*"
     },
     {
       "source": "/uploads/:path*",
-      "destination": "https://YOUR-API-NAME.onrender.com/uploads/:path*"
+      "destination": "https://commune-8im5.vercel.app/uploads/:path*"
     },
     {
       "source": "/(.*)",
