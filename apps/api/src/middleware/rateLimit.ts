@@ -66,3 +66,13 @@ export const searchLimiter = rateLimit({
   skip,
   message: { error: "Searching too fast, try again in a moment." },
 });
+
+/** Unauthenticated read-only endpoints (the public Explore page). */
+export const publicLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 60,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "Too many requests, slow down." },
+});

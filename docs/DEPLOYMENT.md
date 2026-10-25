@@ -134,6 +134,51 @@ production refuses checkout with "Payments are not set up yet".
 sum each author's earnings and pay them yourself (PayPal, bank transfer), outside Commune. A refund
 in Lemon Squeezy removes the sale from the author's earnings and re-locks the post for that buyer.
 
+## Sign in with Google
+
+1. Google Cloud Console -> create a project -> **APIs & Services** -> **OAuth consent screen**
+   (External; app name Commune; your support email). Publish it to production when ready.
+2. **Credentials** -> **Create credentials** -> **OAuth client ID** -> type **Web application**.
+   Under **Authorized JavaScript origins** add `https://your-site.vercel.app` (your real address,
+   no trailing slash) and `http://localhost:5173`. You do not need a redirect URI.
+3. Copy the client ID (ends in `.apps.googleusercontent.com`) and set it in **two** places:
+   - API project: `GOOGLE_CLIENT_ID`
+   - Web project: `VITE_GOOGLE_CLIENT_ID` (rebuild without cache; Vite bakes it in at build time)
+4. Visit /login: the Google button appears. New Google users get an account with a username made
+   from their name, a verified email, and no usable password (they can set one with "Forgot
+   password").
+
+If someone had already registered the same email with a password but never verified it, signing in
+with Google links the accounts, cancels that password and signs out its sessions.
+
+## Ads (Google AdSense)
+
+Ads appear only on the public **Explore** page (also the home page for logged-out visitors) in
+production builds, labelled "Advertisement", one after every 5 posts. Nothing renders until the
+variables below are set.
+
+**Read this first:**
+- AdSense approval is **not guaranteed** and is decided by Google. They review the live site. Use a
+  domain you own (a `*.vercel.app` address is often rejected; add a custom domain in Vercel), and
+  make sure the home page has real public content (the Explore page provides this).
+- Ads are only allowed on pages Google's crawler can read. The logged-in app is not, so Commune
+  does **not** show ads there. Do not add ad slots to logged-in pages without checking AdSense
+  policy for login-protected content.
+- Never click your own ads or ask friends to; it gets the account banned. Avoid ads next to paid
+  content. Check AdSense's rules for user-generated content and your payout options for your
+  country before relying on this income.
+- If you serve visitors in the EU, UK or Switzerland you need a consent message: enable
+  **Privacy & messaging** in the AdSense dashboard (free) and publish a privacy policy page.
+- Expect small earnings until the site has steady traffic. Treat it as a bonus, not a salary.
+
+Setup once AdSense approves the site:
+
+1. Replace the placeholder in `apps/web/public/ads.txt` with your line
+   (`google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0`).
+2. Create a **Display ad** unit (responsive) in AdSense and copy its slot id.
+3. Web project environment variables: `VITE_ADSENSE_CLIENT` = `ca-pub-XXXXXXXXXXXXXXXX` and
+   `VITE_ADSENSE_FEED_SLOT` = the slot id. Redeploy without build cache.
+
 ## Troubleshooting
 
 ### Vercel build fails

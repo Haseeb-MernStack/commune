@@ -20,3 +20,7 @@ export async function logout(req: Request, res: Response) {
   await authService.logout(presented, res);
   res.status(204).end();
 }
+
+export async function google(req: Request, res: Response) {
+  res.json(await authService.loginWithGoogle(req.body.credential, res));
+}

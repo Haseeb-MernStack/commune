@@ -17,11 +17,19 @@ import VerifyBanner from "./components/VerifyBanner";
 import SearchPage from "./pages/SearchPage";
 import SearchBox from "./components/SearchBox";
 import PwaBanner from "./components/PwaBanner";
+import ExplorePage from "./pages/ExplorePage";
 
 function Protected({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return <p className="muted center">Loading…</p>;
   return user ? <>{children}</> : <Navigate to="/login" replace />;
+}
+
+/** "/" shows the feed to members and the public Explore page to everyone else. */
+function Home() {
+  const { user, loading } = useAuth();
+  if (loading) return <p className="muted center">Loading…</p>;
+  return user ? <FeedPage /> : <ExplorePage />;
 }
 
 function Header() {
@@ -35,6 +43,16 @@ function Header() {
         Commune
       </Link>
       {user && <SearchBox />}{" "}
+      {!user && (
+        <nav className="header-right">
+          <Link to="/login" className="nav-link">
+            Log in
+          </Link>
+          <Link to="/register" className="btn">
+            Sign up
+          </Link>
+        </nav>
+      )}
       {user && (
         <nav className="header-right">
           {user.role === "admin" && (
@@ -71,17 +89,11 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/explore" element={<ExplorePage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
-          <Route
-            path="/"
-            element={
-              <Protected>
-                <FeedPage />
-              </Protected>
-            }
-          />
+          <Route path="/" element={<Home />} />
           <Route
             path="/posts/:id"
             element={

@@ -70,6 +70,7 @@ Log out and back in, and an **Admin** link appears in the header.
 - [x] Moderation tools (reports, admin queue, post removal, account suspension)
 - [x] Email verification and password reset (Resend)
 - [x] Paid posts (pay to unlock, Lemon Squeezy checkout, creator earnings ledger)
+- [x] Sign in with Google; public Explore page with optional AdSense ads
 
 ## License
 
