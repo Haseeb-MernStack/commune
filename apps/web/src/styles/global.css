@@ -602,3 +602,68 @@ a {
 .earnings div {
   display: grid;
 }
+
+/* ---- Search ---- */
+.search-box {
+  flex: 1;
+  max-width: 320px;
+  margin: 0 12px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.search-title {
+  font-size: 18px;
+  margin: 0 0 12px;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab {
+  padding: 8px 14px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.tab.active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+  font-weight: 700;
+}
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.person p {
+  margin: 2px 0 0;
+  font-size: 14px;
+}
+
+@media (max-width: 600px) {
+  .search-box {
+    max-width: 140px;
+    margin: 0 6px;
+  }
+}

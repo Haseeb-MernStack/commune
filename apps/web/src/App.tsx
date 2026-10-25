@@ -14,6 +14,8 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPassword";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import VerifyBanner from "./components/VerifyBanner";
+import SearchPage from "./pages/SearchPage";
+import SearchBox from "./components/SearchBox";
 
 function Protected({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -31,7 +33,7 @@ function Header() {
       <Link to="/" className="brand">
         Commune
       </Link>
-      {user && (
+      {user && <SearchBox/>} { user && (
         <nav className="header-right">
           {user.role === "admin" && (
             <Link to="/admin" className="nav-link">
@@ -104,6 +106,15 @@ export default function App() {
             element={
               <Protected>
                 <AdminPage />
+              </Protected>
+            }
+          />
+
+          <Route
+            path="/search"
+            element={
+              <Protected>
+                <SearchPage />
               </Protected>
             }
           />

@@ -57,3 +57,12 @@ export const checkoutLimiter = rateLimit({
   skip,
   message: { error: "Too many checkout attempts, try again later." },
 });
+
+export const searchLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 40,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "Searching too fast, try again in a moment." },
+});
