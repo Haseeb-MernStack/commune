@@ -667,3 +667,62 @@ a {
     margin: 0 6px;
   }
 }
+
+/* ---- Installed app (PWA) ---- */
+/* Keep content clear of notches and the home indicator on phones. */
+.header {
+  padding-top: calc(12px + env(safe-area-inset-top));
+  padding-left: max(20px, env(safe-area-inset-left));
+  padding-right: max(20px, env(safe-area-inset-right));
+}
+
+.container {
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  overscroll-behavior-y: none;
+}
+
+.pwa-bars {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  display: grid;
+  gap: 8px;
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+  pointer-events: none;
+}
+
+.pwa-bar {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  max-width: 560px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  box-shadow: 0 6px 24px rgb(0 0 0 / 0.18);
+}
+
+.pwa-offline {
+  background: #fef3c7;
+  border-color: #fde68a;
+  color: #78350f;
+  justify-content: center;
+}

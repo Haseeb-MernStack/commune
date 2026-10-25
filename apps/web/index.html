@@ -2,13 +2,44 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Commune, an open source community platform" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
     <title>Commune</title>
+    <meta name="description" content="Commune is an open source community platform. Share posts, follow people and join the conversation." />
+    <meta name="application-name" content="Commune" />
+
+    <!-- Browser UI colours follow the user's light or dark setting. -->
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f6f5f1" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#141412" media="(prefers-color-scheme: dark)" />
+
+    <!-- Icons and installable web app (PWA) -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Commune" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- Link previews. Add og:image (an absolute https URL to a 1200x630 image) once you have one. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Commune" />
+    <meta property="og:title" content="Commune" />
+    <meta property="og:description" content="An open source community platform. Share posts, follow people and join the conversation." />
+    <meta name="twitter:card" content="summary" />
+
+    <!-- Paint the right background immediately, so there is no white flash before the CSS loads. -->
+    <style>
+      html, body { margin: 0; background: #f6f5f1; }
+      @media (prefers-color-scheme: dark) { html, body { background: #141412; color: #efede6; } }
+      .boot { font-family: system-ui, sans-serif; text-align: center; padding: 40vh 16px 0; color: #6f6c64; }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><p class="boot">Loading Commune…</p></div>
+    <noscript>Commune needs JavaScript to run. Please enable it in your browser settings.</noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
