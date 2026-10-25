@@ -5,6 +5,7 @@ import {
   createPostSchema,
   createReportSchema,
   forgotPasswordSchema,
+  googleLoginSchema,
   loginSchema,
   paginationSchema,
   registerSchema,
@@ -22,11 +23,12 @@ import * as payments from "../controllers/paymentController.js";
 import * as notifications from "../controllers/notificationController.js";
 import * as posts from "../controllers/postController.js";
 import * as reports from "../controllers/reportController.js";
+import * as publicApi from "../controllers/publicController.js";
 import * as search from "../controllers/searchController.js";
 import * as uploads from "../controllers/uploadController.js";
 import * as users from "../controllers/userController.js";
 import { requireActive, requireAdmin, requireAuth } from "../middleware/auth.js";
-import { authLimiter, checkoutLimiter, emailLimiter, reportLimiter, searchLimiter, uploadLimiter } from "../middleware/rateLimit.js";
+import { authLimiter, checkoutLimiter, emailLimiter, reportLimiter, publicLimiter, searchLimiter, uploadLimiter } from "../middleware/rateLimit.js";
 import { parseImageUpload } from "../middleware/upload.js";
 import { validate } from "../middleware/validate.js";
 import { asyncHandler } from "../utils/errors.js";
@@ -47,6 +49,7 @@ router.get("/health", (_req, res) => {
 // Auth
 router.post("/auth/register", authLimiter, validate(registerSchema), asyncHandler(auth.register));
 router.post("/auth/login", authLimiter, validate(loginSchema), asyncHandler(auth.login));
+router.post("/auth/google", authLimiter, validate(googleLoginSchema), asyncHandler(auth.google));
 router.post("/auth/refresh", authLimiter, asyncHandler(auth.refresh));
 router.post("/auth/logout", asyncHandler(auth.logout));
 
@@ -76,6 +79,15 @@ router.post(
   requireAuth,
   emailLimiter,
   asyncHandler(account.resendVerification),
+);
+
+// Public, read-only (no login): powers the Explore page that search engines and ad
+// reviewers can see. Only free posts are ever returned.
+router.get(
+  "/public/posts",
+  publicLimiter,
+  validate(paginationSchema, "query"),
+  asyncHandler(publicApi.listPosts),
 );
 
 // Uploads (auth and rate limit run before the file is parsed)

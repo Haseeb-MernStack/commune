@@ -8,6 +8,7 @@ interface AuthState {
   loading: boolean;
   login: (input: LoginInput) => Promise<void>;
   register: (input: RegisterInput) => Promise<void>;
+  loginWithGoogle: (credential: string) => Promise<void>;
   logout: () => Promise<void>;
   setUser: (user: PublicUser) => void;
 }
@@ -44,6 +45,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     apply(await api<AuthResponse>("/auth/register", { method: "POST", body: input }));
   }, []);
 
+  const loginWithGoogle = useCallback(async (credential: string) => {
+    apply(await api<AuthResponse>("/auth/google", { method: "POST", body: { credential } }));
+  }, []);
+
   const logout = useCallback(async () => {
     await api("/auth/logout", { method: "POST" }).catch(() => undefined);
     setAccessToken(null);
@@ -51,8 +56,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ user, loading, login, register, logout, setUser }),
-    [user, loading, login, register, logout],
+    () => ({ user, loading, login, register, loginWithGoogle, logout, setUser }),
+    [user, loading, login, register, loginWithGoogle, logout],
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -22,6 +22,11 @@ const passwordField = z.string().min(8).max(128);
 // Reset and verification tokens are 48 random bytes, hex encoded.
 const tokenField = z.string().regex(/^[a-f0-9]{96}$/, "This link is invalid");
 
+/** The ID token ("credential") that Google Identity Services hands to the browser. */
+export const googleLoginSchema = z.object({
+  credential: z.string().min(100).max(4096),
+});
+
 export const forgotPasswordSchema = z.object({
   email: z.string().trim().toLowerCase().email(),
 });
@@ -116,6 +121,7 @@ export const reportQuerySchema = paginationSchema.omit({ feed: true }).extend({
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type GoogleLoginInput = z.infer<typeof googleLoginSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;

@@ -10,6 +10,8 @@ const userSchema = new Schema(
     avatarUrl: { type: String, default: null, index: true, sparse: true },
     role: { type: String, enum: ["user", "admin"], default: "user" },
     banned: { type: Boolean, default: false },
+    // Google account id ("sub"). Unset for password-only accounts, so the unique index is sparse.
+    googleId: { type: String, unique: true, sparse: true },
     emailVerified: { type: Boolean, default: false },
   },
   { timestamps: true },

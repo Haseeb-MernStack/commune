@@ -726,3 +726,55 @@ body {
   color: #78350f;
   justify-content: center;
 }
+
+/* ---- Google sign-in, Explore page and ads ---- */
+.google-button {
+  display: flex;
+  justify-content: center;
+  min-height: 44px;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--border);
+}
+
+.explore-hero h1 {
+  margin: 0 0 4px;
+  font-size: 22px;
+}
+
+.explore-hero .row {
+  margin-top: 12px;
+}
+
+.ad-slot {
+  margin: 12px 0;
+  padding: 8px;
+  min-height: 120px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-align: center;
+  overflow: hidden;
+}
+
+.ad-label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}

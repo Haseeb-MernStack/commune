@@ -12,6 +12,7 @@ process.env.CLOUDINARY_CLOUD_NAME = "";
 process.env.CLOUDINARY_API_KEY = "";
 process.env.CLOUDINARY_API_SECRET = "";
 process.env.RESEND_API_KEY = "";
+process.env.GOOGLE_CLIENT_ID = "";
 process.env.LEMONSQUEEZY_API_KEY = "";
 process.env.LEMONSQUEEZY_STORE_ID = "";
 process.env.LEMONSQUEEZY_VARIANT_ID = "";

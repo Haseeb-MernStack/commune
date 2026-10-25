@@ -3,9 +3,10 @@ import type { ChangeEvent, FormEvent } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { loginSchema, registerSchema } from "@commune/shared";
 import { useAuth } from "../store/auth";
+import GoogleButton, { GOOGLE_CLIENT_ID } from "./GoogleButton";
 
 export default function AuthForm({ mode }: { mode: "login" | "register" }) {
-  const { user, login, register } = useAuth();
+  const { user, login, register, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const notice = (useLocation().state as { notice?: string } | null)?.notice;
   const [fields, setFields] = useState({ username: "", email: "", password: "" });
@@ -40,9 +41,33 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
     }
   };
 
+  const google = async (credential: string) => {
+    setError(null);
+    setBusy(true);
+    try {
+      await loginWithGoogle(credential);
+      navigate("/", { replace: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Google sign-in failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <form className="card auth" onSubmit={(e) => void submit(e)}>
       <h1>{mode === "login" ? "Welcome back" : "Join Commune"}</h1>
+      {GOOGLE_CLIENT_ID && (
+        <>
+          <GoogleButton
+            onCredential={(c) => void google(c)}
+            text={mode === "login" ? "signin_with" : "signup_with"}
+          />
+          <p className="divider">
+            <span>or use your email</span>
+          </p>
+        </>
+      )}
       {mode === "register" && (
         <label>
           Username
