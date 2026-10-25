@@ -16,6 +16,7 @@ import VerifyEmailPage from "./pages/VerifyEmailPage";
 import VerifyBanner from "./components/VerifyBanner";
 import SearchPage from "./pages/SearchPage";
 import SearchBox from "./components/SearchBox";
+import PwaBanner from "./components/PwaBanner";
 
 function Protected({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -33,20 +34,24 @@ function Header() {
       <Link to="/" className="brand">
         Commune
       </Link>
-      {user && <SearchBox/>} { user && (
+      {user && <SearchBox />}{" "}
+      {user && (
         <nav className="header-right">
           {user.role === "admin" && (
             <Link to="/admin" className="nav-link">
               Admin
             </Link>
           )}
-          <Link to="/notifications" className="nav-link" aria-label={`Notifications, ${count} unread`}>
+          <Link
+            to="/notifications"
+            className="nav-link"
+            aria-label={`Notifications, ${count} unread`}
+          >
             🔔
             {count > 0 && <span className="badge">{count > 99 ? "99+" : count}</span>}
           </Link>
           <Link to={`/u/${user.username}`} className="nav-link nav-profile">
-            <Avatar username={user.username} url={user.avatarUrl} size={26} />
-            @{user.username}
+            <Avatar username={user.username} url={user.avatarUrl} size={26} />@{user.username}
           </Link>
           <button className="btn btn-ghost" onClick={() => void logout()}>
             Log out
@@ -61,7 +66,7 @@ export default function App() {
   return (
     <>
       <Header />
-      <VerifyBanner />
+      <VerifyBanner /> <PwaBanner />
       <main className="container">
         <Routes>
           <Route path="/login" element={<LoginPage />} />

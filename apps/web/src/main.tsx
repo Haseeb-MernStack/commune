@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import App from "./App";
 import { AuthProvider } from "./store/auth";
+import { registerServiceWorker } from "./lib/pwa";
 import "./styles/global.css";
 
 const queryClient = new QueryClient({
@@ -21,3 +22,5 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     </QueryClientProvider>
   </React.StrictMode>,
 );
+
+registerServiceWorker();
