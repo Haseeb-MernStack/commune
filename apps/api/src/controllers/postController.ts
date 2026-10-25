@@ -46,6 +46,21 @@ async function withViewer(userId: string, post: PopulatedPost, liked: Set<string
   return toPostDTO(post, liked.has(key), unlocked.has(key) || post.priceCents == null);
 }
 
+/** Turns loaded posts into DTOs for one viewer (likes and paid-content access included). */
+export async function presentPosts(userId: string, posts: PopulatedPost[]): Promise<PostDTO[]> {
+  const [liked, unlocked] = await Promise.all([
+    likedSet(
+      userId,
+      posts.map((p) => p._id),
+    ),
+    unlockedPostIds(userId, posts),
+  ]);
+  return posts.map((p) => {
+    const key = p._id.toString();
+    return toPostDTO(p, liked.has(key), unlocked.has(key) || p.priceCents == null);
+  });
+}
+
 /**
  * Sends one cursor-paginated page of posts matching `baseFilter`.
  * Expects validated pagination params in res.locals.query (see the validate middleware).

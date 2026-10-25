@@ -14,4 +14,8 @@ const postSchema = new Schema(
   { timestamps: true },
 );
 
+// Full-text search over the free text only. premiumContent is deliberately NOT indexed, so
+// searching can never reveal paid content.
+postSchema.index({ content: "text" });
+
 export const Post = model("Post", postSchema);

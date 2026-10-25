@@ -70,6 +70,13 @@ export const createPostSchema = z
     path: ["priceCents"],
   });
 
+/** Search results come in pages of 20, up to 10 pages. */
+export const SEARCH_PAGE_SIZE = 20;
+export const searchQuerySchema = z.object({
+  q: z.string().trim().min(2, "Type at least 2 characters").max(50),
+  page: z.coerce.number().int().min(1).max(10).default(1),
+});
+
 export const createCommentSchema = z.object({
   content: z.string().trim().min(1).max(300),
 });
@@ -154,6 +161,13 @@ export interface PostDTO {
   /** The paid content. Always null while `locked`, and for free posts. */
   premiumContent: string | null;
   createdAt: string;
+}
+
+export interface UserSummaryDTO {
+  id: string;
+  username: string;
+  bio: string;
+  avatarUrl: string | null;
 }
 
 export interface CheckoutResponse {

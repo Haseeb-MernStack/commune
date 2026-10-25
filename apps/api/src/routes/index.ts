@@ -11,6 +11,7 @@ import {
   reportQuerySchema,
   resetPasswordSchema,
   resolveReportSchema,
+  searchQuerySchema,
   updateProfileSchema,
   verifyEmailSchema,
 } from "@commune/shared";
@@ -21,10 +22,11 @@ import * as payments from "../controllers/paymentController.js";
 import * as notifications from "../controllers/notificationController.js";
 import * as posts from "../controllers/postController.js";
 import * as reports from "../controllers/reportController.js";
+import * as search from "../controllers/searchController.js";
 import * as uploads from "../controllers/uploadController.js";
 import * as users from "../controllers/userController.js";
 import { requireActive, requireAdmin, requireAuth } from "../middleware/auth.js";
-import { authLimiter, checkoutLimiter, emailLimiter, reportLimiter, uploadLimiter } from "../middleware/rateLimit.js";
+import { authLimiter, checkoutLimiter, emailLimiter, reportLimiter, searchLimiter, uploadLimiter } from "../middleware/rateLimit.js";
 import { parseImageUpload } from "../middleware/upload.js";
 import { validate } from "../middleware/validate.js";
 import { asyncHandler } from "../utils/errors.js";
@@ -109,6 +111,22 @@ router.post("/users/:username/follow", requireAuth, requireActive, asyncHandler(
 router.get("/notifications", requireAuth, asyncHandler(notifications.list));
 router.get("/notifications/unread-count", requireAuth, asyncHandler(notifications.unreadCount));
 router.post("/notifications/read", requireAuth, asyncHandler(notifications.markAllRead));
+
+// Search
+router.get(
+  "/search/users",
+  requireAuth,
+  searchLimiter,
+  validate(searchQuerySchema, "query"),
+  asyncHandler(search.users),
+);
+router.get(
+  "/search/posts",
+  requireAuth,
+  searchLimiter,
+  validate(searchQuerySchema, "query"),
+  asyncHandler(search.posts),
+);
 
 // Posts
 router.get("/posts", requireAuth, validate(paginationSchema, "query"), asyncHandler(posts.listPosts));
