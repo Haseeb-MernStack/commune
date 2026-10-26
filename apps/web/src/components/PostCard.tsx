@@ -34,6 +34,11 @@ export default function PostCard({ post }: { post: PostDTO }) {
             @{post.author.username}
           </Link>
           <span className="muted">· {timeAgo(post.createdAt)}</span>
+          {post.community && (
+            <Link to={`/c/${post.community.slug}`} className="community-tag">
+              c/{post.community.slug}
+            </Link>
+          )}
           {post.priceCents != null && (
             <span className="price-badge">{formatPrice(post.priceCents)}</span>
           )}

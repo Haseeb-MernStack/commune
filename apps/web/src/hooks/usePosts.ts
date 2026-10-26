@@ -35,6 +35,7 @@ export function useCreatePost() {
   return useMutation({
     mutationFn: (input: CreatePostInput) =>
       api<PostDTO>("/posts", { method: "POST", body: input }),
+    // ["feed"] also covers community feeds, which are keyed ["feed", "community", slug].
     onSuccess: () => qc.invalidateQueries({ queryKey: ["feed"] }),
   });
 }

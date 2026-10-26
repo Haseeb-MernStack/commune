@@ -136,7 +136,7 @@ describe("POST /api/auth/google: accounts", () => {
 
   it("links an existing password account and cancels a password set before verification", async () => {
     const save = vi.fn().mockResolvedValue(undefined);
-    const existing = newUser({ emailVerified: false, passwordHash: "old-hash", googleId: undefined, save });
+    const existing: Record<string, unknown> = newUser({ emailVerified: false, passwordHash: "old-hash", googleId: undefined, save });
     vi.spyOn(User, "findOne").mockImplementation(((filter: Record<string, unknown>) =>
       Promise.resolve("googleId" in filter ? null : existing)) as never);
 

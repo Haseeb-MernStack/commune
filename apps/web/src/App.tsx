@@ -18,6 +18,8 @@ import SearchPage from "./pages/SearchPage";
 import SearchBox from "./components/SearchBox";
 import PwaBanner from "./components/PwaBanner";
 import ExplorePage from "./pages/ExplorePage";
+import CommunitiesPage from "./pages/CommunitiesPage";
+import CommunityPage from "./pages/CommunityPage";
 
 function Protected({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -60,6 +62,9 @@ function Header() {
               Admin
             </Link>
           )}
+          <Link to="/communities" className="nav-link">
+            Communities
+          </Link>
           <Link
             to="/notifications"
             className="nav-link"
@@ -127,6 +132,22 @@ export default function App() {
             }
           />
 
+          <Route
+            path="/communities"
+            element={
+              <Protected>
+                <CommunitiesPage />
+              </Protected>
+            }
+          />
+          <Route
+            path="/c/:slug"
+            element={
+              <Protected>
+                <CommunityPage />
+              </Protected>
+            }
+          />
           <Route
             path="/search"
             element={

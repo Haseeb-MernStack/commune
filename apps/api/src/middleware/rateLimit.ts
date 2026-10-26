@@ -76,3 +76,12 @@ export const publicLimiter = rateLimit({
   skip,
   message: { error: "Too many requests, slow down." },
 });
+
+export const communityLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 10,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "You're creating communities too fast, try again later." },
+});
