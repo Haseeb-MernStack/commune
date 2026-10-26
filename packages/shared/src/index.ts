@@ -48,6 +48,23 @@ export const uploadUrlSchema = z
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 export const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp"] as const;
 
+export const communitySlugSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .regex(/^[a-z0-9_]{3,24}$/, "3 to 24 letters, numbers or underscores");
+
+export const createCommunitySchema = z.object({
+  slug: communitySlugSchema,
+  name: z.string().trim().min(3, "Name needs at least 3 characters").max(40),
+  description: z.string().trim().max(280).default(""),
+});
+
+export const communityListSchema = z.object({
+  q: z.string().trim().max(30).optional(),
+  mine: z.enum(["1"]).optional(),
+});
+
 /** Paid-post prices are in US cents: $1.00 to $500.00. */
 export const MIN_PRICE_CENTS = 100;
 export const MAX_PRICE_CENTS = 50000;
@@ -59,6 +76,8 @@ export const createPostSchema = z
     content: z.string().trim().max(500),
     imageUrl: uploadUrlSchema.nullish(),
     // Setting a price makes the post paid: premiumContent is shown only after purchase.
+    // Slug of a community the author belongs to; the post then appears in that community.
+    community: communitySlugSchema.nullish(),
     priceCents: z.number().int().min(MIN_PRICE_CENTS).max(MAX_PRICE_CENTS).nullish(),
     premiumContent: z.string().trim().max(MAX_PREMIUM_LENGTH).nullish(),
   })
@@ -122,6 +141,7 @@ export const reportQuerySchema = paginationSchema.omit({ feed: true }).extend({
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type GoogleLoginInput = z.infer<typeof googleLoginSchema>;
+export type CreateCommunityInput = z.infer<typeof createCommunitySchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
@@ -160,6 +180,8 @@ export interface PostDTO {
   likeCount: number;
   commentCount: number;
   likedByMe: boolean;
+  /** The community this post was made in, if any. */
+  community: { slug: string; name: string } | null;
   /** Price in US cents, or null for a free post. */
   priceCents: number | null;
   /** True when the post is paid and the viewer has not unlocked it (and isn't the author). */
@@ -174,6 +196,18 @@ export interface UserSummaryDTO {
   username: string;
   bio: string;
   avatarUrl: string | null;
+}
+
+export interface CommunityDTO {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  memberCount: number;
+  joinedByMe: boolean;
+  /** "owner" for the creator, "member" for everyone else who joined, null if not a member. */
+  myRole: "owner" | "member" | null;
+  createdAt: string;
 }
 
 export interface CheckoutResponse {

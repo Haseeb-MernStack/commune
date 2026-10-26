@@ -57,6 +57,7 @@ export async function posts(req: Request, res: Response) {
     .skip((page - 1) * SEARCH_PAGE_SIZE)
     .limit(SEARCH_PAGE_SIZE + 1)
     .populate("author", "username avatarUrl")
+    .populate("community", "slug name")
     .lean()) as unknown as PopulatedPost[];
 
   const { items, nextCursor } = paginate(rows, page);

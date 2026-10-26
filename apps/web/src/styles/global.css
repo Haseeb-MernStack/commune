@@ -778,3 +778,38 @@ body {
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
+
+/* ---- Communities ---- */
+.row.between {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.community-title {
+  margin: 0;
+  font-size: 22px;
+}
+
+.community-head p {
+  margin: 4px 0 0;
+}
+
+.community-tag {
+  margin-left: auto;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.community-search {
+  width: 100%;
+  margin: 12px 0;
+  padding: 9px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}

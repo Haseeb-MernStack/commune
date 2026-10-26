@@ -71,6 +71,7 @@ Log out and back in, and an **Admin** link appears in the header.
 - [x] Email verification and password reset (Resend)
 - [x] Paid posts (pay to unlock, Lemon Squeezy checkout, creator earnings ledger)
 - [x] Sign in with Google; public Explore page with optional AdSense ads
+- [x] Communities (create, join, post inside them; owners can remove posts)
 
 ## License
 

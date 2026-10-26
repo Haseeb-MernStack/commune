@@ -1,6 +1,7 @@
 import type { Types } from "mongoose";
 import type {
   CommentDTO,
+  CommunityDTO,
   NotificationDTO,
   NotificationType,
   PostDTO,
@@ -34,6 +35,7 @@ export interface PopulatedPost {
   imageUrl?: string | null;
   priceCents?: number | null;
   premiumContent?: string | null;
+  community?: { slug: string; name: string } | null;
   author: PopulatedAuthor;
   likeCount: number;
   commentCount: number;
@@ -114,6 +116,7 @@ export function toPostDTO(p: PopulatedPost, likedByMe: boolean, unlocked: boolea
     likeCount: p.likeCount,
     commentCount: p.commentCount,
     likedByMe,
+    community: p.community ? { slug: p.community.slug, name: p.community.name } : null,
     priceCents: p.priceCents ?? null,
     locked,
     premiumContent: paid && !locked ? (p.premiumContent ?? "") : null,
@@ -159,5 +162,30 @@ export function toReportDTO(r: PopulatedReport): ReportDTO {
       : null,
     createdAt: r.createdAt.toISOString(),
     resolvedAt: r.resolvedAt ? r.resolvedAt.toISOString() : null,
+  };
+}
+
+export interface CommunityLike {
+  _id: Types.ObjectId;
+  slug: string;
+  name: string;
+  description?: string | null;
+  memberCount: number;
+  createdAt: Date;
+}
+
+export function toCommunityDTO(
+  c: CommunityLike,
+  myRole: "owner" | "member" | null,
+): CommunityDTO {
+  return {
+    id: c._id.toString(),
+    slug: c.slug,
+    name: c.name,
+    description: c.description ?? "",
+    memberCount: c.memberCount,
+    joinedByMe: myRole !== null,
+    myRole,
+    createdAt: c.createdAt.toISOString(),
   };
 }

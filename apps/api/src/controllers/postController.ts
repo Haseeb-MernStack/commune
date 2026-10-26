@@ -3,7 +3,9 @@ import type { Request, Response } from "express";
 import type { Page, PostDTO } from "@commune/shared";
 import { Comment } from "../models/Comment.js";
 import { Follow } from "../models/Follow.js";
+import { Community } from "../models/Community.js";
 import { Like } from "../models/Like.js";
+import { Membership } from "../models/Membership.js";
 import { Post } from "../models/Post.js";
 import { notify } from "../services/notificationService.js";
 import { unlockedPostIds } from "../services/purchaseService.js";
@@ -17,6 +19,7 @@ import {
 } from "../utils/serializers.js";
 
 const AUTHOR_FIELDS = "username avatarUrl";
+const COMMUNITY_FIELDS = "slug name";
 
 const param = (req: Request, name: string): string => {
   const value = req.params[name];
@@ -34,6 +37,7 @@ async function likedSet(userId: string, postIds: mongoose.Types.ObjectId[]) {
 async function loadPost(id: string): Promise<PopulatedPost> {
   const post = (await Post.findById(id)
     .populate("author", AUTHOR_FIELDS)
+    .populate("community", COMMUNITY_FIELDS)
     .lean()) as unknown as PopulatedPost | null;
   if (!post) throw notFound("Post not found");
   return post;
@@ -78,6 +82,7 @@ export async function sendPostPage(
     .sort({ _id: -1 })
     .limit(limit + 1)
     .populate("author", AUTHOR_FIELDS)
+    .populate("community", COMMUNITY_FIELDS)
     .lean()) as unknown as PopulatedPost[];
 
   const hasMore = rows.length > limit;
@@ -117,8 +122,19 @@ export async function getPost(req: Request, res: Response) {
 }
 
 export async function createPost(req: Request, res: Response) {
+  let communityId: string | null = null;
+  if (req.body.community) {
+    const community = await Community.findOne({ slug: req.body.community }).select("_id").lean();
+    if (!community) throw notFound("Community not found");
+    // Only members can post in a community.
+    if (!(await Membership.exists({ user: req.userId, community: community._id }))) {
+      throw forbidden("Join this community to post in it");
+    }
+    communityId = community._id.toString();
+  }
   const created = await Post.create({
     author: req.userId,
+    community: communityId,
     content: req.body.content,
     imageUrl: req.body.imageUrl ?? null,
     priceCents: req.body.priceCents ?? null,
@@ -131,12 +147,16 @@ export async function createPost(req: Request, res: Response) {
 
 export async function deletePost(req: Request, res: Response) {
   const id = param(req, "id");
-  const post = await Post.findById(id).select("author").lean();
+  const post = await Post.findById(id).select("author community").lean();
   if (!post) throw notFound("Post not found");
-  // Authors can delete their own posts; admins can remove anyone's.
-  if (post.author.toString() !== req.userId && req.userRole !== "admin") {
-    throw forbidden("You can only delete your own posts");
-  }
+  // Authors can delete their own posts; admins can remove anyone's; so can the owner of the
+  // community the post was made in.
+  const allowed =
+    post.author.toString() === req.userId ||
+    req.userRole === "admin" ||
+    (post.community != null &&
+      Boolean(await Membership.exists({ user: req.userId, community: post.community, role: "owner" })));
+  if (!allowed) throw forbidden("You can only delete your own posts");
 
   await removePost(id, req.userId);
   res.status(204).end();

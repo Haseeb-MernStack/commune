@@ -18,6 +18,7 @@ export async function listPosts(_req: Request, res: Response) {
     .sort({ _id: -1 })
     .limit(limit + 1)
     .populate("author", "username avatarUrl")
+    .populate("community", "slug name")
     .lean()) as unknown as PopulatedPost[];
 
   const hasMore = rows.length > limit;

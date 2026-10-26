@@ -8,7 +8,7 @@ import { MAX_PREMIUM_LENGTH, MAX_PRICE_CENTS, MIN_PRICE_CENTS } from "@commune/s
 
 const MAX = 500;
 
-export default function Composer() {
+export default function Composer({ communitySlug }: { communitySlug?: string }) {
   const [content, setContent] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
@@ -45,7 +45,7 @@ export default function Composer() {
     e.preventDefault();
     if (!canPost) return;
     create.mutate(
-      { content, imageUrl, ...(paid ? { priceCents, premiumContent: premium } : {}) },
+      { content, imageUrl, ...(communitySlug ? { community: communitySlug } : {}), ...(paid ? { priceCents, premiumContent: premium } : {}) },
       {
         onSuccess: () => {
           setContent("");
@@ -62,7 +62,7 @@ export default function Composer() {
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        placeholder="What's happening in your community?"
+        placeholder={communitySlug ? `Post in c/${communitySlug}` : "What's happening in your community?"}
         maxLength={MAX}
         rows={3}
       />

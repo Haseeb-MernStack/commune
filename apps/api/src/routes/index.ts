@@ -1,7 +1,9 @@
 import { Router } from "express";
 import {
   banUserSchema,
+  communityListSchema,
   createCommentSchema,
+  createCommunitySchema,
   createPostSchema,
   createReportSchema,
   forgotPasswordSchema,
@@ -20,6 +22,7 @@ import * as account from "../controllers/accountController.js";
 import * as admin from "../controllers/adminController.js";
 import * as auth from "../controllers/authController.js";
 import * as payments from "../controllers/paymentController.js";
+import * as communities from "../controllers/communityController.js";
 import * as notifications from "../controllers/notificationController.js";
 import * as posts from "../controllers/postController.js";
 import * as reports from "../controllers/reportController.js";
@@ -28,7 +31,7 @@ import * as search from "../controllers/searchController.js";
 import * as uploads from "../controllers/uploadController.js";
 import * as users from "../controllers/userController.js";
 import { requireActive, requireAdmin, requireAuth } from "../middleware/auth.js";
-import { authLimiter, checkoutLimiter, emailLimiter, reportLimiter, publicLimiter, searchLimiter, uploadLimiter } from "../middleware/rateLimit.js";
+import { authLimiter, checkoutLimiter, communityLimiter, emailLimiter, reportLimiter, publicLimiter, searchLimiter, uploadLimiter } from "../middleware/rateLimit.js";
 import { parseImageUpload } from "../middleware/upload.js";
 import { validate } from "../middleware/validate.js";
 import { asyncHandler } from "../utils/errors.js";
@@ -139,6 +142,31 @@ router.get(
   validate(searchQuerySchema, "query"),
   asyncHandler(search.posts),
 );
+
+// Communities
+router.get(
+  "/communities",
+  requireAuth,
+  validate(communityListSchema, "query"),
+  asyncHandler(communities.list),
+);
+router.post(
+  "/communities",
+  requireAuth,
+  communityLimiter,
+  validate(createCommunitySchema),
+  requireActive,
+  asyncHandler(communities.create),
+);
+router.get("/communities/:slug", requireAuth, asyncHandler(communities.get));
+router.get(
+  "/communities/:slug/posts",
+  requireAuth,
+  validate(paginationSchema, "query"),
+  asyncHandler(communities.posts),
+);
+router.post("/communities/:slug/join", requireAuth, requireActive, asyncHandler(communities.join));
+router.delete("/communities/:slug/join", requireAuth, requireActive, asyncHandler(communities.leave));
 
 // Posts
 router.get("/posts", requireAuth, validate(paginationSchema, "query"), asyncHandler(posts.listPosts));
