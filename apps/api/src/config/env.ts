@@ -51,6 +51,9 @@ const schema = z.object({
   LEMONSQUEEZY_PLUS_VARIANT_ID: z.string().optional(),
   // Shown on the Plus page. The real price lives in Lemon Squeezy; keep this text in sync.
   PLUS_PRICE_LABEL: z.string().optional().transform((v) => v?.trim() || "$5 / month"),
+  // Where messages from the Contact page are emailed (needs RESEND_API_KEY). They are always
+  // saved in the database too.
+  CONTACT_EMAIL: z.string().optional().transform((v) => v?.trim() || undefined),
   // "true" blocks posting, liking, commenting and following until the email is verified.
   REQUIRE_VERIFIED_EMAIL: z
     .enum(["true", "false"])

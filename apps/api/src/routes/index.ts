@@ -1,6 +1,10 @@
 import { Router } from "express";
 import {
   banUserSchema,
+  contactSchema,
+  messagesQuerySchema,
+  newsQuerySchema,
+  sendMessageSchema,
   communityListSchema,
   createCommentSchema,
   createCommunitySchema,
@@ -19,6 +23,9 @@ import {
   verifyEmailSchema,
 } from "@commune/shared";
 import * as account from "../controllers/accountController.js";
+import * as contact from "../controllers/contactController.js";
+import * as messages from "../controllers/messageController.js";
+import * as news from "../controllers/newsController.js";
 import * as billing from "../controllers/billingController.js";
 import * as insights from "../controllers/insightsController.js";
 import * as admin from "../controllers/adminController.js";
@@ -33,7 +40,7 @@ import * as search from "../controllers/searchController.js";
 import * as uploads from "../controllers/uploadController.js";
 import * as users from "../controllers/userController.js";
 import { requireActive, requireAdmin, requireAuth, requirePlus } from "../middleware/auth.js";
-import { authLimiter, checkoutLimiter, communityLimiter, emailLimiter, reportLimiter, publicLimiter, searchLimiter, uploadLimiter, viewLimiter } from "../middleware/rateLimit.js";
+import { authLimiter, checkoutLimiter, contactLimiter, messageLimiter, newChatLimiter, communityLimiter, emailLimiter, reportLimiter, publicLimiter, searchLimiter, uploadLimiter, viewLimiter } from "../middleware/rateLimit.js";
 import { parseImageUpload } from "../middleware/upload.js";
 import { validate } from "../middleware/validate.js";
 import { asyncHandler } from "../utils/errors.js";
@@ -240,3 +247,34 @@ router.post(
   asyncHandler(admin.banUserByUsername),
 );
 router.post("/admin/users/:username/unban", ...adminOnly, asyncHandler(admin.unbanUserByUsername));
+
+// News (public: guests see it too) and the Contact form
+router.get("/news", publicLimiter, validate(newsQuerySchema, "query"), asyncHandler(news.list));
+router.post("/contact", contactLimiter, validate(contactSchema), asyncHandler(contact.send));
+
+// Direct messages. Fixed paths ("/messages/unread-count", "/messages/with/:username") come
+// before "/messages/:id".
+router.get("/messages", requireAuth, asyncHandler(messages.listConversations));
+router.get("/messages/unread-count", requireAuth, asyncHandler(messages.unreadCount));
+router.post(
+  "/messages/with/:username",
+  requireAuth,
+  newChatLimiter,
+  validate(sendMessageSchema),
+  requireActive,
+  asyncHandler(messages.start),
+);
+router.get(
+  "/messages/:id",
+  requireAuth,
+  validate(messagesQuerySchema, "query"),
+  asyncHandler(messages.getMessages),
+);
+router.post(
+  "/messages/:id",
+  requireAuth,
+  messageLimiter,
+  validate(sendMessageSchema),
+  requireActive,
+  asyncHandler(messages.send),
+);

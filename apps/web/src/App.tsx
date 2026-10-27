@@ -18,6 +18,11 @@ import PwaBanner from "./components/PwaBanner";
 import ExplorePage from "./pages/ExplorePage";
 import CommunitiesPage from "./pages/CommunitiesPage";
 import CommunityPage from "./pages/CommunityPage";
+import LeftNav from "./components/LeftNav";
+import RightRail from "./components/RightRail";
+import MessagesPage from "./pages/MessagesPage";
+import NewsPage from "./pages/NewsPage";
+import ContactPage from "./pages/ContactPage";
 import PlusPage from "./pages/PlusPage";
 import InsightsPage from "./pages/InsightsPage";
 
@@ -36,12 +41,17 @@ function Home() {
 
 export default function App() {
   const { pathname } = useLocation();
+  const { user } = useAuth();
   const authPage = AUTH_PATHS.includes(pathname);
+  // Messages need room for two panes, so that page drops the news column.
+  const wide = pathname.startsWith("/messages");
   return (
     <>
       <Header />
       {!authPage && <VerifyBanner />}
       <PwaBanner />
+      <div className={authPage ? "shell-auth" : `shell${user ? " has-left" : ""}${wide ? " wide" : ""}`}>
+      {!authPage && user && <LeftNav />}
       <main className={authPage ? "container container-auth" : "container"}>
         {authPage && (
           <Link to="/" className="brand auth-brand">
@@ -129,9 +139,29 @@ export default function App() {
               </Protected>
             }
           />
+          <Route path="/news" element={<NewsPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route
+            path="/messages"
+            element={
+              <Protected>
+                <MessagesPage />
+              </Protected>
+            }
+          />
+          <Route
+            path="/messages/:id"
+            element={
+              <Protected>
+                <MessagesPage />
+              </Protected>
+            }
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
+      {!authPage && !wide && <RightRail />}
+      </div>
     </>
   );
 }
