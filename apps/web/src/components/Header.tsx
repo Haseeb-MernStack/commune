@@ -11,7 +11,16 @@ export const AUTH_PATHS = ["/login", "/register", "/forgot-password", "/reset-pa
 
 function MenuIcon({ open }: { open: boolean }) {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      aria-hidden
+    >
       {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
     </svg>
   );
@@ -20,7 +29,7 @@ function MenuIcon({ open }: { open: boolean }) {
 export default function Header() {
   const { user, logout } = useAuth();
   const { pathname } = useLocation();
-  const unread = useUnreadCount();
+  const unread = useUnreadCount(Boolean(user));
   const [open, setOpen] = useState(false);
   const count = unread.data?.count ?? 0;
   const countLabel = count > 99 ? "99+" : String(count);
@@ -91,10 +100,17 @@ export default function Header() {
               <NavLink to="/communities" className={navClass}>
                 Communities
               </NavLink>
-              <NavLink to={user.plus ? "/insights" : "/plus"} className={({ isActive }) => `${navClass({ isActive })} plus-link`}>
+              <NavLink
+                to={user.plus ? "/insights" : "/plus"}
+                className={({ isActive }) => `${navClass({ isActive })} plus-link`}
+              >
                 {user.plus ? "Insights" : "✦ Plus"}
               </NavLink>
-              <NavLink to="/notifications" className={navClass} aria-label={`Notifications, ${count} unread`}>
+              <NavLink
+                to="/notifications"
+                className={navClass}
+                aria-label={`Notifications, ${count} unread`}
+              >
                 🔔
                 {count > 0 && <span className="badge">{countLabel}</span>}
               </NavLink>
@@ -112,7 +128,11 @@ export default function Header() {
         {/* Mobile / tablet controls */}
         <div className="nav-mobile">
           {user && (
-            <Link to="/notifications" className="icon-btn" aria-label={`Notifications, ${count} unread`}>
+            <Link
+              to="/notifications"
+              className="icon-btn"
+              aria-label={`Notifications, ${count} unread`}
+            >
               🔔
               {count > 0 && <span className="badge">{countLabel}</span>}
             </Link>
@@ -131,8 +151,19 @@ export default function Header() {
 
       {/* Slide-in menu (right side) */}
       <div className={`drawer-root${open ? " open" : ""}`} aria-hidden={!open}>
-        <button className="drawer-overlay" tabIndex={-1} aria-label="Close menu" onClick={() => setOpen(false)} />
-        <aside id="mobile-menu" className="drawer" role="dialog" aria-modal="true" aria-label="Menu">
+        <button
+          className="drawer-overlay"
+          tabIndex={-1}
+          aria-label="Close menu"
+          onClick={() => setOpen(false)}
+        />
+        <aside
+          id="mobile-menu"
+          className="drawer"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Menu"
+        >
           {user ? (
             <>
               <Link to={`/u/${user.username}`} className="drawer-profile">
