@@ -4,11 +4,19 @@ import { useCreatePost } from "../hooks/usePosts";
 import { useUploadImage } from "../hooks/useUpload";
 import { assetUrl } from "../lib/api";
 import { validateImage } from "../lib/images";
-import { MAX_PREMIUM_LENGTH, MAX_PRICE_CENTS, MIN_PRICE_CENTS } from "@commune/shared";
+import {
+  FREE_POST_LENGTH,
+  MAX_PREMIUM_LENGTH,
+  MAX_PRICE_CENTS,
+  MIN_PRICE_CENTS,
+  PLUS_POST_LENGTH,
+} from "@commune/shared";
+import { useAuth } from "../store/auth";
 
-const MAX = 500;
 
 export default function Composer({ communitySlug }: { communitySlug?: string }) {
+  const { user } = useAuth();
+  const MAX = user?.plus ? PLUS_POST_LENGTH : FREE_POST_LENGTH;
   const [content, setContent] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);

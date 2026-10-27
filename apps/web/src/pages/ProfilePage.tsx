@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import { useParams } from "react-router-dom";
 import Avatar from "../components/Avatar";
+import PlusBadge from "../components/PlusBadge";
 import EarningsCard from "../components/EarningsCard";
 import PostList from "../components/PostList";
 import { useProfile, useToggleFollow, useUpdateProfile, useUserPosts } from "../hooks/useSocial";
@@ -73,7 +74,9 @@ export default function ProfilePage() {
           <div className="profile-id">
             <Avatar username={p.username} url={p.avatarUrl} size={72} />
             <div>
-              <h1 className="profile-name">@{p.username}</h1>
+              <h1 className="profile-name">
+                @{p.username} <PlusBadge plus={p.plus} />
+              </h1>
               <p className="muted">Joined {new Date(p.createdAt).toLocaleDateString()}</p>
             </div>
           </div>

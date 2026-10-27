@@ -20,6 +20,8 @@ import PwaBanner from "./components/PwaBanner";
 import ExplorePage from "./pages/ExplorePage";
 import CommunitiesPage from "./pages/CommunitiesPage";
 import CommunityPage from "./pages/CommunityPage";
+import PlusPage from "./pages/PlusPage";
+import InsightsPage from "./pages/InsightsPage";
 
 function Protected({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -64,6 +66,9 @@ function Header() {
           )}
           <Link to="/communities" className="nav-link">
             Communities
+          </Link>
+          <Link to={user.plus ? "/insights" : "/plus"} className="nav-link plus-link">
+            {user.plus ? "Insights" : "✦ Plus"}
           </Link>
           <Link
             to="/notifications"
@@ -153,6 +158,22 @@ export default function App() {
             element={
               <Protected>
                 <SearchPage />
+              </Protected>
+            }
+          />
+          <Route
+            path="/plus"
+            element={
+              <Protected>
+                <PlusPage />
+              </Protected>
+            }
+          />
+          <Route
+            path="/insights"
+            element={
+              <Protected>
+                <InsightsPage />
               </Protected>
             }
           />

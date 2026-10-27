@@ -17,7 +17,7 @@ export async function listPosts(_req: Request, res: Response) {
   const rows = (await Post.find(filter)
     .sort({ _id: -1 })
     .limit(limit + 1)
-    .populate("author", "username avatarUrl")
+    .populate("author", "username avatarUrl plusUntil")
     .populate("community", "slug name")
     .lean()) as unknown as PopulatedPost[];
 

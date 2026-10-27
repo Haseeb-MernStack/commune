@@ -12,6 +12,9 @@ const userSchema = new Schema(
     banned: { type: Boolean, default: false },
     // Google account id ("sub"). Unset for password-only accounts, so the unique index is sparse.
     googleId: { type: String, unique: true, sparse: true },
+    // Commune Plus access runs until this moment. Set by the payment webhook and checked
+    // against the clock, so access ends on time even if a cancellation webhook is missed.
+    plusUntil: { type: Date, default: null },
     emailVerified: { type: Boolean, default: false },
   },
   { timestamps: true },

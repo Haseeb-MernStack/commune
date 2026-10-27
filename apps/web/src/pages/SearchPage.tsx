@@ -1,5 +1,6 @@
 import { Link, useSearchParams } from "react-router-dom";
 import Avatar from "../components/Avatar";
+import PlusBadge from "../components/PlusBadge";
 import PostList from "../components/PostList";
 import { useSearchPosts, useSearchUsers } from "../hooks/useSearch";
 
@@ -47,7 +48,7 @@ export default function SearchPage() {
             <Link key={u.id} to={`/u/${u.username}`} className="card person">
               <Avatar username={u.username} url={u.avatarUrl} size={44} />
               <div>
-                <strong>@{u.username}</strong>
+                <strong>@{u.username}</strong> <PlusBadge plus={u.plus} />
                 {u.bio && <p className="muted">{u.bio}</p>}
               </div>
             </Link>

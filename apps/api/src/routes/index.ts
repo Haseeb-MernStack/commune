@@ -19,6 +19,8 @@ import {
   verifyEmailSchema,
 } from "@commune/shared";
 import * as account from "../controllers/accountController.js";
+import * as billing from "../controllers/billingController.js";
+import * as insights from "../controllers/insightsController.js";
 import * as admin from "../controllers/adminController.js";
 import * as auth from "../controllers/authController.js";
 import * as payments from "../controllers/paymentController.js";
@@ -30,8 +32,8 @@ import * as publicApi from "../controllers/publicController.js";
 import * as search from "../controllers/searchController.js";
 import * as uploads from "../controllers/uploadController.js";
 import * as users from "../controllers/userController.js";
-import { requireActive, requireAdmin, requireAuth } from "../middleware/auth.js";
-import { authLimiter, checkoutLimiter, communityLimiter, emailLimiter, reportLimiter, publicLimiter, searchLimiter, uploadLimiter } from "../middleware/rateLimit.js";
+import { requireActive, requireAdmin, requireAuth, requirePlus } from "../middleware/auth.js";
+import { authLimiter, checkoutLimiter, communityLimiter, emailLimiter, reportLimiter, publicLimiter, searchLimiter, uploadLimiter, viewLimiter } from "../middleware/rateLimit.js";
 import { parseImageUpload } from "../middleware/upload.js";
 import { validate } from "../middleware/validate.js";
 import { asyncHandler } from "../utils/errors.js";
@@ -127,6 +129,18 @@ router.get("/notifications", requireAuth, asyncHandler(notifications.list));
 router.get("/notifications/unread-count", requireAuth, asyncHandler(notifications.unreadCount));
 router.post("/notifications/read", requireAuth, asyncHandler(notifications.markAllRead));
 
+// Commune Plus: billing and creator insights
+router.get("/billing", requireAuth, asyncHandler(billing.status));
+router.post(
+  "/billing/checkout",
+  requireAuth,
+  checkoutLimiter,
+  requireActive,
+  asyncHandler(billing.checkout),
+);
+router.post("/billing/portal", requireAuth, checkoutLimiter, asyncHandler(billing.portal));
+router.get("/insights", requireAuth, requirePlus, asyncHandler(insights.get));
+
 // Search
 router.get(
   "/search/users",
@@ -187,6 +201,7 @@ router.post(
   requireActive,
   asyncHandler(payments.checkout),
 );
+router.post("/posts/:id/view", requireAuth, viewLimiter, asyncHandler(posts.trackView));
 router.get("/posts/:id/comments", requireAuth, asyncHandler(posts.listComments));
 router.post(
   "/posts/:id/comments",
