@@ -143,6 +143,64 @@ export const reportQuerySchema = paginationSchema.omit({ feed: true }).extend({
   status: z.enum(REPORT_STATUSES).default("open"),
 });
 
+// ---- Direct messages, news and contact ----
+
+export const MESSAGE_MAX_LENGTH = 1000;
+export const sendMessageSchema = z.object({
+  text: z.string().trim().min(1, "Write a message").max(MESSAGE_MAX_LENGTH),
+});
+export const messagesQuerySchema = z.object({
+  /** ISO timestamp of the oldest message already loaded; returns older ones. */
+  cursor: z.string().datetime().optional(),
+  limit: z.coerce.number().int().min(1).max(50).default(30),
+});
+
+export const NEWS_TOPICS = ["top", "world", "technology", "business", "sport"] as const;
+export type NewsTopic = (typeof NEWS_TOPICS)[number];
+export const newsQuerySchema = z.object({
+  topic: z.enum(NEWS_TOPICS).default("top"),
+});
+
+export const contactSchema = z.object({
+  name: z.string().trim().min(2, "Enter your name").max(60),
+  email: z.string().trim().toLowerCase().email("Enter a valid email address").max(120),
+  message: z.string().trim().min(10, "Write at least 10 characters").max(2000),
+  /** Honeypot: real people never fill this in. Bots do, and get a silent success. */
+  website: z.string().max(200).optional(),
+});
+
+export interface MessageDTO {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  text: string;
+  createdAt: string;
+}
+
+export interface ConversationDTO {
+  id: string;
+  other: UserSummaryDTO;
+  lastMessage: { text: string; senderId: string; createdAt: string } | null;
+  lastMessageAt: string;
+  unread: number;
+}
+
+export interface MessagePage {
+  items: MessageDTO[]; // oldest first
+  nextCursor: string | null;
+}
+
+export interface NewsItemDTO {
+  id: string;
+  title: string;
+  link: string;
+  source: string;
+  publishedAt: string;
+}
+
+export type ContactInput = z.infer<typeof contactSchema>;
+export type SendMessageInput = z.infer<typeof sendMessageSchema>;
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type GoogleLoginInput = z.infer<typeof googleLoginSchema>;

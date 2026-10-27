@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import Avatar from "../components/Avatar";
 import PlusBadge from "../components/PlusBadge";
 import EarningsCard from "../components/EarningsCard";
@@ -87,13 +87,18 @@ export default function ProfilePage() {
               </button>
             )
           ) : (
-            <button
-              className={`btn ${p.followedByMe ? "btn-outline" : ""}`}
-              onClick={() => follow.mutate()}
-              disabled={follow.isPending}
-            >
-              {p.followedByMe ? "Following" : "Follow"}
-            </button>
+            <div className="row">
+              <Link className="btn btn-outline" to={`/messages?to=${encodeURIComponent(p.username)}`}>
+                ✉ Message
+              </Link>
+              <button
+                className={`btn ${p.followedByMe ? "btn-outline" : ""}`}
+                onClick={() => follow.mutate()}
+                disabled={follow.isPending}
+              >
+                {p.followedByMe ? "Following" : "Follow"}
+              </button>
+            </div>
           )}
         </div>
 

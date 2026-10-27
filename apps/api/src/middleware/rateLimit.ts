@@ -95,3 +95,32 @@ export const communityLimiter = rateLimit({
   skip,
   message: { error: "You're creating communities too fast, try again later." },
 });
+
+/** Sending direct messages. */
+export const messageLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 60,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "You're sending messages too fast, slow down." },
+});
+
+/** Starting conversations with new people (the main spam vector for direct messages). */
+export const newChatLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 20,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "You've started a lot of conversations, try again later." },
+});
+
+export const contactLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 5,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "Too many messages, try again later." },
+});
