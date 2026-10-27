@@ -3,6 +3,8 @@ import type { Types } from "mongoose";
 import type { EarningsDTO } from "@commune/shared";
 import { env } from "../config/env.js";
 import { Purchase } from "../models/Purchase.js";
+import { User } from "../models/User.js";
+import { isPlusActive } from "../utils/plan.js";
 
 interface PostLike {
   _id: Types.ObjectId;
@@ -44,13 +46,16 @@ export interface SaleInput {
 
 /** Records a purchase. Returns false if this order (or buyer + post) was already recorded. */
 export async function recordPurchase(sale: SaleInput): Promise<boolean> {
+  // Plus members keep more of each sale. The rate is fixed at the moment of the sale.
+  const creator = await User.findById(sale.creatorId).select("plusUntil").lean();
+  const feePercent = isPlusActive(creator?.plusUntil) ? env.PLUS_FEE_PERCENT : env.PLATFORM_FEE_PERCENT;
   try {
     await Purchase.create({
       user: sale.userId,
       post: sale.postId,
       creator: sale.creatorId,
       amountCents: sale.amountCents,
-      ...splitSale(sale.amountCents),
+      ...splitSale(sale.amountCents, feePercent),
       currency: sale.currency,
       provider: sale.provider,
       providerOrderId: sale.orderId,

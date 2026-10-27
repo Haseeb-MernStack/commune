@@ -6,6 +6,7 @@ import { useDeletePost, useToggleLike } from "../hooks/usePosts";
 import { formatPrice, useCheckout } from "../hooks/usePayments";
 import { assetUrl } from "../lib/api";
 import Avatar from "./Avatar";
+import PlusBadge from "./PlusBadge";
 import ReportForm from "./ReportForm";
 
 export function timeAgo(iso: string): string {
@@ -33,6 +34,7 @@ export default function PostCard({ post }: { post: PostDTO }) {
           <Link to={`/u/${post.author.username}`} className="user-link">
             @{post.author.username}
           </Link>
+          <PlusBadge plus={post.author.plus} />
           <span className="muted">· {timeAgo(post.createdAt)}</span>
           {post.community && (
             <Link to={`/c/${post.community.slug}`} className="community-tag">

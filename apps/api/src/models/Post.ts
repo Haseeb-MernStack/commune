@@ -3,13 +3,14 @@ import { Schema, model } from "mongoose";
 const postSchema = new Schema(
   {
     author: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
-    content: { type: String, trim: true, maxlength: 500, default: "" },
+    content: { type: String, trim: true, maxlength: 2000, default: "" },
     imageUrl: { type: String, default: null, index: true, sparse: true },
     // Set when the post was made inside a community.
     community: { type: Schema.Types.ObjectId, ref: "Community", default: null, index: true },
     // Paid posts: price in US cents and the content that is hidden until purchase.
     priceCents: { type: Number, default: null, min: 100 },
     premiumContent: { type: String, default: null, maxlength: 5000 },
+    viewCount: { type: Number, default: 0, min: 0 },
     likeCount: { type: Number, default: 0, min: 0 },
     commentCount: { type: Number, default: 0, min: 0 },
   },

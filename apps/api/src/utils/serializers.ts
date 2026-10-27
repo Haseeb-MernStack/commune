@@ -1,4 +1,5 @@
 import type { Types } from "mongoose";
+import { isPlusActive } from "./plan.js";
 import type {
   CommentDTO,
   CommunityDTO,
@@ -20,6 +21,7 @@ interface UserLike {
   role?: string | null;
   banned?: boolean | null;
   emailVerified?: boolean | null;
+  plusUntil?: Date | null;
   createdAt: Date;
 }
 
@@ -27,6 +29,7 @@ interface PopulatedAuthor {
   _id: Types.ObjectId;
   username: string;
   avatarUrl?: string | null;
+  plusUntil?: Date | null;
 }
 
 export interface PopulatedPost {
@@ -79,6 +82,7 @@ const toAuthor = (a: PopulatedAuthor) => ({
   id: a._id.toString(),
   username: a.username,
   avatarUrl: a.avatarUrl ?? null,
+  plus: isPlusActive(a.plusUntil),
 });
 
 export function toPublicUser(u: UserLike): PublicUser {
@@ -88,6 +92,7 @@ export function toPublicUser(u: UserLike): PublicUser {
     bio: u.bio ?? "",
     avatarUrl: u.avatarUrl ?? null,
     role: u.role === "admin" ? "admin" : "user",
+    plus: isPlusActive(u.plusUntil),
     emailVerified: Boolean(u.emailVerified),
     createdAt: u.createdAt.toISOString(),
   };

@@ -2,6 +2,7 @@ import type { RequestHandler } from "express";
 import { env } from "../config/env.js";
 import { User } from "../models/User.js";
 import { forbidden, unauthorized } from "../utils/errors.js";
+import { isPlusActive } from "../utils/plan.js";
 import { verifyAccessToken } from "../utils/tokens.js";
 
 /** Verifies the access token. Stateless: no database lookup. */
@@ -40,4 +41,15 @@ export const requireActive: RequestHandler = async (req, _res, next) => {
 export const requireAdmin: RequestHandler = (req, _res, next) => {
   if (req.userRole !== "admin") return next(forbidden("Admins only"));
   next();
+};
+
+/** Use after requireAuth on Commune Plus features. */
+export const requirePlus: RequestHandler = async (req, _res, next) => {
+  try {
+    const user = await User.findById(req.userId).select("plusUntil").lean();
+    if (!isPlusActive(user?.plusUntil)) return next(forbidden("Commune Plus is required"));
+    next();
+  } catch (err) {
+    next(err);
+  }
 };

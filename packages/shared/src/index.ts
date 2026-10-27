@@ -70,10 +70,15 @@ export const MIN_PRICE_CENTS = 100;
 export const MAX_PRICE_CENTS = 50000;
 export const MAX_PREMIUM_LENGTH = 5000;
 
+/** Free accounts can write 500 characters per post; Commune Plus members 2000. */
+export const FREE_POST_LENGTH = 500;
+export const PLUS_POST_LENGTH = 2000;
+
 export const createPostSchema = z
   .object({
-    // For a paid post this is the free teaser everyone can see.
-    content: z.string().trim().max(500),
+    // For a paid post this is the free teaser everyone can see. The 500 limit for free
+    // accounts is enforced on the server, because it depends on the account's plan.
+    content: z.string().trim().max(PLUS_POST_LENGTH),
     imageUrl: uploadUrlSchema.nullish(),
     // Setting a price makes the post paid: premiumContent is shown only after purchase.
     // Slug of a community the author belongs to; the post then appears in that community.
@@ -162,6 +167,8 @@ export interface PublicUser {
   bio: string;
   avatarUrl: string | null;
   role: Role;
+  /** Has an active Commune Plus subscription. */
+  plus: boolean;
   emailVerified: boolean;
   createdAt: string;
 }
@@ -170,6 +177,8 @@ export interface AuthorDTO {
   id: string;
   username: string;
   avatarUrl: string | null;
+  /** Has an active Commune Plus subscription. */
+  plus: boolean;
 }
 
 export interface PostDTO {
@@ -196,6 +205,40 @@ export interface UserSummaryDTO {
   username: string;
   bio: string;
   avatarUrl: string | null;
+  plus: boolean;
+}
+
+export interface BillingDTO {
+  plus: boolean;
+  /** When Plus access ends (or the next renewal grace period ends). Null if never subscribed. */
+  plusUntil: string | null;
+  /** Subscription is cancelled: access continues until plusUntil, then stops. */
+  cancelled: boolean;
+  status: string | null;
+  priceLabel: string;
+  /** False when payments aren't set up on this server. */
+  available: boolean;
+}
+
+export interface InsightsDTO {
+  totals: {
+    posts: number;
+    views: number;
+    likes: number;
+    comments: number;
+    followers: number;
+    newFollowers30d: number;
+  };
+  /** One entry per day for the last 30 days, oldest first. */
+  daily: { day: string; views: number }[];
+  topPosts: {
+    id: string;
+    content: string;
+    views: number;
+    likes: number;
+    comments: number;
+    createdAt: string;
+  }[];
 }
 
 export interface CommunityDTO {

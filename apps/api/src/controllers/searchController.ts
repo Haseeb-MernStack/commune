@@ -3,6 +3,7 @@ import type { Page, PostDTO, UserSummaryDTO } from "@commune/shared";
 import { SEARCH_PAGE_SIZE } from "@commune/shared";
 import { Post } from "../models/Post.js";
 import { User } from "../models/User.js";
+import { isPlusActive } from "../utils/plan.js";
 import { escapeRegex } from "../utils/regex.js";
 import type { PopulatedPost } from "../utils/serializers.js";
 import { presentPosts } from "./postController.js";
@@ -33,7 +34,7 @@ export async function users(_req: Request, res: Response) {
     .sort({ username: 1 })
     .skip((page - 1) * SEARCH_PAGE_SIZE)
     .limit(SEARCH_PAGE_SIZE + 1)
-    .select("username bio avatarUrl")
+    .select("username bio avatarUrl plusUntil")
     .lean();
 
   const { items, nextCursor } = paginate(rows, page);
@@ -43,6 +44,7 @@ export async function users(_req: Request, res: Response) {
       username: u.username,
       bio: u.bio ?? "",
       avatarUrl: u.avatarUrl ?? null,
+      plus: isPlusActive(u.plusUntil),
     })),
     nextCursor,
   };
@@ -56,7 +58,7 @@ export async function posts(req: Request, res: Response) {
     .sort({ score: { $meta: "textScore" } })
     .skip((page - 1) * SEARCH_PAGE_SIZE)
     .limit(SEARCH_PAGE_SIZE + 1)
-    .populate("author", "username avatarUrl")
+    .populate("author", "username avatarUrl plusUntil")
     .populate("community", "slug name")
     .lean()) as unknown as PopulatedPost[];
 

@@ -2,13 +2,16 @@ import type { Request, Response } from "express";
 import { communitySlugSchema } from "@commune/shared";
 import type { CommunityDTO } from "@commune/shared";
 import { Community } from "../models/Community.js";
+import { User } from "../models/User.js";
+import { isPlusActive } from "../utils/plan.js";
 import { Membership } from "../models/Membership.js";
 import { badRequest, conflict, forbidden, notFound } from "../utils/errors.js";
 import { escapeRegex } from "../utils/regex.js";
 import { toCommunityDTO } from "../utils/serializers.js";
 import { sendPostPage } from "./postController.js";
 
-const MAX_COMMUNITIES_PER_USER = 5;
+const MAX_COMMUNITIES_FREE = 5;
+const MAX_COMMUNITIES_PLUS = 20;
 const LIST_LIMIT = 30;
 
 async function findBySlug(raw: string | undefined) {
@@ -25,9 +28,17 @@ export async function create(req: Request, res: Response) {
   const { slug, name, description } = req.body as { slug: string; name: string; description: string };
 
   // A cap keeps one account from claiming every good name.
-  const owned = await Community.countDocuments({ creator: req.userId });
-  if (owned >= MAX_COMMUNITIES_PER_USER) {
-    throw forbidden(`You can create up to ${MAX_COMMUNITIES_PER_USER} communities`);
+  const [owned, owner] = await Promise.all([
+    Community.countDocuments({ creator: req.userId }),
+    User.findById(req.userId).select("plusUntil").lean(),
+  ]);
+  const cap = isPlusActive(owner?.plusUntil) ? MAX_COMMUNITIES_PLUS : MAX_COMMUNITIES_FREE;
+  if (owned >= cap) {
+    throw forbidden(
+      cap === MAX_COMMUNITIES_FREE
+        ? `You can create up to ${cap} communities. Commune Plus raises this to ${MAX_COMMUNITIES_PLUS}.`
+        : `You can create up to ${cap} communities`,
+    );
   }
 
   let community;

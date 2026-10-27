@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import type { Request, Response } from "express";
+import { FREE_POST_LENGTH } from "@commune/shared";
 import type { Page, PostDTO } from "@commune/shared";
 import { Comment } from "../models/Comment.js";
 import { Follow } from "../models/Follow.js";
@@ -10,6 +11,9 @@ import { Post } from "../models/Post.js";
 import { notify } from "../services/notificationService.js";
 import { unlockedPostIds } from "../services/purchaseService.js";
 import { removePost } from "../services/moderationService.js";
+import { PostView } from "../models/PostView.js";
+import { User } from "../models/User.js";
+import { isPlusActive } from "../utils/plan.js";
 import { badRequest, forbidden, notFound } from "../utils/errors.js";
 import {
   toCommentDTO,
@@ -18,7 +22,7 @@ import {
   type PopulatedPost,
 } from "../utils/serializers.js";
 
-const AUTHOR_FIELDS = "username avatarUrl";
+const AUTHOR_FIELDS = "username avatarUrl plusUntil";
 const COMMUNITY_FIELDS = "slug name";
 
 const param = (req: Request, name: string): string => {
@@ -122,6 +126,13 @@ export async function getPost(req: Request, res: Response) {
 }
 
 export async function createPost(req: Request, res: Response) {
+  // Long posts are a Commune Plus feature.
+  if ((req.body.content as string).length > FREE_POST_LENGTH) {
+    const author = await User.findById(req.userId).select("plusUntil").lean();
+    if (!isPlusActive(author?.plusUntil)) {
+      throw forbidden(`Posts over ${FREE_POST_LENGTH} characters need Commune Plus`);
+    }
+  }
   let communityId: string | null = null;
   if (req.body.community) {
     const community = await Community.findOne({ slug: req.body.community }).select("_id").lean();
@@ -210,4 +221,24 @@ export async function addComment(req: Request, res: Response) {
     .populate("author", AUTHOR_FIELDS)
     .lean()) as unknown as PopulatedComment;
   res.status(201).json(toCommentDTO(comment));
+}
+
+/**
+ * Counts a view of a post: once per viewer per day, never the author's own. Called by the web
+ * app when a post page is opened; powers the Insights dashboard.
+ */
+export async function trackView(req: Request, res: Response) {
+  const id = param(req, "id");
+  const post = await Post.findById(id).select("author").lean();
+  if (!post) throw notFound("Post not found");
+  if (post.author.toString() !== req.userId) {
+    const day = new Date().toISOString().slice(0, 10);
+    const result = await PostView.updateOne(
+      { post: id, viewer: req.userId, day },
+      { $setOnInsert: { author: post.author, createdAt: new Date() } },
+      { upsert: true },
+    );
+    if (result.upsertedCount > 0) await Post.updateOne({ _id: id }, { $inc: { viewCount: 1 } });
+  }
+  res.status(204).end();
 }

@@ -45,6 +45,12 @@ const schema = z.object({
   LEMONSQUEEZY_WEBHOOK_SECRET: z.string().optional(),
   // Share of each sale the platform keeps; the rest is credited to the post's author.
   PLATFORM_FEE_PERCENT: z.coerce.number().min(0).max(100).default(20),
+  // The lower share kept on sales by Commune Plus members.
+  PLUS_FEE_PERCENT: z.coerce.number().min(0).max(100).default(10),
+  // Commune Plus: id of the SUBSCRIPTION variant in Lemon Squeezy (a recurring product).
+  LEMONSQUEEZY_PLUS_VARIANT_ID: z.string().optional(),
+  // Shown on the Plus page. The real price lives in Lemon Squeezy; keep this text in sync.
+  PLUS_PRICE_LABEL: z.string().optional().transform((v) => v?.trim() || "$5 / month"),
   // "true" blocks posting, liking, commenting and following until the email is verified.
   REQUIRE_VERIFIED_EMAIL: z
     .enum(["true", "false"])

@@ -67,6 +67,16 @@ export const searchLimiter = rateLimit({
   message: { error: "Searching too fast, try again in a moment." },
 });
 
+/** Post view pings: generous, since opening posts is normal browsing. */
+export const viewLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 200,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "Too many requests, slow down." },
+});
+
 /** Unauthenticated read-only endpoints (the public Explore page). */
 export const publicLimiter = rateLimit({
   windowMs: 60 * 1000,

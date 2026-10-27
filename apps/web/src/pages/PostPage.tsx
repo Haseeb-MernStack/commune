@@ -3,6 +3,8 @@ import type { FormEvent } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import Avatar from "../components/Avatar";
 import PostCard, { timeAgo } from "../components/PostCard";
+import PlusBadge from "../components/PlusBadge";
+import { useTrackView } from "../hooks/useBilling";
 import { useAddComment, useComments, usePost } from "../hooks/usePosts";
 
 export default function PostPage() {
@@ -11,6 +13,7 @@ export default function PostPage() {
   // Coming back from checkout: the unlock arrives by webhook, so keep checking for a moment.
   const justPaid = params.get("unlocked") === "1";
   const post = usePost(id, justPaid);
+  useTrackView(id);
   const comments = useComments(id);
   const add = useAddComment(id);
   const [content, setContent] = useState("");
@@ -58,6 +61,7 @@ export default function PostPage() {
               <Link to={`/u/${c.author.username}`} className="user-link">
                 @{c.author.username}
               </Link>
+              <PlusBadge plus={c.author.plus} />
               <span className="muted">· {timeAgo(c.createdAt)}</span>
             </div>
             <p className="post-body">{c.content}</p>

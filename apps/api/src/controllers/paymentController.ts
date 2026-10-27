@@ -13,6 +13,7 @@ import {
   paymentsMode,
   verifyWebhookSignature,
 } from "../services/paymentService.js";
+import { applySubscriptionEvent } from "../services/billingService.js";
 import { earningsFor, recordPurchase } from "../services/purchaseService.js";
 import { AppError, badRequest, conflict, notFound } from "../utils/errors.js";
 
@@ -98,6 +99,8 @@ export async function lemonSqueezyWebhook(req: Request, res: Response) {
   if (event.kind === "refunded") {
     // Revoke access and take the sale out of the creator's earnings.
     await Purchase.deleteOne({ provider: "lemonsqueezy", providerOrderId: event.orderId });
+  } else if (event.kind === "subscription") {
+    await applySubscriptionEvent(event);
   } else if (event.kind === "paid") {
     const valid =
       mongoose.isValidObjectId(event.postId) && mongoose.isValidObjectId(event.userId);
