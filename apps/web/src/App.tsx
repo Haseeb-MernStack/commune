@@ -1,8 +1,7 @@
-import { Link, Navigate, Route, Routes } from "react-router-dom";
+import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import type { ReactNode } from "react";
 import { useAuth } from "./store/auth";
-import { useUnreadCount } from "./hooks/useSocial";
-import Avatar from "./components/Avatar";
+import Header, { AUTH_PATHS } from "./components/Header";
 import FeedPage from "./pages/FeedPage";
 import PostPage from "./pages/PostPage";
 import LoginPage from "./pages/LoginPage";
@@ -15,7 +14,6 @@ import ResetPasswordPage from "./pages/ResetPassword";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import VerifyBanner from "./components/VerifyBanner";
 import SearchPage from "./pages/SearchPage";
-import SearchBox from "./components/SearchBox";
 import PwaBanner from "./components/PwaBanner";
 import ExplorePage from "./pages/ExplorePage";
 import CommunitiesPage from "./pages/CommunitiesPage";
@@ -36,66 +34,20 @@ function Home() {
   return user ? <FeedPage /> : <ExplorePage />;
 }
 
-function Header() {
-  const { user, logout } = useAuth();
-  const unread = useUnreadCount(Boolean(user));
-  const count = unread.data?.count ?? 0;
-
-  return (
-    <header className="header">
-      <Link to="/" className="brand">
-        Commune
-      </Link>
-      {user && <SearchBox />}{" "}
-      {!user && (
-        <nav className="header-right">
-          <Link to="/login" className="nav-link">
-            Log in
-          </Link>
-          <Link to="/register" className="btn">
-            Sign up
-          </Link>
-        </nav>
-      )}
-      {user && (
-        <nav className="header-right">
-          {user.role === "admin" && (
-            <Link to="/admin" className="nav-link">
-              Admin
-            </Link>
-          )}
-          <Link to="/communities" className="nav-link">
-            Communities
-          </Link>
-          <Link to={user.plus ? "/insights" : "/plus"} className="nav-link plus-link">
-            {user.plus ? "Insights" : "✦ Plus"}
-          </Link>
-          <Link
-            to="/notifications"
-            className="nav-link"
-            aria-label={`Notifications, ${count} unread`}
-          >
-            🔔
-            {count > 0 && <span className="badge">{count > 99 ? "99+" : count}</span>}
-          </Link>
-          <Link to={`/u/${user.username}`} className="nav-link nav-profile">
-            <Avatar username={user.username} url={user.avatarUrl} size={26} />@{user.username}
-          </Link>
-          <button className="btn btn-ghost" onClick={() => void logout()}>
-            Log out
-          </button>
-        </nav>
-      )}
-    </header>
-  );
-}
-
 export default function App() {
+  const { pathname } = useLocation();
+  const authPage = AUTH_PATHS.includes(pathname);
   return (
     <>
       <Header />
-      <VerifyBanner /> <PwaBanner />
-      <main className="container">
+      {!authPage && <VerifyBanner />}
+      <PwaBanner />
+      <main className={authPage ? "container container-auth" : "container"}>
+        {authPage && (
+          <Link to="/" className="brand auth-brand">
+            Commune
+          </Link>
+        )}
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
