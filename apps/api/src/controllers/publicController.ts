@@ -27,6 +27,7 @@ export async function listPosts(_req: Request, res: Response) {
     items: posts.map((p) => toPostDTO(p, false, true)),
     nextCursor: hasMore ? (posts[posts.length - 1]?._id.toString() ?? null) : null,
   };
-  res.set("Cache-Control", "public, max-age=30");
+  // Everyone gets the same answer, so the CDN may serve it for a minute and refresh in the background.
+  res.set("Cache-Control", "public, max-age=30, s-maxage=60, stale-while-revalidate=300");
   res.json(body);
 }

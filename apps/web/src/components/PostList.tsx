@@ -13,7 +13,13 @@ export default function PostList({
 
   return (
     <>
-      {query.isLoading && <p className="muted center">Loading…</p>}
+      {query.isLoading && (
+        <div aria-busy="true" aria-label="Loading posts">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="card skeleton-post" />
+          ))}
+        </div>
+      )}
       {query.isError && <p className="error center">{query.error.message}</p>}
       {query.isSuccess && posts.length === 0 && <p className="muted center">{emptyMessage}</p>}
       {posts.map((post) => (

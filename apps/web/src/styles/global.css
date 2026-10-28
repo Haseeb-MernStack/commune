@@ -1687,3 +1687,72 @@ video {
     display: inline-flex;
   }
 }
+
+/* =====================================================================
+   Performance and accessibility
+   ===================================================================== */
+:root {
+  --muted: #5f5c55; /* 6:1 on the page background (was 4.6:1) */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --muted: #a6a398;
+  }
+}
+
+::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+main:focus {
+  outline: none;
+}
+
+.skip-link {
+  position: absolute;
+  left: 8px;
+  top: -60px;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.skip-link:focus {
+  top: 8px;
+}
+
+/* Placeholders keep the page from jumping while content loads. */
+.skeleton-post {
+  height: 120px;
+  margin-bottom: 12px;
+  background: linear-gradient(90deg, var(--surface), var(--border), var(--surface));
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+.route-loading {
+  min-height: 60vh;
+}
+
+.news-panel {
+  min-height: 420px;
+}
+
+/* Posts far below the screen are not drawn until they are close. */
+.post {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 160px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton,
+  .skeleton-post,
+  .live-dot::before {
+    animation: none;
+  }
+}

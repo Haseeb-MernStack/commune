@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /messages
+Disallow: /admin
+
+Sitemap: https://commune-mu.vercel.app/sitemap.xml

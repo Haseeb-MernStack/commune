@@ -15,14 +15,33 @@ declare global {
 
 let scriptAdded = false;
 
+/**
+ * The AdSense script is heavy, so it waits until the page has finished loading and the
+ * visitor has done something (scroll, tap, key press), or 8 seconds have passed. The page
+ * itself therefore loads and responds first.
+ */
 function loadAdSense(client: string) {
   if (scriptAdded) return;
   scriptAdded = true;
-  const script = document.createElement("script");
-  script.async = true;
-  script.crossOrigin = "anonymous";
-  script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(client)}`;
-  document.head.appendChild(script);
+  const add = () => {
+    const script = document.createElement("script");
+    script.async = true;
+    script.crossOrigin = "anonymous";
+    script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(client)}`;
+    document.head.appendChild(script);
+  };
+  const events = ["scroll", "pointerdown", "keydown", "touchstart"] as const;
+  let done = false;
+  const go = () => {
+    if (done) return;
+    done = true;
+    events.forEach((e) => window.removeEventListener(e, go));
+    add();
+  };
+  events.forEach((e) => window.addEventListener(e, go, { once: true, passive: true }));
+  const afterLoad = () => window.setTimeout(go, 8000);
+  if (document.readyState === "complete") afterLoad();
+  else window.addEventListener("load", afterLoad, { once: true });
 }
 
 export default function AdSlot({ slot }: { slot: string | undefined }) {

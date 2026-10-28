@@ -12,4 +12,17 @@ export default defineConfig({
   plugins: [react()],
   resolve: { alias: { "@commune/shared": sharedEntry } },
   server: { port: 5173 },
+  build: {
+    target: "es2020",
+    // Long-lived libraries go in their own files so they stay cached between deployments
+    // while only the (small, changing) app code is downloaded again.
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ["react", "react-dom", "react-router-dom"],
+          query: ["@tanstack/react-query"],
+        },
+      },
+    },
+  },
 });
