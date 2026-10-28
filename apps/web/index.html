@@ -4,18 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
-    <title>Commune</title>
+    <title>Commune: an open source community platform</title>
     <meta name="description" content="Commune is an open source community platform. Share posts, follow people and join the conversation." />
     <meta name="application-name" content="Commune" />
-
-    <!-- Google Adsense Implementation -->
-     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7015477982506060"
-     crossorigin="anonymous"></script>
 
     <!-- Browser UI colours follow the user's light or dark setting. -->
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#f6f5f1" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#141412" media="(prefers-color-scheme: dark)" />
+
+    <!-- Google Adsense Implementation -->
+     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7015477982506060"
+     crossorigin="anonymous"></script>
 
     <!-- Icons and installable web app (PWA) -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -33,16 +33,54 @@
     <meta property="og:title" content="Commune" />
     <meta property="og:description" content="An open source community platform. Share posts, follow people and join the conversation." />
     <meta name="twitter:card" content="summary" />
+    <link rel="canonical" href="https://commune-mu.vercel.app/" />
+    <meta property="og:url" content="https://commune-mu.vercel.app/" />
 
     <!-- Paint the right background immediately, so there is no white flash before the CSS loads. -->
     <style>
       html, body { margin: 0; background: #f6f5f1; }
       @media (prefers-color-scheme: dark) { html, body { background: #141412; color: #efede6; } }
       .boot { font-family: system-ui, sans-serif; text-align: center; padding: 40vh 16px 0; color: #6f6c64; }
+      .boot-header { display: flex; align-items: center; height: 57px; padding: 0 20px; background: #fff; border-bottom: 1px solid #e4e1d8; font: 700 1.2rem system-ui, sans-serif; color: #1c1b18; }
+      .boot-body { max-width: 620px; margin: 0 auto; padding: 24px 16px; font-family: system-ui, sans-serif; color: #5f5c55; }
+      .boot-body h1 { margin: 0 0 8px; font-size: 1.4rem; color: #1c1b18; }
+      @media (prefers-color-scheme: dark) { .boot-header { background: #1d1d1a; border-color: #2c2b27; color: #efede6; } .boot-body { color: #9a978d; } .boot-body h1 { color: #efede6; } }
     </style>
+
+    <!--
+      Start the requests the first screen needs right now, in parallel with downloading the
+      app, instead of after it has started. The app takes each response over exactly once
+      (see takeEarly in src/lib/api.ts). Skipped on localhost, where the API is elsewhere.
+    -->
+      <script>
+      (function () {
+        try {
+          var h = location.hostname;
+          if (h === "localhost" || h === "127.0.0.1") return;
+          var early = (window.__early = {});
+          var start = function (key, url, init) {
+            var p = fetch(url, init);
+            p.catch(function () {});
+            early[key] = p;
+          };
+          var hint = localStorage.getItem("commune_session");
+          var path = location.pathname;
+          start("/news?topic=top", "/api/news?topic=top");
+          if (hint !== "0") start("/auth/refresh", "/api/auth/refresh", { method: "POST", credentials: "include" });
+          else if (path === "/" || path === "/explore") start("/public/posts", "/api/public/posts");
+        } catch (e) {}
+      })();
+    </script>
+
   </head>
   <body>
-    <div id="root"><p class="boot">Loading Commune…</p></div>
+    <div id="root">
+      <div class="boot-header">Commune</div>
+      <div class="boot-body">
+        <h1>Commune</h1>
+        <p>An open source community platform. Share posts, follow people, join communities and read the latest news.</p>
+      </div>
+    </div>
     <noscript>Commune needs JavaScript to run. Please enable it in your browser settings.</noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>

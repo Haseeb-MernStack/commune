@@ -53,6 +53,7 @@ export default function PostCard({ post }: { post: PostDTO }) {
               src={assetUrl(post.imageUrl)}
               alt={`Image posted by @${post.author.username}`}
               loading="lazy"
+              decoding="async"
             />
           </a>
         )}

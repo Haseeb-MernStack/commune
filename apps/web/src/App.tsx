@@ -1,30 +1,75 @@
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Suspense, lazy, useEffect } from "react";
 import type { ReactNode } from "react";
 import { useAuth } from "./store/auth";
 import Header, { AUTH_PATHS } from "./components/Header";
 import FeedPage from "./pages/FeedPage";
-import PostPage from "./pages/PostPage";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import ProfilePage from "./pages/ProfilePage";
-import NotificationsPage from "./pages/NotificationsPage";
-import AdminPage from "./pages/AdminPage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import ResetPasswordPage from "./pages/ResetPassword";
-import VerifyEmailPage from "./pages/VerifyEmailPage";
 import VerifyBanner from "./components/VerifyBanner";
-import SearchPage from "./pages/SearchPage";
 import PwaBanner from "./components/PwaBanner";
 import ExplorePage from "./pages/ExplorePage";
-import CommunitiesPage from "./pages/CommunitiesPage";
-import CommunityPage from "./pages/CommunityPage";
 import LeftNav from "./components/LeftNav";
 import RightRail from "./components/RightRail";
-import MessagesPage from "./pages/MessagesPage";
-import NewsPage from "./pages/NewsPage";
-import ContactPage from "./pages/ContactPage";
-import PlusPage from "./pages/PlusPage";
-import InsightsPage from "./pages/InsightsPage";
+
+const PostPage = lazy(() => import("./pages/PostPage"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const RegisterPage = lazy(() => import("./pages/RegisterPage"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
+const AdminPage = lazy(() => import("./pages/AdminPage"));
+const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
+const VerifyEmailPage = lazy(() => import("./pages/VerifyEmailPage"));
+const SearchPage = lazy(() => import("./pages/SearchPage"));
+const CommunitiesPage = lazy(() => import("./pages/CommunitiesPage"));
+const CommunityPage = lazy(() => import("./pages/CommunityPage"));
+const PlusPage = lazy(() => import("./pages/PlusPage"));
+const InsightsPage = lazy(() => import("./pages/InsightsPage"));
+const MessagesPage = lazy(() => import("./pages/MessagesPage"));
+const NewsPage = lazy(() => import("./pages/NewsPage"));
+const ContactPage = lazy(() => import("./pages/ContactPage"));
+const ResetPasswordPage = lazy(() => import("./pages/ResetPassword"));
+
+const TITLES: Record<string, string> = {
+  "/": "Commune: an open source community platform",
+  "/explore": "Explore",
+  "/news": "Latest news",
+  "/contact": "Contact",
+  "/plus": "Commune Plus",
+  "/insights": "Insights",
+  "/messages": "Messages",
+  "/communities": "Communities",
+  "/notifications": "Notifications",
+  "/search": "Search",
+  "/login": "Log in",
+  "/register": "Sign up",
+  "/forgot-password": "Forgot password",
+  "/reset-password": "Reset password",
+  "/admin": "Admin",
+};
+
+/** Per-page browser title and canonical link, so tabs, history and search engines get real names. */
+function RouteMeta() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    const user = /^\/u\/([^/]+)/.exec(pathname)?.[1];
+    const community = /^\/c\/([^/]+)/.exec(pathname)?.[1];
+    const name =
+      TITLES[pathname] ??
+      (user ? `@${decodeURIComponent(user)}` : community ? `c/${decodeURIComponent(community)}` : pathname.startsWith("/messages") ? "Messages" : pathname.startsWith("/posts/") ? "Post" : "Commune");
+    document.title = pathname === "/" ? name : `${name} · Commune`;
+
+    let link = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "canonical";
+      document.head.appendChild(link);
+    }
+    link.href = `${window.location.origin}${pathname}`;
+
+    // Move keyboard and screen-reader focus to the page content after navigating.
+    document.getElementById("main")?.focus({ preventScroll: true });
+  }, [pathname]);
+  return null;
+}
 
 function Protected({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -47,17 +92,22 @@ export default function App() {
   const wide = pathname.startsWith("/messages");
   return (
     <>
+      <a href="#main" className="skip-link">
+        Skip to content
+      </a>
+      <RouteMeta />
       <Header />
       {!authPage && <VerifyBanner />}
       <PwaBanner />
       <div className={authPage ? "shell-auth" : `shell${user ? " has-left" : ""}${wide ? " wide" : ""}`}>
       {!authPage && user && <LeftNav />}
-      <main className={authPage ? "container container-auth" : "container"}>
+      <main id="main" tabIndex={-1} className={authPage ? "container container-auth" : "container"}>
         {authPage && (
           <Link to="/" className="brand auth-brand">
             Commune
           </Link>
         )}
+        <Suspense fallback={<p className="muted center route-loading">Loading…</p>}>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -159,6 +209,7 @@ export default function App() {
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </Suspense>
       </main>
       {!authPage && !wide && <RightRail />}
       </div>
