@@ -1,12 +1,12 @@
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { uploadUrlSchema } from "@commune/shared";
+import { uploadUrlSchema, type UploadTicket } from "@commune/shared";
 import { env, isProd } from "../config/env.js";
 import { logger } from "../config/logger.js";
 import { Post } from "../models/Post.js";
 import { User } from "../models/User.js";
-import { AppError } from "../utils/errors.js";
+import { AppError, badRequest } from "../utils/errors.js";
 import type { ImageExt } from "../utils/images.js";
 
 /**
@@ -111,6 +111,50 @@ async function removeStored(name: string): Promise<void> {
     body,
   });
   if (!res.ok) throw new Error(`Cloudinary delete failed (${res.status})`);
+}
+
+/**
+ * Direct uploads: the browser sends the file straight to Cloudinary, so large photos never
+ * pass through (and cannot be rejected by) the serverless function. The API only hands out a
+ * short-lived signed ticket for one random file name, then confirms the result.
+ * Without Cloudinary the client falls back to the normal multipart upload.
+ */
+export function createUploadTicket(): UploadTicket {
+  if (!cloud) return { mode: "server" };
+  const id = crypto.randomBytes(16).toString("hex");
+  const publicId = `${FOLDER}/${id}`;
+  const timestamp = String(Math.floor(Date.now() / 1000));
+  const allowedFormats = "png,jpg,gif,webp";
+  return {
+    mode: "direct",
+    uploadUrl: `https://api.cloudinary.com/v1_1/${cloud.name}/image/upload`,
+    apiKey: cloud.key,
+    timestamp,
+    publicId,
+    allowedFormats,
+    signature: cloudinarySignature(
+      { allowed_formats: allowedFormats, public_id: publicId, timestamp },
+      cloud.secret,
+    ),
+  };
+}
+
+/** Checks that the file really exists in storage and returns the reference the app stores. */
+export async function confirmDirectUpload(id: string, format: string): Promise<string> {
+  if (!cloud) throw badRequest("Direct uploads are not enabled");
+  const ext = format === "jpeg" ? "jpg" : format;
+  let ok = false;
+  try {
+    const res = await fetch(`https://res.cloudinary.com/${cloud.name}/image/upload/${FOLDER}/${id}`, {
+      method: "HEAD",
+      signal: AbortSignal.timeout(8000),
+    });
+    ok = res.ok;
+  } catch (err) {
+    logger.warn({ err: String(err) }, "Could not verify direct upload");
+  }
+  if (!ok) throw badRequest("We could not find the uploaded image, please try again");
+  return `/uploads/${id}.${ext}`;
 }
 
 export async function saveImage(buffer: Buffer, ext: ImageExt): Promise<string> {

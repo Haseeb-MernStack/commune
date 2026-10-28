@@ -45,7 +45,10 @@ export const uploadUrlSchema = z
   .string()
   .regex(/^\/uploads\/[a-f0-9]{32}\.(png|jpg|gif|webp)$/, "Invalid image reference");
 
-export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+/** Largest image the API accepts. Stays under the 4.5 MB request limit of Vercel functions. */
+export const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
+/** Largest photo a person may pick; the app shrinks it before uploading. */
+export const MAX_SOURCE_IMAGE_BYTES = 25 * 1024 * 1024;
 export const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp"] as const;
 
 export const communitySlugSchema = z
@@ -362,6 +365,25 @@ export interface NotificationDTO {
 export interface UploadResponse {
   url: string;
 }
+
+/** Step two of a direct-to-storage upload: tell the API which file the browser uploaded. */
+export const completeUploadSchema = z.object({
+  id: z.string().regex(/^[a-f0-9]{32}$/, "Invalid upload id"),
+  format: z.enum(["png", "jpg", "jpeg", "gif", "webp"]),
+});
+
+/** "server": send the file to the API. "direct": the browser uploads to cloud storage itself. */
+export type UploadTicket =
+  | { mode: "server" }
+  | {
+      mode: "direct";
+      uploadUrl: string;
+      apiKey: string;
+      timestamp: string;
+      publicId: string;
+      allowedFormats: string;
+      signature: string;
+    };
 
 export interface ReportDTO {
   id: string;

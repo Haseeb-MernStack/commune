@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import type { ChangeEvent, FormEvent } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { ChangeEvent, ClipboardEvent, DragEvent, FormEvent } from "react";
 import { useCreatePost } from "../hooks/usePosts";
 import { useUploadImage } from "../hooks/useUpload";
 import { assetUrl } from "../lib/api";
@@ -22,27 +22,74 @@ export default function Composer({ communitySlug }: { communitySlug?: string }) 
   const [content, setContent] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
+  const [preview, setPreview] = useState<string | null>(null); // local copy, shown instantly
+  const [lastFile, setLastFile] = useState<File | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const attempt = useRef(0); // ignores the result of an upload the person has already cancelled
   const [paid, setPaid] = useState(false);
   const [price, setPrice] = useState("5");
   const [premium, setPremium] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const create = useCreatePost();
-  const upload = useUploadImage();
+  const upload = useUploadImage("post");
 
-  const pickImage = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = ""; // allow choosing the same file again later
-    if (!file) return;
+  // Free the temporary preview when it is replaced or the composer goes away.
+  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
+
+  /** Used by the file picker, paste and drag-and-drop. */
+  const handleFile = (file: File) => {
     const problem = validateImage(file);
     if (problem) {
       setImageError(problem);
       return;
     }
     setImageError(null);
+    setImageUrl(null);
+    setLastFile(file);
+    setPreview(URL.createObjectURL(file));
+    const mine = ++attempt.current;
     upload.mutate(file, {
-      onSuccess: ({ url }) => setImageUrl(url),
-      onError: (err) => setImageError(err.message),
+      onSuccess: ({ url }) => {
+        if (mine !== attempt.current) return;
+        setImageUrl(url);
+        setLastFile(null);
+      },
+      onError: (err) => {
+        if (mine === attempt.current) setImageError(err.message);
+      },
     });
+  };
+
+  const pickImage = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow choosing the same file again later
+    if (file) handleFile(file);
+  };
+
+  const imageFrom = (files: FileList | null | undefined) =>
+    Array.from(files ?? []).find((f) => f.type.startsWith("image/") || /\.(png|jpe?g|gif|webp)$/i.test(f.name));
+
+  const onPaste = (e: ClipboardEvent) => {
+    const file = imageFrom(e.clipboardData.files);
+    if (file) {
+      e.preventDefault();
+      handleFile(file);
+    }
+  };
+
+  const onDrop = (e: DragEvent) => {
+    e.preventDefault();
+    setDragging(false);
+    const file = imageFrom(e.dataTransfer.files);
+    if (file) handleFile(file);
+  };
+
+  const removeImage = () => {
+    attempt.current++;
+    setImageUrl(null);
+    setPreview(null);
+    setLastFile(null);
+    setImageError(null);
   };
 
   const priceCents = Math.round(Number(price) * 100);
@@ -60,6 +107,7 @@ export default function Composer({ communitySlug }: { communitySlug?: string }) 
         onSuccess: () => {
           setContent("");
           setImageUrl(null);
+          setPreview(null);
           setPaid(false);
           setPremium("");
         },
@@ -68,7 +116,16 @@ export default function Composer({ communitySlug }: { communitySlug?: string }) 
   };
 
   return (
-    <form className="card composer" onSubmit={submit}>
+    <form
+      className={`card composer${dragging ? " dragging" : ""}`}
+      onSubmit={submit}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setDragging(true);
+      }}
+      onDragLeave={() => setDragging(false)}
+      onDrop={onDrop}
+    >
       <div className="composer-row">
         {user && <Avatar username={user.username} url={user.avatarUrl} size={42} />}
         <textarea
@@ -78,6 +135,7 @@ export default function Composer({ communitySlug }: { communitySlug?: string }) 
         maxLength={MAX}
         rows={2}
         aria-label="Write a post"
+        onPaste={onPaste}
       />
       </div>
 
@@ -105,21 +163,41 @@ export default function Composer({ communitySlug }: { communitySlug?: string }) 
         </div>
       )}
 
-      {upload.isPending && <p className="muted">Uploading image…</p>}
-      {imageUrl && (
+      {(preview || imageUrl) && (
         <div className="image-preview">
-          <img src={assetUrl(imageUrl)} alt="Attached preview" />
-          <button
-            type="button"
-            className="image-remove"
-            aria-label="Remove image"
-            onClick={() => setImageUrl(null)}
-          >
+          <img src={preview ?? assetUrl(imageUrl)} alt="Attached preview" />
+          {upload.isPending && (
+            <div
+              className="upload-progress"
+              role="progressbar"
+              aria-label="Uploading image"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={upload.progress ?? 0}
+            >
+              <span style={{ width: `${Math.max(6, upload.progress ?? 0)}%` }} />
+            </div>
+          )}
+          <button type="button" className="image-remove" aria-label="Remove image" onClick={removeImage}>
             ×
           </button>
         </div>
       )}
-      {imageError && <p className="error">{imageError}</p>}
+      {upload.isPending && (
+        <p className="muted small" role="status">
+          {upload.progress ? `Uploading… ${upload.progress}%` : "Preparing photo…"}
+        </p>
+      )}
+      {imageError && (
+        <p className="error" role="alert">
+          {imageError}{" "}
+          {lastFile && !upload.isPending && (
+            <button type="button" className="link-btn" onClick={() => handleFile(lastFile)}>
+              Try again
+            </button>
+          )}
+        </p>
+      )}
 
       <div className="composer-footer">
         <span className="row">

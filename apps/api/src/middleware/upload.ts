@@ -3,7 +3,7 @@ import multer from "multer";
 import { MAX_IMAGE_BYTES } from "@commune/shared";
 import { badRequest } from "../utils/errors.js";
 
-// Files are held in memory (max 5 MB) so their real type can be checked before anything
+// Files are held in memory (max 4 MB) so their real type can be checked before anything
 // is written to disk.
 const parser = multer({
   storage: multer.memoryStorage(),
@@ -15,7 +15,7 @@ export const parseImageUpload: RequestHandler = (req, res, next) => {
   parser(req, res, (err: unknown) => {
     if (err instanceof multer.MulterError) {
       const message =
-        err.code === "LIMIT_FILE_SIZE" ? "Image must be 5 MB or smaller" : "Invalid upload";
+        err.code === "LIMIT_FILE_SIZE" ? "Image must be 4 MB or smaller" : "Invalid upload";
       return next(badRequest(message));
     }
     next(err);
