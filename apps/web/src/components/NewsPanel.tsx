@@ -3,7 +3,7 @@ import { useNews } from "../hooks/useNews";
 import { timeAgo } from "./PostCard";
 
 /** "What's happening": live headlines. Every item opens the publisher's own page. */
-export default function NewsPanel({ limit = 6 }: { limit?: number }) {
+export default function NewsPanel({ limit = 4 }: { limit?: number }) {
   const news = useNews("top");
 
   return (
