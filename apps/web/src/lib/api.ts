@@ -129,7 +129,16 @@ export async function api<T>(
 
   if (!res.ok) {
     const data = (await res.json().catch(() => ({}))) as { error?: string };
-    throw new ApiError(res.status, data.error ?? "Something went wrong");
+    // Hosting platforms answer some failures (too large, overloaded) with a plain page, not our JSON.
+    const fallback =
+      res.status === 413
+        ? "That file is too large."
+        : res.status === 429
+          ? "Too many requests, wait a moment and try again."
+          : res.status >= 500
+            ? "The server had a problem. Try again in a moment."
+            : "Something went wrong";
+    throw new ApiError(res.status, data.error ?? fallback);
   }
   return res.status === 204 ? (undefined as T) : ((await res.json()) as T);
 }

@@ -19,7 +19,7 @@ export default function ProfilePage() {
   const posts = useUserPosts(username);
   const follow = useToggleFollow(username);
   const update = useUpdateProfile();
-  const upload = useUploadImage();
+  const upload = useUploadImage("avatar");
   const ban = useBanUser(username);
   const unban = useUnbanUser(username);
   const [editing, setEditing] = useState(false);
@@ -120,7 +120,9 @@ export default function ProfilePage() {
               onClick={() => fileRef.current?.click()}
               disabled={photoBusy}
             >
-              {photoBusy ? "Saving photo…" : "Change photo"}
+              {photoBusy
+                ? upload.progress ? `Uploading ${upload.progress}%` : "Saving photo…"
+                : "Change photo"}
             </button>
             {p.avatarUrl && (
               <button
