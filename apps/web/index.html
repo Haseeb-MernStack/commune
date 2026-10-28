@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
     <title>Commune: an open source community platform</title>
-    <meta name="description" content="Commune is an open source community platform. Share posts, follow people and join the conversation." />
+    <meta
+      name="description"
+      content="Commune is an open source community platform. Share posts, follow people and join the conversation."
+    />
     <meta name="application-name" content="Commune" />
 
     <!-- Browser UI colours follow the user's light or dark setting. -->
@@ -14,8 +17,11 @@
     <meta name="theme-color" content="#141412" media="(prefers-color-scheme: dark)" />
 
     <!-- Google Adsense Implementation -->
-     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7015477982506060"
-     crossorigin="anonymous"></script>
+    <script
+      async
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7015477982506060"
+      crossorigin="anonymous"
+    ></script>
 
     <!-- Icons and installable web app (PWA) -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -31,19 +37,65 @@
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Commune" />
     <meta property="og:title" content="Commune" />
-    <meta property="og:description" content="An open source community platform. Share posts, follow people and join the conversation." />
+    <meta
+      property="og:description"
+      content="An open source community platform. Share posts, follow people and join the conversation."
+    />
     <meta name="twitter:card" content="summary" />
     <link rel="canonical" href="https://commune-mu.vercel.app/" />
     <meta property="og:url" content="https://commune-mu.vercel.app/" />
 
     <!-- Paint the right background immediately, so there is no white flash before the CSS loads. -->
     <style>
-     html, body { margin: 0; background: #f3f4f9; }
-      @media (prefers-color-scheme: dark) { html, body { background: #0b0d13; color: #eceef5; } }
-      .boot-header { display: flex; align-items: center; height: 57px; padding: 0 20px; background: #fff; border-bottom: 1px solid #e2e5ee; font: 700 1.2rem system-ui, sans-serif; color: #12141c; }
-      .boot-body { max-width: 620px; margin: 0 auto; padding: 24px 16px; font-family: system-ui, sans-serif; color: #596073; }
-      .boot-body h1 { margin: 0 0 8px; font-size: 1.4rem; color: #12141c; }
-      @media (prefers-color-scheme: dark) { .boot-header { background: #141822; border-color: #262b3b; color: #eceef5; } .boot-body { color: #9aa2b7; } .boot-body h1 { color: #eceef5; } }
+      html,
+      body {
+        margin: 0;
+        background: #f3f4f9;
+      }
+      @media (prefers-color-scheme: dark) {
+        html,
+        body {
+          background: #0b0d13;
+          color: #eceef5;
+        }
+      }
+      .boot-header {
+        display: flex;
+        align-items: center;
+        height: 57px;
+        padding: 0 20px;
+        background: #fff;
+        border-bottom: 1px solid #e2e5ee;
+        font:
+          700 1.2rem system-ui,
+          sans-serif;
+        color: #12141c;
+      }
+      .boot-body {
+        max-width: 620px;
+        margin: 0 auto;
+        padding: 24px 16px;
+        font-family: system-ui, sans-serif;
+        color: #596073;
+      }
+      .boot-body h1 {
+        margin: 0 0 8px;
+        font-size: 1.4rem;
+        color: #12141c;
+      }
+      @media (prefers-color-scheme: dark) {
+        .boot-header {
+          background: #141822;
+          border-color: #262b3b;
+          color: #eceef5;
+        }
+        .boot-body {
+          color: #9aa2b7;
+        }
+        .boot-body h1 {
+          color: #eceef5;
+        }
+      }
     </style>
 
     <!--
@@ -51,7 +103,7 @@
       app, instead of after it has started. The app takes each response over exactly once
       (see takeEarly in src/lib/api.ts). Skipped on localhost, where the API is elsewhere.
     -->
-      <script>
+    <script>
       (function () {
         try {
           var h = location.hostname;
@@ -65,19 +117,34 @@
           var hint = localStorage.getItem("commune_session");
           var path = location.pathname;
           start("/news?topic=top", "/api/news?topic=top");
-          if (hint !== "0") start("/auth/refresh", "/api/auth/refresh", { method: "POST", credentials: "include" });
+          if (hint !== "0")
+            start("/auth/refresh", "/api/auth/refresh", { method: "POST", credentials: "include" });
           else if (path === "/" || path === "/explore") start("/public/posts", "/api/public/posts");
         } catch (e) {}
       })();
     </script>
 
+    <!-- Google Analytics tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-T3YEFKZP7Q"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "G-T3YEFKZP7Q");
+    </script>
   </head>
   <body>
-   <div id="root">
+    <div id="root">
       <div class="boot-header">Commune</div>
       <div class="boot-body">
         <h1>Commune</h1>
-        <p>An open source community platform. Share posts, follow people, join communities and read the latest news.</p>
+        <p>
+          An open source community platform. Share posts, follow people, join communities and read
+          the latest news.
+        </p>
       </div>
     </div>
     <noscript>Commune needs JavaScript to run. Please enable it in your browser settings.</noscript>
