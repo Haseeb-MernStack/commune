@@ -1,29 +1,24 @@
 import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../store/auth";
 import { useUnreadCount } from "../hooks/useSocial";
 import { useUnreadMessages } from "../hooks/useMessages";
 import Avatar from "./Avatar";
+import Brand from "./BrandMark";
+import Icon, { type IconName } from "./Icon";
 import PlusBadge from "./PlusBadge";
 import SearchBox from "./SearchBox";
 
 /** Pages where the navbar is hidden so sign-in flows stay focused. */
 export const AUTH_PATHS = ["/login", "/register", "/forgot-password", "/reset-password"];
 
-function MenuIcon({ open }: { open: boolean }) {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
-      {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
-    </svg>
-  );
-}
-
 export default function Header() {
   const { user, logout } = useAuth();
   const { pathname } = useLocation();
   const unread = useUnreadCount(Boolean(user));
-  const [open, setOpen] = useState(false);
   const msgs = useUnreadMessages(Boolean(user));
+  const [open, setOpen] = useState(false);
   const count = unread.data?.count ?? 0;
   const msgCount = msgs.data?.count ?? 0;
   const countLabel = count > 99 ? "99+" : String(count);
@@ -55,12 +50,19 @@ export default function Header() {
   if (AUTH_PATHS.includes(pathname)) return null;
 
   const navClass = ({ isActive }: { isActive: boolean }) => `nav-link${isActive ? " active" : ""}`;
+  const item = (to: string, icon: IconName, label: string, extra?: ReactNode, end = false) => (
+    <NavLink to={to} end={end} className={navClass}>
+      <Icon name={icon} size={20} />
+      {label}
+      {extra}
+    </NavLink>
+  );
 
   return (
     <>
-      <header className="header">
-        <Link to="/" className="brand">
-          Commune
+      <header className={`header${user ? " header-user" : ""}`}>
+        <Link to="/" className="brand" aria-label="Commune home">
+          <Brand size={30} />
         </Link>
 
         {user && (
@@ -69,7 +71,7 @@ export default function Header() {
           </div>
         )}
 
-        {/* Desktop navigation */}
+        {/* Desktop navigation (wide screens with the left menu hide this bar for members) */}
         <nav className="header-right nav-desktop" aria-label="Main">
           {!user && (
             <>
@@ -103,15 +105,8 @@ export default function Header() {
         {/* Mobile / tablet controls */}
         <div className="nav-mobile">
           {user && (
-            <Link to="/messages" className="icon-btn" aria-label={`Messages, ${msgCount} unread`}>
-              ✉️
-              {msgCount > 0 && <span className="badge">{msgCount}</span>}
-            </Link>
-          )}
-          {user && (
-            <Link to="/notifications" className="icon-btn" aria-label={`Notifications, ${count} unread`}>
-              🔔
-              {count > 0 && <span className="badge">{countLabel}</span>}
+            <Link to="/search" className="icon-btn" aria-label="Search">
+              <Icon name="search" size={22} />
             </Link>
           )}
           <button
@@ -121,7 +116,7 @@ export default function Header() {
             aria-controls="mobile-menu"
             onClick={() => setOpen((o) => !o)}
           >
-            <MenuIcon open={open} />
+            <Icon name={open ? "close" : "menu"} size={24} />
           </button>
         </div>
       </header>
@@ -133,7 +128,7 @@ export default function Header() {
           {user ? (
             <>
               <Link to={`/u/${user.username}`} className="drawer-profile">
-                <Avatar username={user.username} url={user.avatarUrl} size={44} />
+                <Avatar username={user.username} url={user.avatarUrl} size={48} />
                 <span>
                   <strong>
                     @{user.username} <PlusBadge plus={user.plus} />
@@ -141,62 +136,31 @@ export default function Header() {
                   <small className="muted">View profile</small>
                 </span>
               </Link>
-              <SearchBox />
               <nav className="drawer-links" aria-label="Menu">
-                <NavLink to="/" end className={navClass}>
-                  🏠 Home
-                </NavLink>
-                <NavLink to="/communities" className={navClass}>
-                  👥 Communities
-                </NavLink>
-                <NavLink to="/news" className={navClass}>
-                  📰 News
-                </NavLink>
-                <NavLink to="/notifications" className={navClass}>
-                  🔔 Notifications{count > 0 && <span className="pill">{countLabel}</span>}
-                </NavLink>
-                <NavLink to="/messages" className={navClass}>
-                  ✉️ Messages{msgCount > 0 && <span className="pill">{msgCount}</span>}
-                </NavLink>
-                <NavLink to={user.plus ? "/insights" : "/plus"} className={navClass}>
-                  {user.plus ? "📊 Insights" : "✦ Commune Plus"}
-                </NavLink>
-                {user.plus && (
-                  <NavLink to="/plus" className={navClass}>
-                    ⚙️ Billing
-                  </NavLink>
-                )}
-                {user.role === "admin" && (
-                  <NavLink to="/admin" className={navClass}>
-                    🛡️ Admin
-                  </NavLink>
-                )}
-                <NavLink to="/contact" className={navClass}>
-                  📬 Contact
-                </NavLink>
+                {item("/", "home", "Home", undefined, true)}
+                {item("/communities", "users", "Communities")}
+                {item("/news", "news", "News")}
+                {item("/notifications", "bell", "Notifications", count > 0 && <span className="pill">{countLabel}</span>)}
+                {item("/messages", "mail", "Messages", msgCount > 0 && <span className="pill">{msgCount}</span>)}
+                {item(user.plus ? "/insights" : "/plus", user.plus ? "chart" : "sparkle", user.plus ? "Insights" : "Commune Plus")}
+                {user.plus && item("/plus", "card", "Billing")}
+                {user.role === "admin" && item("/admin", "shield", "Admin")}
+                {item("/contact", "contact", "Contact")}
               </nav>
               <button className="btn btn-outline block" onClick={() => void logout()}>
-                Log out
+                <Icon name="logout" size={18} /> Log out
               </button>
             </>
           ) : (
             <>
               <nav className="drawer-links" aria-label="Menu">
-                <NavLink to="/" end className={navClass}>
-                  🏠 Home
-                </NavLink>
-                <NavLink to="/explore" className={navClass}>
-                  🧭 Explore
-                </NavLink>
-                <NavLink to="/news" className={navClass}>
-                  📰 News
-                </NavLink>
-                <NavLink to="/contact" className={navClass}>
-                  📬 Contact
-                </NavLink>
+                {item("/", "home", "Home", undefined, true)}
+                {item("/explore", "compass", "Explore")}
+                {item("/news", "news", "News")}
+                {item("/contact", "contact", "Contact")}
               </nav>
               <Link to="/register" className="btn block">
-                Sign up
+                Create account
               </Link>
               <Link to="/login" className="btn btn-outline block">
                 Log in

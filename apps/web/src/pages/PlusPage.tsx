@@ -1,14 +1,15 @@
 import { Link, useSearchParams } from "react-router-dom";
 import { FREE_POST_LENGTH, PLUS_POST_LENGTH } from "@commune/shared";
+import Icon, { type IconName } from "../components/Icon";
 import { useBilling, useBillingPortal, useUpgrade } from "../hooks/useBilling";
 
-const FEATURES = [
-  ["📊", "Creator insights", "Views, likes, comments and follower growth, with your best posts."],
-  ["💸", "Keep more of every sale", "Platform fee on paid posts drops from 20% to 10%."],
-  ["✍️", "Longer posts", `Write up to ${PLUS_POST_LENGTH} characters instead of ${FREE_POST_LENGTH}.`],
-  ["👥", "More communities", "Create up to 20 communities instead of 5."],
-  ["✦", "Plus badge", "A badge next to your name on posts, comments and your profile."],
-] as const;
+const FEATURES: ReadonlyArray<readonly [IconName, string, string]> = [
+  ["chart", "Creator insights", "Views, likes, comments and follower growth, with your best posts."],
+  ["coin", "Keep more of every sale", "Platform fee on paid posts drops from 20% to 10%."],
+  ["pencil", "Longer posts", `Write up to ${PLUS_POST_LENGTH} characters instead of ${FREE_POST_LENGTH}.`],
+  ["users", "More communities", "Create up to 20 communities instead of 5."],
+  ["sparkle", "Plus badge", "A badge next to your name on posts, comments and your profile."],
+];
 
 const fmt = (iso: string) => new Date(iso).toLocaleDateString(undefined, { dateStyle: "medium" });
 
@@ -24,7 +25,7 @@ export default function PlusPage() {
     <>
       <section className="card plus-hero">
         <h1>
-          Commune Plus <span className="plus-badge">✦</span>
+          Commune Plus
         </h1>
         <p className="muted">Tools for people who create on Commune. Cancel any time.</p>
 
@@ -88,7 +89,7 @@ export default function PlusPage() {
         {FEATURES.map(([icon, title, text]) => (
           <div key={title} className="card">
             <span className="plus-icon" aria-hidden>
-              {icon}
+              <Icon name={icon} size={22} />
             </span>
             <strong>{title}</strong>
             <p className="muted">{text}</p>

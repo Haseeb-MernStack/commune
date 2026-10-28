@@ -1,6 +1,7 @@
 import { Link, useSearchParams } from "react-router-dom";
 import Avatar from "../components/Avatar";
 import PlusBadge from "../components/PlusBadge";
+import SearchBox from "../components/SearchBox";
 import PostList from "../components/PostList";
 import { useSearchPosts, useSearchUsers } from "../hooks/useSearch";
 
@@ -17,7 +18,13 @@ export default function SearchPage() {
   const people = users.data?.pages.flatMap((p) => p.items) ?? [];
 
   if (q.length < 2) {
-    return <p className="muted center">Type at least 2 characters in the search box.</p>;
+    return (
+      <>
+        <h1 className="search-title">Search</h1>
+        <SearchBox />
+        <p className="muted">Find people and posts. Type at least 2 characters.</p>
+      </>
+    );
   }
 
   return (

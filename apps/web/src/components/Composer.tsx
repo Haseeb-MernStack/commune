@@ -12,6 +12,8 @@ import {
   PLUS_POST_LENGTH,
 } from "@commune/shared";
 import { useAuth } from "../store/auth";
+import Avatar from "./Avatar";
+import Icon from "./Icon";
 
 
 export default function Composer({ communitySlug }: { communitySlug?: string }) {
@@ -67,13 +69,17 @@ export default function Composer({ communitySlug }: { communitySlug?: string }) 
 
   return (
     <form className="card composer" onSubmit={submit}>
-      <textarea
+      <div className="composer-row">
+        {user && <Avatar username={user.username} url={user.avatarUrl} size={42} />}
+        <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
         placeholder={communitySlug ? `Post in c/${communitySlug}` : "What's happening in your community?"}
         maxLength={MAX}
-        rows={3}
+        rows={2}
+        aria-label="Write a post"
       />
+      </div>
 
       {paid && (
         <div className="paid-fields">
@@ -131,7 +137,7 @@ export default function Composer({ communitySlug }: { communitySlug?: string }) 
             disabled={upload.isPending}
             aria-label="Attach an image"
           >
-            🖼️ Photo
+            <Icon name="image" size={20} /> Photo
           </button>
           <label className="row paid-toggle">
             <input type="checkbox" checked={paid} onChange={(e) => setPaid(e.target.checked)} />

@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import Avatar from "../components/Avatar";
+import Icon from "../components/Icon";
 import PlusBadge from "../components/PlusBadge";
 import EarningsCard from "../components/EarningsCard";
 import PostList from "../components/PostList";
@@ -89,7 +90,7 @@ export default function ProfilePage() {
           ) : (
             <div className="row">
               <Link className="btn btn-outline" to={`/messages?to=${encodeURIComponent(p.username)}`}>
-                ✉ Message
+                <Icon name="mail" size={18} /> Message
               </Link>
               <button
                 className={`btn ${p.followedByMe ? "btn-outline" : ""}`}
