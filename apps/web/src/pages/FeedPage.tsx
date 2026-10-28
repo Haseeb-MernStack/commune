@@ -1,7 +1,6 @@
 import { useState } from "react";
 import Composer from "../components/Composer";
 import PostList from "../components/PostList";
-import PostCard from "../components/PostCard";
 import { useFeed } from "../hooks/usePosts";
 import type { FeedType } from "../hooks/usePosts";
 
@@ -22,7 +21,7 @@ export default function FeedPage() {
   return (
     <>
       <Composer />
-      <div className="tabs" role="tablist">
+      <div className="tabs feed-tabs" role="tablist" aria-label="Feed">
         {TABS.map((t) => (
           <button
             key={t.id}

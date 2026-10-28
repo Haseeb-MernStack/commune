@@ -9,6 +9,9 @@ import PwaBanner from "./components/PwaBanner";
 import ExplorePage from "./pages/ExplorePage";
 import LeftNav from "./components/LeftNav";
 import RightRail from "./components/RightRail";
+import BottomNav from "./components/BottomNav";
+import Brand from "./components/BrandMark";
+import Icon from "./components/Icon";
 
 const PostPage = lazy(() => import("./pages/PostPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
@@ -84,135 +87,187 @@ function Home() {
   return user ? <FeedPage /> : <ExplorePage />;
 }
 
+function AppRoutes() {
+  return (
+    <Suspense fallback={<p className="muted center route-loading">Loading…</p>}>
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/explore" element={<ExplorePage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
+      <Route path="/" element={<Home />} />
+      <Route
+        path="/posts/:id"
+        element={
+          <Protected>
+            <PostPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/u/:username"
+        element={
+          <Protected>
+            <ProfilePage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/notifications"
+        element={
+          <Protected>
+            <NotificationsPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <Protected>
+            <AdminPage />
+          </Protected>
+        }
+      />
+
+      <Route
+        path="/communities"
+        element={
+          <Protected>
+            <CommunitiesPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/c/:slug"
+        element={
+          <Protected>
+            <CommunityPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/search"
+        element={
+          <Protected>
+            <SearchPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/plus"
+        element={
+          <Protected>
+            <PlusPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/insights"
+        element={
+          <Protected>
+            <InsightsPage />
+          </Protected>
+        }
+      />
+      <Route path="/news" element={<NewsPage />} />
+      <Route path="/contact" element={<ContactPage />} />
+      <Route
+        path="/messages"
+        element={
+          <Protected>
+            <MessagesPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/messages/:id"
+        element={
+          <Protected>
+            <MessagesPage />
+          </Protected>
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+    </Suspense>
+  );
+}
+
+/** Left panel of the sign-in screens (hidden on phones). */
+function AuthArt() {
+  return (
+    <aside className="auth-art" aria-hidden="true">
+      <Brand size={40} />
+      <div className="auth-art-body">
+        <p className="art-title">Your people, your news, one open place.</p>
+        <ul>
+          <li>
+            <Icon name="users" size={20} /> Join communities and follow people
+          </li>
+          <li>
+            <Icon name="mail" size={20} /> Message friends privately
+          </li>
+          <li>
+            <Icon name="news" size={20} /> Live news beside your feed
+          </li>
+        </ul>
+      </div>
+      <span className="blob b1" />
+      <span className="blob b2" />
+      <span className="blob b3" />
+    </aside>
+  );
+}
+
 export default function App() {
   const { pathname } = useLocation();
   const { user } = useAuth();
   const authPage = AUTH_PATHS.includes(pathname);
   // Messages need room for two panes, so that page drops the news column.
   const wide = pathname.startsWith("/messages");
+
+  const skip = (
+    <a href="#main" className="skip-link">
+      Skip to content
+    </a>
+  );
+
+  if (authPage) {
+    return (
+      <>
+        {skip}
+        <RouteMeta />
+        <PwaBanner />
+        <div className="auth-split">
+          <AuthArt />
+          <main id="main" tabIndex={-1} className="auth-main">
+            <Link to="/" className="auth-brand" aria-label="Commune home">
+              <Brand size={36} />
+            </Link>
+            <AppRoutes />
+          </main>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
-      <a href="#main" className="skip-link">
-        Skip to content
-      </a>
+      {skip}
       <RouteMeta />
       <Header />
-      {!authPage && <VerifyBanner />}
+      <VerifyBanner />
       <PwaBanner />
-      <div className={authPage ? "shell-auth" : `shell${user ? " has-left" : ""}${wide ? " wide" : ""}`}>
-      {!authPage && user && <LeftNav />}
-      <main id="main" tabIndex={-1} className={authPage ? "container container-auth" : "container"}>
-        {authPage && (
-          <Link to="/" className="brand auth-brand">
-            Commune
-          </Link>
-        )}
-        <Suspense fallback={<p className="muted center route-loading">Loading…</p>}>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/explore" element={<ExplorePage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route path="/verify-email" element={<VerifyEmailPage />} />
-          <Route path="/" element={<Home />} />
-          <Route
-            path="/posts/:id"
-            element={
-              <Protected>
-                <PostPage />
-              </Protected>
-            }
-          />
-          <Route
-            path="/u/:username"
-            element={
-              <Protected>
-                <ProfilePage />
-              </Protected>
-            }
-          />
-          <Route
-            path="/notifications"
-            element={
-              <Protected>
-                <NotificationsPage />
-              </Protected>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <Protected>
-                <AdminPage />
-              </Protected>
-            }
-          />
-
-          <Route
-            path="/communities"
-            element={
-              <Protected>
-                <CommunitiesPage />
-              </Protected>
-            }
-          />
-          <Route
-            path="/c/:slug"
-            element={
-              <Protected>
-                <CommunityPage />
-              </Protected>
-            }
-          />
-          <Route
-            path="/search"
-            element={
-              <Protected>
-                <SearchPage />
-              </Protected>
-            }
-          />
-          <Route
-            path="/plus"
-            element={
-              <Protected>
-                <PlusPage />
-              </Protected>
-            }
-          />
-          <Route
-            path="/insights"
-            element={
-              <Protected>
-                <InsightsPage />
-              </Protected>
-            }
-          />
-          <Route path="/news" element={<NewsPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route
-            path="/messages"
-            element={
-              <Protected>
-                <MessagesPage />
-              </Protected>
-            }
-          />
-          <Route
-            path="/messages/:id"
-            element={
-              <Protected>
-                <MessagesPage />
-              </Protected>
-            }
-          />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-        </Suspense>
-      </main>
-      {!authPage && !wide && <RightRail />}
+      <div className={`shell${user ? " has-left" : ""}${wide ? " wide" : ""}`}>
+        {user && <LeftNav />}
+        <main id="main" tabIndex={-1} className="container">
+          <AppRoutes />
+        </main>
+        {!wide && <RightRail />}
       </div>
+      <BottomNav />
     </>
   );
 }

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import Icon from "../components/Icon";
 import { useInsights } from "../hooks/useBilling";
 import { useAuth } from "../store/auth";
 
@@ -74,7 +75,9 @@ export default function InsightsPage() {
           <Link key={p.id} to={`/posts/${p.id}`} className="top-post">
             <span>{p.content || "(image post)"}</span>
             <span className="muted">
-              👁 {nf.format(p.views)} · ♥ {nf.format(p.likes)} · 💬 {nf.format(p.comments)}
+              <span className="metric"><Icon name="eye" size={16} /> {nf.format(p.views)}</span>{" "}
+              <span className="metric"><Icon name="heart" size={16} /> {nf.format(p.likes)}</span>{" "}
+              <span className="metric"><Icon name="comment" size={16} /> {nf.format(p.comments)}</span>
             </span>
           </Link>
         ))}

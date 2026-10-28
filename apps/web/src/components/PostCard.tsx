@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import type { PostDTO } from "@commune/shared";
 import { useAuth } from "../store/auth";
@@ -6,7 +7,9 @@ import { useDeletePost, useToggleLike } from "../hooks/usePosts";
 import { formatPrice, useCheckout } from "../hooks/usePayments";
 import { assetUrl } from "../lib/api";
 import Avatar from "./Avatar";
+import Icon from "./Icon";
 import PlusBadge from "./PlusBadge";
+import { hueFor } from "../lib/hue";
 import ReportForm from "./ReportForm";
 
 export function timeAgo(iso: string): string {
@@ -37,7 +40,11 @@ export default function PostCard({ post }: { post: PostDTO }) {
           <PlusBadge plus={post.author.plus} />
           <span className="muted">· {timeAgo(post.createdAt)}</span>
           {post.community && (
-            <Link to={`/c/${post.community.slug}`} className="community-tag">
+            <Link
+              to={`/c/${post.community.slug}`}
+              className="community-tag"
+              style={{ "--hue": hueFor(post.community.slug).bg } as CSSProperties}
+            >
               c/{post.community.slug}
             </Link>
           )}
@@ -59,7 +66,9 @@ export default function PostCard({ post }: { post: PostDTO }) {
         )}
         {post.locked && post.priceCents != null && (
           <div className="paywall">
-            <p>🔒 The rest of this post is for people who unlock it.</p>
+            <p>
+              <Icon name="lock" size={16} /> The rest of this post is for people who unlock it.
+            </p>
             <button
               className="btn"
               disabled={checkout.isPending}
@@ -85,10 +94,12 @@ export default function PostCard({ post }: { post: PostDTO }) {
             disabled={like.isPending}
             aria-pressed={post.likedByMe}
           >
-            {post.likedByMe ? "♥" : "♡"} {post.likeCount}
+            <Icon name="heart" size={19} filled={post.likedByMe} />
+            <span>{post.likeCount}</span>
           </button>
           <Link className="btn btn-ghost" to={`/posts/${post.id}`}>
-            💬 {post.commentCount}
+            <Icon name="comment" size={19} />
+            <span>{post.commentCount}</span>
           </Link>
           {!mine && (
             <button
@@ -96,7 +107,7 @@ export default function PostCard({ post }: { post: PostDTO }) {
               onClick={() => setReporting((r) => !r)}
               aria-expanded={reporting}
             >
-              ⚑ Report
+              <Icon name="flag" size={18} /> Report
             </button>
           )}
           {(mine || isAdmin) && (
@@ -107,7 +118,7 @@ export default function PostCard({ post }: { post: PostDTO }) {
                 del.mutate(post.id)
               }
             >
-              {mine ? "Delete" : "Remove"}
+              <Icon name="trash" size={18} /> {mine ? "Delete" : "Remove"}
             </button>
           )}
         </div>

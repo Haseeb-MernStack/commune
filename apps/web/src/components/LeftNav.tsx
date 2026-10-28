@@ -3,11 +3,13 @@ import { useAuth } from "../store/auth";
 import { useUnreadCount } from "../hooks/useSocial";
 import { useUnreadMessages } from "../hooks/useMessages";
 import Avatar from "./Avatar";
+import Brand from "./BrandMark";
+import Icon, { type IconName } from "./Icon";
 import PlusBadge from "./PlusBadge";
 
-/** Twitter-style left column for logged-in users on wide screens. */
+/** Left column for members on wide screens: brand, navigation, and the account at the bottom. */
 export default function LeftNav() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const notifications = useUnreadCount(Boolean(user));
   const messages = useUnreadMessages(Boolean(user));
   if (!user) return null;
@@ -16,65 +18,48 @@ export default function LeftNav() {
   const m = messages.data?.count ?? 0;
   const cls = ({ isActive }: { isActive: boolean }) => `side-link${isActive ? " active" : ""}`;
   const badge = (count: number) => (count > 0 ? <span className="pill">{count > 99 ? "99+" : count}</span> : null);
+  const link = (to: string, icon: IconName, label: string, count = 0, end = false) => (
+    <NavLink to={to} end={end} className={cls} aria-label={count ? `${label}, ${count} unread` : undefined}>
+      <span className="side-icon">
+        <Icon name={icon} size={24} />
+      </span>
+      <span className="side-label">{label}</span>
+      {badge(count)}
+    </NavLink>
+  );
 
   return (
     <aside className="left-nav" aria-label="Primary">
+      <Link to="/" className="side-brand" aria-label="Commune home">
+        <Brand size={34} />
+      </Link>
       <nav>
-        <NavLink to="/" end className={cls}>
-          <span className="side-icon" aria-hidden>🏠</span>
-          <span className="side-label">Home</span>
-        </NavLink>
-        <NavLink to="/explore" className={cls}>
-          <span className="side-icon" aria-hidden>🧭</span>
-          <span className="side-label">Explore</span>
-        </NavLink>
-        <NavLink to="/news" className={cls}>
-          <span className="side-icon" aria-hidden>📰</span>
-          <span className="side-label">News</span>
-        </NavLink>
-        <NavLink to="/communities" className={cls}>
-          <span className="side-icon" aria-hidden>👥</span>
-          <span className="side-label">Communities</span>
-        </NavLink>
-        <NavLink to="/notifications" className={cls} aria-label={`Notifications, ${n} unread`}>
-          <span className="side-icon" aria-hidden>🔔</span>
-          <span className="side-label">Notifications</span>
-          {badge(n)}
-        </NavLink>
-        <NavLink to="/messages" className={cls} aria-label={`Messages, ${m} unread`}>
-          <span className="side-icon" aria-hidden>✉️</span>
-          <span className="side-label">Messages</span>
-          {badge(m)}
-        </NavLink>
-        <NavLink to={`/u/${user.username}`} className={cls}>
-          <span className="side-icon" aria-hidden>👤</span>
-          <span className="side-label">Profile</span>
-        </NavLink>
-        <NavLink to={user.plus ? "/insights" : "/plus"} className={cls}>
-          <span className="side-icon" aria-hidden>{user.plus ? "📊" : "✦"}</span>
-          <span className="side-label">{user.plus ? "Insights" : "Commune Plus"}</span>
-        </NavLink>
-        {user.role === "admin" && (
-          <NavLink to="/admin" className={cls}>
-            <span className="side-icon" aria-hidden>🛡️</span>
-            <span className="side-label">Admin</span>
-          </NavLink>
-        )}
-        <NavLink to="/contact" className={cls}>
-          <span className="side-icon" aria-hidden>📬</span>
-          <span className="side-label">Contact</span>
-        </NavLink>
+        {link("/", "home", "Home", 0, true)}
+        {link("/explore", "compass", "Explore")}
+        {link("/news", "news", "News")}
+        {link("/communities", "users", "Communities")}
+        {link("/notifications", "bell", "Notifications", n)}
+        {link("/messages", "mail", "Messages", m)}
+        {link(`/u/${user.username}`, "user", "Profile")}
+        {link(user.plus ? "/insights" : "/plus", user.plus ? "chart" : "sparkle", user.plus ? "Insights" : "Commune Plus")}
+        {user.role === "admin" && link("/admin", "shield", "Admin")}
+        {link("/contact", "contact", "Contact")}
       </nav>
-      <Link to="/" className="btn side-post">
-        <span aria-hidden>✎</span>
+      <Link to="/" className="btn side-post" aria-label="Write a post">
+        <Icon name="pencil" size={20} />
         <span className="side-label">Post</span>
       </Link>
-      <Link to={`/u/${user.username}`} className="side-me">
-        <Avatar username={user.username} url={user.avatarUrl} size={36} />
-        <span className="side-label">
-          @{user.username} <PlusBadge plus={user.plus} />
-        </span>
-      </Link>
+      <div className="side-me">
+        <Link to={`/u/${user.username}`} className="side-me-link">
+          <Avatar username={user.username} url={user.avatarUrl} size={38} />
+          <span className="side-label">
+            @{user.username} <PlusBadge plus={user.plus} />
+          </span>
+        </Link>
+        <button className="icon-btn side-logout" onClick={() => void logout()} aria-label="Log out" title="Log out">
+          <Icon name="logout" size={20} />
+        </button>
+      </div>
     </aside>
   );
 }
