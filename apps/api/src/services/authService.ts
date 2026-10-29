@@ -62,10 +62,40 @@ export async function register(input: RegisterInput, res: Response) {
   return issueSession(res, user);
 }
 
+const MAX_FAILED_LOGINS = 8;
+const LOCK_MS = 15 * 60 * 1000;
+
+/** Counts a wrong password in the database (works across serverless instances) and locks after too many. */
+async function recordFailedLogin(userId: unknown) {
+  const updated = await User.findOneAndUpdate(
+    { _id: userId },
+    { $inc: { failedLogins: 1 } },
+    { new: true },
+  ).select("+failedLogins");
+  if (updated && (updated.failedLogins ?? 0) >= MAX_FAILED_LOGINS) {
+    await User.updateOne(
+      { _id: userId },
+      { $set: { failedLogins: 0, lockUntil: new Date(Date.now() + LOCK_MS) } },
+    );
+  }
+}
+
 export async function login(input: LoginInput, res: Response) {
-  const user = await User.findOne({ email: input.email }).select("+passwordHash");
+  const user = await User.findOne({ email: input.email }).select(
+    "+passwordHash +failedLogins +lockUntil",
+  );
+  const locked = Boolean(user?.lockUntil && user.lockUntil.getTime() > Date.now());
+  // Always compare, even for unknown or locked accounts, so timing reveals nothing.
   const ok = await bcrypt.compare(input.password, user?.passwordHash ?? DUMMY_HASH);
-  if (!user || !ok) throw unauthorized("Invalid email or password");
+  if (!user || locked || !ok) {
+    if (user && !locked) await recordFailedLogin(user._id);
+    // The same answer in every case, so it cannot be used to find out which emails exist or
+    // which accounts are locked.
+    throw unauthorized("Invalid email or password");
+  }
+  if ((user.failedLogins ?? 0) > 0 || user.lockUntil) {
+    await User.updateOne({ _id: user._id }, { $set: { failedLogins: 0, lockUntil: null } });
+  }
   // Checked after the password so the message can't be used to discover which emails exist.
   if (user.banned) throw forbidden("This account has been suspended");
   return issueSession(res, user);

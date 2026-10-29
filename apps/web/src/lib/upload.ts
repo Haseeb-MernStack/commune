@@ -24,13 +24,6 @@ function sendToCloud(
     };
     xhr.onload = () => {
       if (xhr.status < 200 || xhr.status >= 300) {
-        let reason = "";
-        try {
-          reason = (JSON.parse(xhr.responseText) as { error?: { message?: string } }).error?.message ?? "";
-        } catch {
-          /* not JSON */
-        }
-        console.warn(`Direct upload refused (${xhr.status}): ${reason || xhr.responseText.slice(0, 200)}`);
         return reject(new Error(`Storage answered ${xhr.status}`));
       }
       try {

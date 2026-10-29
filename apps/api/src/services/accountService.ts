@@ -77,7 +77,7 @@ export async function resetPassword(raw: string, password: string) {
   const userId = await consumeToken(raw, "reset_password");
   const passwordHash = await bcrypt.hash(password, 12);
   // Receiving the email also proves the mailbox is theirs, so mark it verified.
-  await User.updateOne({ _id: userId }, { $set: { passwordHash, emailVerified: true } });
+  await User.updateOne({ _id: userId }, { $set: { passwordHash, emailVerified: true, failedLogins: 0, lockUntil: null } });
   // Sign the account out everywhere: a reset usually means someone else may have had access.
   await RefreshToken.deleteMany({ user: userId });
   // Any other pending reset links for this account are now useless.
