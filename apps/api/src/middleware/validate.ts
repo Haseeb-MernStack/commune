@@ -1,5 +1,5 @@
 import type { RequestHandler } from "express";
-import type { ZodTypeAny } from "zod";
+import type { ZodType } from "zod";
 import { badRequest } from "../utils/errors.js";
 
 /**
@@ -7,7 +7,7 @@ import { badRequest } from "../utils/errors.js";
  * parsed queries are stored on res.locals.query.
  */
 export const validate =
-  (schema: ZodTypeAny, source: "body" | "query" = "body"): RequestHandler =>
+  (schema: ZodType, source: "body" | "query" = "body"): RequestHandler =>
   (req, res, next) => {
     const result = schema.safeParse(req[source]);
     if (!result.success) {

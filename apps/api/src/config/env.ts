@@ -33,7 +33,7 @@ const schema = z.object({
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z
     .string()
-    .optional()
+    .default("")
     .transform((v) => v?.trim() || "Commune <onboarding@resend.dev>"),
   // "Sign in with Google": the OAuth Web client ID (looks like 123-abc.apps.googleusercontent.com).
   GOOGLE_CLIENT_ID: z.string().optional(),
@@ -50,10 +50,10 @@ const schema = z.object({
   // Commune Plus: id of the SUBSCRIPTION variant in Lemon Squeezy (a recurring product).
   LEMONSQUEEZY_PLUS_VARIANT_ID: z.string().optional(),
   // Shown on the Plus page. The real price lives in Lemon Squeezy; keep this text in sync.
-  PLUS_PRICE_LABEL: z.string().optional().transform((v) => v?.trim() || "$5 / month"),
+  PLUS_PRICE_LABEL: z.string().default("").transform((v) => v?.trim() || "$5 / month"),
   // Where messages from the Contact page are emailed (needs RESEND_API_KEY). They are always
   // saved in the database too.
-  CONTACT_EMAIL: z.string().optional().transform((v) => v?.trim() || undefined),
+  CONTACT_EMAIL: z.string().default("").transform((v) => v?.trim() || undefined),
   // "true" blocks posting, liking, commenting and following until the email is verified.
   REQUIRE_VERIFIED_EMAIL: z
     .enum(["true", "false"])
