@@ -45,8 +45,10 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm install
-      # Fails on known high or critical vulnerabilities in packages that ship to production.
-      - run: npm audit --omit=dev --audit-level=high
+      # Fails on high or critical vulnerabilities in packages that ship to production, except the
+      # documented, expiring exceptions in .github/scripts/audit-gate.mjs.
+      - run: npm audit --omit=dev --json > audit.json || true
+      - run: node .github/scripts/audit-gate.mjs audit.json
 
   dependency-review:
     name: Review new dependencies
