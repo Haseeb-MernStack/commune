@@ -23,7 +23,16 @@ function sendToCloud(
       if (e.lengthComputable) onProgress?.(Math.min(99, Math.round((e.loaded / e.total) * 100)));
     };
     xhr.onload = () => {
-      if (xhr.status < 200 || xhr.status >= 300) return reject(new Error(`Storage answered ${xhr.status}`));
+      if (xhr.status < 200 || xhr.status >= 300) {
+        let reason = "";
+        try {
+          reason = (JSON.parse(xhr.responseText) as { error?: { message?: string } }).error?.message ?? "";
+        } catch {
+          /* not JSON */
+        }
+        console.warn(`Direct upload refused (${xhr.status}): ${reason || xhr.responseText.slice(0, 200)}`);
+        return reject(new Error(`Storage answered ${xhr.status}`));
+      }
       try {
         const body = JSON.parse(xhr.responseText) as { public_id?: string; format?: string };
         const id = body.public_id?.split("/").pop();
