@@ -23,7 +23,7 @@
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.7.2",
-    "multer": "^2.0.0",
+    "multer": "^2.5.0",
     "pino": "^9.4.0",
     "pino-http": "^10.3.0",
     "zod": "^3.23.8"
