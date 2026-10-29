@@ -1,0 +1,4 @@
+Contact: https://github.com/Haseeb-MernStack/commune/security/advisories/new
+Expires: 2027-10-29T00:00:00.000Z
+Preferred-Languages: en
+Policy: https://github.com/Haseeb-MernStack/commune/blob/main/SECURITY.md

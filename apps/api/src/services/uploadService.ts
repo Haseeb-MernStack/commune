@@ -90,18 +90,8 @@ async function saveStored(name: string, buffer: Buffer): Promise<void> {
   if (!res.ok) {
     const text = await res.text();
     logger.error({ status: res.status, body: text }, "Cloudinary upload failed");
-    let reason = "";
-    try {
-      reason = (JSON.parse(text) as { error?: { message?: string } }).error?.message ?? "";
-    } catch {
-      /* not JSON */
-    }
-    throw new AppError(
-      502,
-      reason
-        ? `Image storage rejected the upload (${res.status}): ${reason}`
-        : "Image storage is unavailable, try again later",
-    );
+    // The provider's reason stays in the server log; the browser only gets a generic message.
+    throw new AppError(502, "Image storage is unavailable, try again later");
   }
 }
 

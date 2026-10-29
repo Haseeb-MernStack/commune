@@ -16,6 +16,9 @@ const userSchema = new Schema(
     // against the clock, so access ends on time even if a cancellation webhook is missed.
     plusUntil: { type: Date, default: null },
     emailVerified: { type: Boolean, default: false },
+    // Brute-force protection: consecutive wrong passwords, and the end of a temporary lock.
+    failedLogins: { type: Number, default: 0, select: false },
+    lockUntil: { type: Date, default: null, select: false },
   },
   { timestamps: true },
 );

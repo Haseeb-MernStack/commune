@@ -8,12 +8,16 @@ const sharedEntry = decodeURIComponent(
   new URL("../../packages/shared/src/index.ts", import.meta.url).pathname,
 ).replace(/^\/([A-Za-z]:)/, "$1");
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react()],
   resolve: { alias: { "@commune/shared": sharedEntry } },
   server: { port: 5173 },
+  // Production bundles contain no console calls or debugger statements, so nothing can leak
+  // through the browser console even if one is added by mistake.
+  esbuild: mode === "production" ? { drop: ["console", "debugger"] } : {},
   build: {
     target: "es2020",
+    sourcemap: false,
     // Long-lived libraries go in their own files so they stay cached between deployments
     // while only the (small, changing) app code is downloaded again.
     rollupOptions: {
@@ -25,4 +29,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));
