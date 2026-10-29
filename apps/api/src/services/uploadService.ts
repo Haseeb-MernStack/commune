@@ -25,9 +25,10 @@ export const uploadDir = path.resolve(process.cwd(), env.UPLOAD_DIR);
 const cloud =
   env.CLOUDINARY_CLOUD_NAME && env.CLOUDINARY_API_KEY && env.CLOUDINARY_API_SECRET
     ? {
-        name: env.CLOUDINARY_CLOUD_NAME,
-        key: env.CLOUDINARY_API_KEY,
-        secret: env.CLOUDINARY_API_SECRET,
+        // Trim: a stray space or newline pasted into the host's env form breaks every signature.
+        name: env.CLOUDINARY_CLOUD_NAME.trim(),
+        key: env.CLOUDINARY_API_KEY.trim(),
+        secret: env.CLOUDINARY_API_SECRET.trim(),
       }
     : null;
 
@@ -87,8 +88,20 @@ async function saveStored(name: string, buffer: Buffer): Promise<void> {
     body: form,
   });
   if (!res.ok) {
-    logger.error({ status: res.status, body: await res.text() }, "Cloudinary upload failed");
-    throw new AppError(502, "Image storage is unavailable, try again later");
+    const text = await res.text();
+    logger.error({ status: res.status, body: text }, "Cloudinary upload failed");
+    let reason = "";
+    try {
+      reason = (JSON.parse(text) as { error?: { message?: string } }).error?.message ?? "";
+    } catch {
+      /* not JSON */
+    }
+    throw new AppError(
+      502,
+      reason
+        ? `Image storage rejected the upload (${res.status}): ${reason}`
+        : "Image storage is unavailable, try again later",
+    );
   }
 }
 
