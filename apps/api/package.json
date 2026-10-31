@@ -38,7 +38,7 @@
     "@types/node": "^20.16.11",
     "@types/supertest": "^6.0.2",
     "supertest": "^7.0.0",
-    "tsup": "^8.3.0",
+    "tsup": "^9.0.0",
     "tsx": "^4.19.1",
     "vitest": "^2.1.2"
   }
