@@ -22,7 +22,10 @@ for (const [name, vuln] of Object.entries(report.vulnerabilities ?? {})) {
   for (const via of vuln.via ?? []) {
     if (typeof via === "string") continue; // reported on the package that really has the advisory
     if (via.severity !== "high" && via.severity !== "critical") continue;
-    const id = String(via.url ?? "").split("/").pop() ?? "";
+    const id =
+      String(via.url ?? "")
+        .split("/")
+        .pop() ?? "";
     const allowed = ALLOWED[id];
     if (allowed && Date.parse(allowed.expires) > now) {
       waived.push(`${name}: ${id} (until ${allowed.expires}) ${allowed.reason}`);
@@ -36,7 +39,9 @@ for (const [name, vuln] of Object.entries(report.vulnerabilities ?? {})) {
 for (const line of waived) console.log(`waived  ${line}`);
 if (failures.length > 0) {
   for (const line of failures) console.error(`FAIL    ${line}`);
-  console.error("\nFix with `npm audit fix`, upgrade the package, or (rarely) add a documented exception.");
+  console.error(
+    "\nFix with `npm audit fix`, upgrade the package, or (rarely) add a documented exception.",
+  );
   process.exit(1);
 }
 console.log("No unwaived high or critical vulnerabilities in production dependencies.");
