@@ -4,6 +4,7 @@ import type { ReportDTO, ReportStatus } from "@commune/shared";
 import Avatar from "../components/Avatar";
 import { timeAgo } from "../components/PostCard";
 import { REASON_LABELS } from "../components/ReportForm";
+import { useErrorEvents, useResolveError } from "../hooks/useErrors";
 import { useAdminReports, useDismissReport, useResolveReport } from "../hooks/useModeration";
 import { assetUrl } from "../lib/api";
 import { useAuth } from "../store/auth";
@@ -26,10 +27,7 @@ function ReportItem({ report, actionable }: { report: ReportDTO; actionable: boo
     }
   };
   const removeAndSuspend = () => {
-    if (
-      report.post &&
-      window.confirm(`Remove this post and suspend @${report.post.author.username}?`)
-    ) {
+    if (report.post && window.confirm(`Remove this post and suspend @${report.post.author.username}?`)) {
       resolve.mutate({ id: report.id, action: "remove_post_and_ban" });
     }
   };
@@ -46,11 +44,7 @@ function ReportItem({ report, actionable }: { report: ReportDTO; actionable: boo
 
       {report.post ? (
         <div className="report-post post-head">
-          <Avatar
-            username={report.post.author.username}
-            url={report.post.author.avatarUrl}
-            size={32}
-          />
+          <Avatar username={report.post.author.username} url={report.post.author.avatarUrl} size={32} />
           <div className="post-main">
             <strong>@{report.post.author.username}</strong>
             {report.post.content && <p className="post-body">{report.post.content}</p>}
@@ -70,11 +64,7 @@ function ReportItem({ report, actionable }: { report: ReportDTO; actionable: boo
 
       {actionable && (
         <div className="row report-actions">
-          <button
-            className="btn btn-outline"
-            onClick={() => dismiss.mutate(report.id)}
-            disabled={busy}
-          >
+          <button className="btn btn-outline" onClick={() => dismiss.mutate(report.id)} disabled={busy}>
             Dismiss
           </button>
           {report.post && (
@@ -94,8 +84,46 @@ function ReportItem({ report, actionable }: { report: ReportDTO; actionable: boo
   );
 }
 
+function ErrorsPanel() {
+  const errors = useErrorEvents(true);
+  const resolve = useResolveError();
+  const items = errors.data ?? [];
+  return (
+    <>
+      {errors.isLoading && <p className="muted center">Loading…</p>}
+      {errors.isError && <p className="error center">{errors.error.message}</p>}
+      {errors.isSuccess && items.length === 0 && (
+        <p className="muted center">No open errors. Everything looks healthy.</p>
+      )}
+      {items.map((e) => (
+        <article key={e.id} className="card report">
+          <div className="report-head">
+            <strong>{e.message}</strong>
+            <span className="muted">
+              {e.source === "web" ? "Browser" : "API"} · {e.count}× · last {timeAgo(e.lastSeen)}
+            </span>
+          </div>
+          <p className="muted">{e.route}</p>
+          {e.stack && (
+            <details>
+              <summary className="muted">Stack trace</summary>
+              <pre style={{ whiteSpace: "pre-wrap", fontSize: 12, overflowWrap: "anywhere" }}>{e.stack}</pre>
+            </details>
+          )}
+          <div className="row report-actions">
+            <button className="btn btn-outline" onClick={() => resolve.mutate(e.id)} disabled={resolve.isPending}>
+              Mark as fixed
+            </button>
+          </div>
+        </article>
+      ))}
+    </>
+  );
+}
+
 export default function AdminPage() {
   const { user } = useAuth();
+  const [view, setView] = useState<"reports" | "errors">("reports");
   const [status, setStatus] = useState<ReportStatus>("open");
   const reports = useAdminReports(status);
 
@@ -105,7 +133,19 @@ export default function AdminPage() {
 
   return (
     <>
-      <h1 className="page-title">Moderation</h1>
+      <h1 className="page-title">Admin</h1>
+      <div className="tabs" role="tablist" aria-label="Admin sections">
+        <button role="tab" aria-selected={view === "reports"} className={`tab ${view === "reports" ? "active" : ""}`} onClick={() => setView("reports")}>
+          Moderation
+        </button>
+        <button role="tab" aria-selected={view === "errors"} className={`tab ${view === "errors" ? "active" : ""}`} onClick={() => setView("errors")}>
+          Errors
+        </button>
+      </div>
+      {view === "errors" ? (
+        <ErrorsPanel />
+      ) : (
+      <>
       <div className="tabs" role="tablist">
         {TABS.map((t) => (
           <button
@@ -138,6 +178,8 @@ export default function AdminPage() {
         >
           {reports.isFetchingNextPage ? "Loading…" : "Load more"}
         </button>
+      )}
+      </>
       )}
     </>
   );
