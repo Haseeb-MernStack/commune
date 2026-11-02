@@ -1,5 +1,6 @@
 import type { ErrorRequestHandler, RequestHandler } from "express";
 import { logger } from "../config/logger.js";
+import { recordError } from "../services/errorTracker.js";
 import { AppError } from "../utils/errors.js";
 
 export const notFoundHandler: RequestHandler = (req, res) => {
@@ -10,7 +11,7 @@ export const notFoundHandler: RequestHandler = (req, res) => {
   res.status(404).json({ error: `Route not found: ${req.method} ${path}` });
 };
 
-export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
+export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   if (err instanceof AppError) {
     return res.status(err.status).json({ error: err.message });
   }
@@ -34,5 +35,14 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     return res.status(409).json({ error: "Already exists" });
   }
   logger.error({ err }, "Unhandled error");
-  res.status(500).json({ error: "Internal server error" });
+  const e = err instanceof Error ? err : new Error(String(err));
+  void recordError({
+    source: "api",
+    message: e.message || e.name,
+    stack: e.stack,
+    route: `${req.method} ${req.baseUrl}${req.route?.path ?? req.path}`,
+    status: 500,
+  });
+  // The request id is also in the server log, so a user's report can be matched to it.
+  res.status(500).json({ error: "Internal server error", requestId: String(req.id ?? "") });
 };

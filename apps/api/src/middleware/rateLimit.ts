@@ -116,6 +116,16 @@ export const newChatLimiter = rateLimit({
   message: { error: "You've started a lot of conversations, try again later." },
 });
 
+/** Browser error reports: public, so keep it tight. */
+export const clientErrorLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 20,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "Too many reports." },
+});
+
 export const contactLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   limit: 5,

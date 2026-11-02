@@ -54,6 +54,8 @@ const schema = z.object({
   // Where messages from the Contact page are emailed (needs RESEND_API_KEY). They are always
   // saved in the database too.
   CONTACT_EMAIL: z.string().default("").transform((v) => v?.trim() || undefined),
+  // Where "new error" alerts are emailed (needs RESEND_API_KEY). Falls back to CONTACT_EMAIL.
+  ALERT_EMAIL: z.string().default("").transform((v) => v.trim() || undefined),
   // "true" blocks posting, liking, commenting and following until the email is verified.
   REQUIRE_VERIFIED_EMAIL: z
     .enum(["true", "false"])

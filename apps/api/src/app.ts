@@ -38,6 +38,10 @@ export function createApp() {
       autoLogging: { ignore: (req) => req.url === "/api/health" },
     }),
   );
+  app.use((req, res, next) => {
+    res.set("X-Request-Id", String(req.id));
+    next();
+  });
   app.use(
     helmet({
       // The web app runs on another origin and must be allowed to display uploaded images.

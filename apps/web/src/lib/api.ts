@@ -154,3 +154,4 @@ export function withQuery(path: string, params: Record<string, string | undefine
 }
 
 export { refresh as tryRefresh };
+export { BASE as API_BASE };

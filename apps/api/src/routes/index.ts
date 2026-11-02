@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   banUserSchema,
   completeUploadSchema,
+  clientErrorSchema,
   contactSchema,
   messagesQuerySchema,
   newsQuerySchema,
@@ -24,6 +25,7 @@ import {
   verifyEmailSchema,
 } from "@commune/shared";
 import * as account from "../controllers/accountController.js";
+import * as monitor from "../controllers/monitorController.js";
 import * as contact from "../controllers/contactController.js";
 import * as messages from "../controllers/messageController.js";
 import * as news from "../controllers/newsController.js";
@@ -41,7 +43,7 @@ import * as search from "../controllers/searchController.js";
 import * as uploads from "../controllers/uploadController.js";
 import * as users from "../controllers/userController.js";
 import { requireActive, requireAdmin, requireAuth, requirePlus } from "../middleware/auth.js";
-import { authLimiter, checkoutLimiter, contactLimiter, messageLimiter, newChatLimiter, communityLimiter, emailLimiter, reportLimiter, publicLimiter, searchLimiter, uploadLimiter, viewLimiter } from "../middleware/rateLimit.js";
+import { authLimiter, clientErrorLimiter, checkoutLimiter, contactLimiter, messageLimiter, newChatLimiter, communityLimiter, emailLimiter, reportLimiter, publicLimiter, searchLimiter, uploadLimiter, viewLimiter } from "../middleware/rateLimit.js";
 import { parseImageUpload } from "../middleware/upload.js";
 import { validate } from "../middleware/validate.js";
 import { asyncHandler } from "../utils/errors.js";
@@ -55,9 +57,18 @@ export const router = Router();
  */
 const adminOnly = [requireAuth, requireActive, requireAdmin];
 
-router.get("/health", (_req, res) => {
-  res.json({ status: "ok", uptime: process.uptime() });
-});
+// Health checks. /health only says the process is up; /health/ready also checks the database
+// and is the one for an uptime monitor. Neither reveals versions, paths or settings.
+router.get("/health", monitor.live);
+router.get("/health/ready", monitor.ready);
+
+// Errors from the browser (public: they can happen before sign-in; rate limited and capped).
+router.post(
+  "/client-errors",
+  clientErrorLimiter,
+  validate(clientErrorSchema),
+  asyncHandler(monitor.reportClientError),
+);
 
 // Auth
 router.post("/auth/register", authLimiter, validate(registerSchema), asyncHandler(auth.register));
@@ -244,6 +255,8 @@ router.get(
   validate(reportQuerySchema, "query"),
   asyncHandler(admin.listReports),
 );
+router.get("/admin/errors", ...adminOnly, asyncHandler(monitor.listErrors));
+router.post("/admin/errors/:id/resolve", ...adminOnly, asyncHandler(monitor.resolveError));
 router.post("/admin/reports/:id/dismiss", ...adminOnly, asyncHandler(admin.dismissReport));
 router.post(
   "/admin/reports/:id/resolve",

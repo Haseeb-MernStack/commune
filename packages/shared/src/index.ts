@@ -396,3 +396,28 @@ export interface ReportDTO {
   createdAt: string;
   resolvedAt: string | null;
 }
+
+// ---- Monitoring ----
+
+/** Sent by the browser when something throws. Kept small: no personal data is needed. */
+export const clientErrorSchema = z.object({
+  message: z.string().trim().min(1).max(300),
+  stack: z.string().max(2000).optional(),
+  source: z.enum(["window", "promise", "react"]),
+  /** Page path only, never the query string. */
+  path: z.string().max(200).default("/"),
+});
+export type ClientErrorInput = z.infer<typeof clientErrorSchema>;
+
+export interface ErrorEventDTO {
+  id: string;
+  source: "api" | "web";
+  message: string;
+  route: string;
+  status: number | null;
+  stack: string;
+  count: number;
+  firstSeen: string;
+  lastSeen: string;
+  resolved: boolean;
+}
