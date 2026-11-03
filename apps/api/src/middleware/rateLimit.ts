@@ -116,6 +116,16 @@ export const newChatLimiter = rateLimit({
   message: { error: "You've started a lot of conversations, try again later." },
 });
 
+/** Marking a conversation read happens whenever a message arrives while it is open. */
+export const readLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 300,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "Slow down." },
+});
+
 /** Browser error reports: public, so keep it tight. */
 export const clientErrorLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,

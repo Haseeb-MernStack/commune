@@ -186,6 +186,8 @@ export interface ConversationDTO {
   lastMessage: { text: string; senderId: string; createdAt: string } | null;
   lastMessageAt: string;
   unread: number;
+  /** True when the other person has read everything and your message is the latest one. */
+  seenByOther: boolean;
 }
 
 export interface MessagePage {
@@ -420,4 +422,28 @@ export interface ErrorEventDTO {
   firstSeen: string;
   lastSeen: string;
   resolved: boolean;
+}
+
+// ---- Realtime (Socket.IO) ----
+
+/** Events the API pushes to users through the realtime service. */
+export type PushedEvent = "message:new" | "message:read" | "notification:new";
+
+export interface MessageNewEvent {
+  message: MessageDTO;
+}
+export interface MessageReadEvent {
+  conversationId: string;
+  readerId: string;
+}
+/** Sent between the two people in a conversation. */
+export interface TypingEvent {
+  conversationId: string;
+  userId: string;
+  typing: boolean;
+}
+export interface PresenceEvent {
+  conversationId: string;
+  userId: string;
+  online: boolean;
 }

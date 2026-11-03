@@ -1,41 +1,29 @@
-# Render Blueprint for the Commune API.
+# Render Blueprint for the Commune realtime (Socket.IO) service.
+# The web app and the API run on Vercel; only this always-on service needs a server, because
+# serverless functions cannot hold WebSocket connections. See docs/REALTIME.md.
 # Render dashboard -> New -> Blueprint -> pick this repository.
 services:
   - type: web
-    name: commune-api
+    name: commune-realtime
     runtime: node
-    plan: free
-    # --include=dev because Render sets NODE_ENV=production, which would otherwise skip the
-    # build tools (tsup, typescript) needed to compile the API.
-    buildCommand: npm install --include=dev && npm run build -w @commune/api
-    startCommand: node apps/api/dist/server.js
-    healthCheckPath: /api/health
+    # The free plan sleeps after idle time, which drops every connection and delays the next one.
+    # Use a paid plan for real users (the app falls back to polling while the service is asleep).
+    plan: starter
+    # --include=dev because Render sets NODE_ENV=production, which would skip the build tools.
+    buildCommand: npm install --include=dev && npm run build -w @commune/realtime
+    startCommand: node apps/realtime/dist/index.js
+    healthCheckPath: /health
     envVars:
       - key: NODE_VERSION
         value: 20
       - key: NODE_ENV
         value: production
-      # Vercel rewrite -> Render = two proxies in front of the API.
-      - key: TRUST_PROXY
-        value: 2
-      # Generated once by Render and kept secret.
-      - key: JWT_ACCESS_SECRET
-        generateValue: true
-      # You fill these in on the Render dashboard (never commit them):
-      - key: MONGODB_URI
+      # Fill these in on the Render dashboard (never commit them):
+      - key: JWT_ACCESS_SECRET   # exactly the same value as on the API project
         sync: false
-      - key: CLIENT_ORIGIN
+      - key: REALTIME_SECRET     # new random value, the same on the API project
         sync: false
-      - key: CLOUDINARY_CLOUD_NAME
+      - key: CLIENT_ORIGIN       # https://commune-mu.vercel.app (no trailing slash)
         sync: false
-      - key: CLOUDINARY_API_KEY
+      - key: API_URL             # https://commune-8im5.vercel.app
         sync: false
-      - key: CLOUDINARY_API_SECRET
-        sync: false
-      # Email (Resend). Optional; without a key no emails are sent.
-      - key: RESEND_API_KEY
-        sync: false
-      - key: EMAIL_FROM
-        sync: false
-      - key: REQUIRE_VERIFIED_EMAIL
-        value: false

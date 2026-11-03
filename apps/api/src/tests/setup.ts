@@ -21,6 +21,8 @@ process.env.PLATFORM_FEE_PERCENT = "20";
 process.env.PLUS_FEE_PERCENT = "10";
 process.env.LEMONSQUEEZY_PLUS_VARIANT_ID = "";
 process.env.REQUIRE_VERIFIED_EMAIL = "false";
+process.env.REALTIME_URL = "";
+process.env.REALTIME_SECRET = "";
 // Tests write uploaded files to a throwaway folder, never into the project.
 process.env.UPLOAD_DIR = path.join(os.tmpdir(), "commune-test-uploads");
 

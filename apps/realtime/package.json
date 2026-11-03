@@ -1,0 +1,27 @@
+{
+  "name": "@commune/realtime",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsup",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@commune/shared": "*",
+    "dotenv": "^16.4.5",
+    "jsonwebtoken": "^9.0.2",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/node": "^20.16.11",
+    "socket.io-client": "^4.8.1",
+    "tsup": "^8.3.0",
+    "tsx": "^4.19.1",
+    "vitest": "^2.1.2"
+  }
+}
