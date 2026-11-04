@@ -447,7 +447,6 @@ export interface PresenceEvent {
   userId: string;
   online: boolean;
 }
-<<<<<<< HEAD
 
 // ---- Web Push ----
 
@@ -498,5 +497,3 @@ export interface PushStatus {
   publicKey: string | null;
   preferences: PushPreferences;
 }
-=======
->>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39

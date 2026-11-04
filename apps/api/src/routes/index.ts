@@ -28,10 +28,7 @@ import {
   verifyEmailSchema,
 } from "@commune/shared";
 import * as account from "../controllers/accountController.js";
-<<<<<<< HEAD
 import * as push from "../controllers/pushController.js";
-=======
->>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
 import * as internal from "../controllers/internalController.js";
 import * as monitor from "../controllers/monitorController.js";
 import * as contact from "../controllers/contactController.js";
@@ -51,28 +48,7 @@ import * as search from "../controllers/searchController.js";
 import * as uploads from "../controllers/uploadController.js";
 import * as users from "../controllers/userController.js";
 import { requireActive, requireAdmin, requireAuth, requirePlus } from "../middleware/auth.js";
-<<<<<<< HEAD
-import {
-  authLimiter,
-  clientErrorLimiter,
-  pushLimiter,
-  readLimiter,
-  testPushLimiter,
-  checkoutLimiter,
-  contactLimiter,
-  messageLimiter,
-  newChatLimiter,
-  communityLimiter,
-  emailLimiter,
-  reportLimiter,
-  publicLimiter,
-  searchLimiter,
-  uploadLimiter,
-  viewLimiter,
-} from "../middleware/rateLimit.js";
-=======
-import { authLimiter, clientErrorLimiter, readLimiter, checkoutLimiter, contactLimiter, messageLimiter, newChatLimiter, communityLimiter, emailLimiter, reportLimiter, publicLimiter, searchLimiter, uploadLimiter, viewLimiter } from "../middleware/rateLimit.js";
->>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
+import { authLimiter, clientErrorLimiter, pushLimiter, readLimiter, testPushLimiter, checkoutLimiter, contactLimiter, messageLimiter, newChatLimiter, communityLimiter, emailLimiter, reportLimiter, publicLimiter, searchLimiter, uploadLimiter, viewLimiter } from "../middleware/rateLimit.js";
 import { parseImageUpload } from "../middleware/upload.js";
 import { validate } from "../middleware/validate.js";
 import { asyncHandler } from "../utils/errors.js";
@@ -92,14 +68,7 @@ router.get("/health", monitor.live);
 router.get("/health/ready", monitor.ready);
 
 // Used only by the realtime service (shared secret; 404 for everyone else).
-<<<<<<< HEAD
-router.get(
-  "/internal/conversations/:id/participants",
-  asyncHandler(internal.conversationParticipants),
-);
-=======
 router.get("/internal/conversations/:id/participants", asyncHandler(internal.conversationParticipants));
->>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
 
 // Errors from the browser (public: they can happen before sign-in; rate limited and capped).
 router.post(
@@ -190,12 +159,7 @@ router.get(
   validate(paginationSchema, "query"),
   asyncHandler(users.userPosts),
 );
-router.post(
-  "/users/:username/follow",
-  requireAuth,
-  requireActive,
-  asyncHandler(users.toggleFollow),
-);
+router.post("/users/:username/follow", requireAuth, requireActive, asyncHandler(users.toggleFollow));
 
 // Notifications
 router.get("/notifications", requireAuth, asyncHandler(notifications.list));
@@ -253,20 +217,10 @@ router.get(
   asyncHandler(communities.posts),
 );
 router.post("/communities/:slug/join", requireAuth, requireActive, asyncHandler(communities.join));
-router.delete(
-  "/communities/:slug/join",
-  requireAuth,
-  requireActive,
-  asyncHandler(communities.leave),
-);
+router.delete("/communities/:slug/join", requireAuth, requireActive, asyncHandler(communities.leave));
 
 // Posts
-router.get(
-  "/posts",
-  requireAuth,
-  validate(paginationSchema, "query"),
-  asyncHandler(posts.listPosts),
-);
+router.get("/posts", requireAuth, validate(paginationSchema, "query"), asyncHandler(posts.listPosts));
 router.post(
   "/posts",
   requireAuth,
@@ -332,28 +286,9 @@ router.post("/contact", contactLimiter, validate(contactSchema), asyncHandler(co
 
 // Web Push (notifications when the site is closed)
 router.get("/push/status", requireAuth, asyncHandler(push.status));
-router.post(
-  "/push/subscribe",
-  requireAuth,
-  pushLimiter,
-  validate(pushSubscribeSchema),
-  requireActive,
-  asyncHandler(push.subscribe),
-);
-router.post(
-  "/push/unsubscribe",
-  requireAuth,
-  pushLimiter,
-  validate(pushUnsubscribeSchema),
-  asyncHandler(push.unsubscribe),
-);
-router.put(
-  "/push/preferences",
-  requireAuth,
-  pushLimiter,
-  validate(pushPreferencesSchema),
-  asyncHandler(push.savePreferences),
-);
+router.post("/push/subscribe", requireAuth, pushLimiter, validate(pushSubscribeSchema), requireActive, asyncHandler(push.subscribe));
+router.post("/push/unsubscribe", requireAuth, pushLimiter, validate(pushUnsubscribeSchema), asyncHandler(push.unsubscribe));
+router.put("/push/preferences", requireAuth, pushLimiter, validate(pushPreferencesSchema), asyncHandler(push.savePreferences));
 router.post("/push/test", requireAuth, testPushLimiter, asyncHandler(push.test));
 
 // Direct messages. Fixed paths ("/messages/unread-count", "/messages/with/:username") come
