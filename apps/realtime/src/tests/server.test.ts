@@ -28,10 +28,14 @@ const fakeFetch = async (url: string) => {
   return new Response("{}", { status: 404 });
 };
 
+<<<<<<< HEAD
 const server = createRealtimeServer(
   config,
   new Membership(config.apiUrl, config.internalSecret, fakeFetch as never),
 );
+=======
+const server = createRealtimeServer(config, new Membership(config.apiUrl, config.internalSecret, fakeFetch as never));
+>>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
 let base = "";
 const open: Socket[] = [];
 
@@ -39,12 +43,16 @@ const token = (sub: string, options: jwt.SignOptions = { expiresIn: "15m" }) =>
   jwt.sign({ sub }, config.jwtSecret, { algorithm: "HS256", ...options });
 
 function client(auth: unknown): Socket {
+<<<<<<< HEAD
   const s = connect(base, {
     auth: auth as Record<string, unknown>,
     transports: ["websocket"],
     reconnection: false,
     forceNew: true,
   });
+=======
+  const s = connect(base, { auth: auth as Record<string, unknown>, transports: ["websocket"], reconnection: false, forceNew: true });
+>>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
   open.push(s);
   return s;
 }
@@ -91,6 +99,7 @@ describe("authentication", () => {
   });
 
   it("refuses a bad signature, a wrong algorithm and an expired token", async () => {
+<<<<<<< HEAD
     const forged = jwt.sign({ sub: ALICE }, "x".repeat(40), {
       algorithm: "HS256",
       expiresIn: "15m",
@@ -99,6 +108,10 @@ describe("authentication", () => {
       algorithm: "HS512",
       expiresIn: "15m",
     });
+=======
+    const forged = jwt.sign({ sub: ALICE }, "x".repeat(40), { algorithm: "HS256", expiresIn: "15m" });
+    const wrongAlg = jwt.sign({ sub: ALICE }, config.jwtSecret, { algorithm: "HS512", expiresIn: "15m" });
+>>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
     const expired = token(ALICE, { expiresIn: -10 });
     for (const t of [forged, wrongAlg, expired]) {
       await expect(connected(client({ token: t }))).rejects.toThrow("unauthorized");
@@ -115,9 +128,13 @@ describe("authentication", () => {
 
   it("limits connections per user", async () => {
     for (let i = 0; i < 3; i++) await connected(client({ token: token(ALICE) }));
+<<<<<<< HEAD
     await expect(connected(client({ token: token(ALICE) }))).rejects.toThrow(
       "too_many_connections",
     );
+=======
+    await expect(connected(client({ token: token(ALICE) }))).rejects.toThrow("too_many_connections");
+>>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
   });
 
   it("refuses browsers from another origin", async () => {
@@ -142,11 +159,15 @@ describe("internal emit", () => {
     bob.on("message:new", () => (bobGotIt = true));
 
     const received = next<{ hello: string }>(alice, "message:new");
+<<<<<<< HEAD
     const res = await emitViaApi({
       to: [ALICE],
       event: "message:new",
       payload: { hello: "world" },
     });
+=======
+    const res = await emitViaApi({ to: [ALICE], event: "message:new", payload: { hello: "world" } });
+>>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
     expect(res.status).toBe(204);
     expect(await received).toEqual({ hello: "world" });
     await new Promise((r) => setTimeout(r, 100));
@@ -154,9 +175,13 @@ describe("internal emit", () => {
   });
 
   it("rejects a wrong secret, an unknown event and bad recipients", async () => {
+<<<<<<< HEAD
     expect(
       (await emitViaApi({ to: [ALICE], event: "message:new" }, "wrong".repeat(10))).status,
     ).toBe(401);
+=======
+    expect((await emitViaApi({ to: [ALICE], event: "message:new" }, "wrong".repeat(10))).status).toBe(401);
+>>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
     expect((await emitViaApi({ to: [ALICE], event: "admin:everything" })).status).toBe(400);
     expect((await emitViaApi({ to: ["nope"], event: "message:new" })).status).toBe(400);
     expect((await emitViaApi({ to: [], event: "message:new" })).status).toBe(400);
@@ -168,10 +193,14 @@ describe("internal emit", () => {
     const gone = next(alice, "disconnect");
     const res = await fetch(`${base}/internal/disconnect`, {
       method: "POST",
+<<<<<<< HEAD
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${config.internalSecret}`,
       },
+=======
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${config.internalSecret}` },
+>>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
       body: JSON.stringify({ userId: ALICE }),
     });
     expect(res.status).toBe(204);
@@ -229,6 +258,7 @@ describe("conversations, typing and presence", () => {
   });
 });
 
+<<<<<<< HEAD
 describe("active users (for push notifications)", () => {
   const activeVia = (userIds: string[]) =>
     fetch(`${base}/internal/active`, {
@@ -268,6 +298,8 @@ describe("active users (for push notifications)", () => {
   });
 });
 
+=======
+>>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
 describe("health", () => {
   it("answers without revealing anything", async () => {
     const res = await fetch(`${base}/health`);

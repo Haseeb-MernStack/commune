@@ -14,9 +14,15 @@ const TIMEOUT_MS = 1200;
 const BACKOFF_MS = 20_000;
 let skipUntil = 0;
 
+<<<<<<< HEAD
 async function post<T = null>(path: string, body: unknown): Promise<T | null> {
   if (!env.REALTIME_URL || !env.REALTIME_SECRET) return null;
   if (Date.now() < skipUntil) return null;
+=======
+async function post(path: string, body: unknown): Promise<void> {
+  if (!env.REALTIME_URL || !env.REALTIME_SECRET) return;
+  if (Date.now() < skipUntil) return;
+>>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
   try {
     const res = await fetch(`${env.REALTIME_URL}${path}`, {
       method: "POST",
@@ -25,11 +31,17 @@ async function post<T = null>(path: string, body: unknown): Promise<T | null> {
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
     if (!res.ok) throw new Error(`status ${res.status}`);
+<<<<<<< HEAD
     return res.status === 204 ? null : ((await res.json()) as T);
   } catch (err) {
     skipUntil = Date.now() + BACKOFF_MS;
     logger.warn({ err: String(err) }, "Realtime service unreachable");
     return null;
+=======
+  } catch (err) {
+    skipUntil = Date.now() + BACKOFF_MS;
+    logger.warn({ err: String(err) }, "Realtime service unreachable");
+>>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
   }
 }
 
@@ -45,6 +57,7 @@ export async function disconnectUser(userId: string) {
   await post("/internal/disconnect", { userId });
 }
 
+<<<<<<< HEAD
 /**
  * Which of these users have the site open and visible right now (so a push notification would
  * only duplicate what they already see). If the service cannot be reached, nobody counts as
@@ -56,6 +69,8 @@ export async function activeUsers(userIds: string[]): Promise<Set<string>> {
   return new Set(Array.isArray(res?.active) ? res.active : []);
 }
 
+=======
+>>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
 /** For tests. */
 export function resetRealtimeBreaker() {
   skipUntil = 0;

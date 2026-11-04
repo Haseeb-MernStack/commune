@@ -13,9 +13,15 @@ const ORIGIN = BASE.replace(/\/api\/?$/, "");
 let accessToken: string | null = null;
 let refreshing: Promise<AuthResponse | null> | null = null;
 
+<<<<<<< HEAD
    export function getAccessToken(): string | null {
      return accessToken;
    }
+=======
+export function getAccessToken(): string | null {
+  return accessToken;
+}
+>>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
 
 export function setAccessToken(token: string | null) {
   accessToken = token;

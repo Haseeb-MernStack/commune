@@ -54,11 +54,14 @@ const wanted = new Set<string>(); // conversations the screen currently shows
 const typingTimers = new Map<string, number>();
 let authFailures = 0;
 
+<<<<<<< HEAD
 /** Tells the server whether this tab is on screen, so it can skip push notifications meant for a screen you are already looking at. */
 function sendVisibility() {
   socket?.emit("visibility", { visible: document.visibilityState === "visible" });
 }
 
+=======
+>>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
 function joinNow(id: string) {
   socket?.emit("conversation:join", { conversationId: id }, (res: { ok: boolean; online?: boolean }) => {
     // The answer says whether the other person is online right now; presence events do the rest.
@@ -94,7 +97,10 @@ export function startRealtime(handlers: RealtimeHandlers): void {
     authFailures = 0;
     setState({ connected: true });
     for (const id of wanted) joinNow(id);
+<<<<<<< HEAD
     sendVisibility();
+=======
+>>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
     if (hasConnectedBefore) handlers.onResync();
     hasConnectedBefore = true;
   });
@@ -108,8 +114,11 @@ export function startRealtime(handlers: RealtimeHandlers): void {
     if (err.message === "unauthorized") void renewAndReconnect();
   });
 
+<<<<<<< HEAD
   document.addEventListener("visibilitychange", sendVisibility);
 
+=======
+>>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
   s.on("message:new", handlers.onMessage);
   s.on("message:read", handlers.onRead);
   s.on("notification:new", handlers.onNotification);
@@ -130,7 +139,10 @@ export function startRealtime(handlers: RealtimeHandlers): void {
 }
 
 export function stopRealtime(): void {
+<<<<<<< HEAD
   document.removeEventListener("visibilitychange", sendVisibility);
+=======
+>>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
   socket?.removeAllListeners();
   socket?.disconnect();
   socket = null;

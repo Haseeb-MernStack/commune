@@ -16,7 +16,11 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.27.0",
+<<<<<<< HEAD
     "socket.io-client": "^4.8.1"
+=======
+    "socket.io-client":"^4.8.1"
+>>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
   },
   "devDependencies": {
     "@types/react": "^18.3.11",

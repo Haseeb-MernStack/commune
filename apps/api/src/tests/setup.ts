@@ -23,9 +23,12 @@ process.env.LEMONSQUEEZY_PLUS_VARIANT_ID = "";
 process.env.REQUIRE_VERIFIED_EMAIL = "false";
 process.env.REALTIME_URL = "";
 process.env.REALTIME_SECRET = "";
+<<<<<<< HEAD
 process.env.VAPID_PUBLIC_KEY = "";
 process.env.VAPID_PRIVATE_KEY = "";
 process.env.VAPID_SUBJECT = "";
+=======
+>>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
 // Tests write uploaded files to a throwaway folder, never into the project.
 process.env.UPLOAD_DIR = path.join(os.tmpdir(), "commune-test-uploads");
 

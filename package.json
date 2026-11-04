@@ -12,16 +12,16 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "concurrently -n api,web -c blue,green \"npm run dev -w @commune/api\" \"npm run dev -w @commune/web\"",
-    "build": "npm run build -w @commune/api && npm run build -w @commune/web",
-    "typecheck": "npm run typecheck -w @commune/shared && npm run typecheck -w @commune/api && npm run typecheck -w @commune/web",
-    "test": "npm run test -w @commune/api",
+    "dev": "concurrently -n api, web, realtime -c blue,green,yellow \"npm run dev -w @commune/api\" \"npm run dev -w @commune/web\" \"npm run dev -w @commune/realtime\"",
+    "build": "npm run build -w @commune/api && npm run build -w @commune/web && npm run build -w @commune/realtime",
+    "typecheck": "npm run typecheck -w @commune/shared && npm run typecheck -w @commune/api && npm run typecheck -w @commune/web && npm run typecheck -w @commune/realtime",
+    "test": "npm run test -w @commune/api && npm run test -w @commune/realtime",
     "format": "prettier --write ."
   },
   "devDependencies": {
     "concurrently": "^9.0.0",
     "prettier": "^3.3.0",
     "typescript": "^5.6.0",
-    "vite":"^6.4.4"
+    "vite": "^6.4.4"
   }
 }
