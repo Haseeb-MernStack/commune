@@ -54,6 +54,13 @@ const schema = z.object({
   // Where messages from the Contact page are emailed (needs RESEND_API_KEY). They are always
   // saved in the database too.
   CONTACT_EMAIL: z.string().default("").transform((v) => v?.trim() || undefined),
+  // The realtime (Socket.IO) service. Both must be set to push live events; without them the app
+  // simply falls back to polling. The secret must be the same on both services.
+  REALTIME_URL: z
+    .string()
+    .default("")
+    .transform((v) => v.trim().replace(/\/+$/, "") || undefined),
+  REALTIME_SECRET: z.string().default("").transform((v) => v.trim() || undefined),
   // Where "new error" alerts are emailed (needs RESEND_API_KEY). Falls back to CONTACT_EMAIL.
   ALERT_EMAIL: z.string().default("").transform((v) => v.trim() || undefined),
   // "true" blocks posting, liking, commenting and following until the email is verified.

@@ -6,12 +6,15 @@ import Avatar from "../components/Avatar";
 import PlusBadge from "../components/PlusBadge";
 import { timeAgo } from "../components/PostCard";
 import {
+  PENDING_PREFIX,
   loadOlder,
   useConversations,
+  useMarkRead,
   useSendMessage,
   useStartChat,
   useThread,
 } from "../hooks/useMessages";
+import { joinConversation, noteTyping, stopTyping, useRealtime } from "../lib/realtime";
 import { useAuth } from "../store/auth";
 
 /** Text box that sends on Enter (Shift+Enter makes a new line). */
@@ -20,22 +23,29 @@ function Composer({
   busy,
   error,
   placeholder,
+  onTyping,
+  onStopTyping,
 }: {
   onSend: (text: string) => Promise<unknown>;
   busy: boolean;
   error?: string | null;
   placeholder: string;
+  onTyping?: () => void;
+  onStopTyping?: () => void;
 }) {
   const [text, setText] = useState("");
   const submit = async (e?: FormEvent) => {
     e?.preventDefault();
     const value = text.trim();
     if (!value || busy) return;
+    // Clear at once so the next message can be typed while this one is sent; give the text
+    // back if sending fails so nothing is lost.
+    setText("");
+    onStopTyping?.();
     try {
       await onSend(value);
-      setText("");
     } catch {
-      /* the error is shown below; the text stays so nothing is lost */
+      setText((current) => current || value);
     }
   };
   const onKey = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -50,7 +60,10 @@ function Composer({
       <div className="chat-form-row">
         <textarea
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            setText(e.target.value);
+            if (e.target.value) onTyping?.();
+          }}
           onKeyDown={onKey}
           placeholder={placeholder}
           rows={1}
@@ -74,12 +87,19 @@ function Thread({ id }: { id: string }) {
   const { user } = useAuth();
   const thread = useThread(id);
   const send = useSendMessage(id);
+  const markRead = useMarkRead(id);
   const [older, setOlder] = useState<MessageDTO[]>([]);
   const [olderCursor, setOlderCursor] = useState<string | null | undefined>(undefined);
   const [loadingOlder, setLoadingOlder] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const stick = useRef(true);
+
+  // Live: join this conversation's room for typing and online status.
+  useEffect(() => joinConversation(id), [id]);
+  const otherId = thread.data?.conversation?.other.id;
+  const typing = useRealtime((s) => s.typing[id] === true);
+  const online = useRealtime((s) => (otherId ? s.presence[otherId] === true : false));
 
   // A different conversation: forget the older pages of the previous one.
   useEffect(() => {
@@ -97,7 +117,32 @@ function Thread({ id }: { id: string }) {
   // Stay at the bottom for new messages, unless the person scrolled up to read.
   useLayoutEffect(() => {
     if (stick.current) bottomRef.current?.scrollIntoView({ block: "end" });
-  }, [messages.length]);
+  }, [messages.length, typing]);
+
+  // A message from the other person arrived while this conversation is open and visible: mark
+  // it read (the first load is already marked read by the server).
+  const lastMessage = messages[messages.length - 1];
+  const lastFromOther =
+    Boolean(lastMessage) && lastMessage!.senderId !== user?.id && !lastMessage!.id.startsWith(PENDING_PREFIX);
+  const markedRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (thread.isSuccess && markedRef.current === null) markedRef.current = lastMessage?.id ?? "";
+  }, [thread.isSuccess, lastMessage?.id]);
+  useEffect(() => {
+    const mark = () => {
+      if (!lastFromOther || !lastMessage || markedRef.current === lastMessage.id) return;
+      if (document.visibilityState !== "visible") return;
+      markedRef.current = lastMessage.id;
+      markRead.mutate();
+    };
+    mark();
+    document.addEventListener("visibilitychange", mark);
+    return () => document.removeEventListener("visibilitychange", mark);
+    // markRead is stable enough for this purpose; the message id is what matters.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastMessage?.id, lastFromOther]);
+
+  const lastMineId = [...messages].reverse().find((m) => m.senderId === user?.id)?.id;
 
   const onScroll = () => {
     const el = listRef.current;
@@ -131,9 +176,18 @@ function Thread({ id }: { id: string }) {
         {other && (
           <Link to={`/u/${other.username}`} className="person">
             <Avatar username={other.username} url={other.avatarUrl} size={36} />
-            <strong>
-              @{other.username} <PlusBadge plus={other.plus} />
-            </strong>
+            <span className="person-text">
+              <strong>
+                @{other.username} <PlusBadge plus={other.plus} />
+              </strong>
+              {typing ? (
+                <span className="chat-status typing-label">typing…</span>
+              ) : online ? (
+                <span className="chat-status">
+                  <span className="presence-dot" aria-hidden="true" /> Online
+                </span>
+              ) : null}
+            </span>
           </Link>
         )}
       </div>
@@ -147,24 +201,39 @@ function Thread({ id }: { id: string }) {
         {messages.length === 0 && <p className="muted center">No messages yet. Say hello!</p>}
         {messages.map((m) => {
           const mine = m.senderId === user?.id;
+          const pending = m.id.startsWith(PENDING_PREFIX);
           return (
-            <div key={m.id} className={`bubble-row${mine ? " mine" : ""}`}>
+            <div key={m.id} className={`bubble-row${mine ? " mine" : ""}${pending ? " pending" : ""}`}>
               <div className="bubble">
                 <span>{m.text}</span>
                 <time className="bubble-time" dateTime={m.createdAt} title={new Date(m.createdAt).toLocaleString()}>
-                  {timeAgo(m.createdAt)}
+                  {pending ? "Sending…" : timeAgo(m.createdAt)}
                 </time>
+                {mine && m.id === lastMineId && !pending && thread.data?.conversation?.seenByOther && (
+                  <span className="bubble-seen">Seen</span>
+                )}
               </div>
             </div>
           );
         })}
+        {typing && (
+          <div className="bubble-row" aria-live="polite">
+            <div className="bubble typing-bubble" aria-label="Typing">
+              <i />
+              <i />
+              <i />
+            </div>
+          </div>
+        )}
         <div ref={bottomRef} />
       </div>
 
       <Composer
         placeholder="Write a message…"
-        busy={send.isPending}
+        busy={false}
         error={send.isError ? send.error.message : null}
+        onTyping={() => noteTyping(id)}
+        onStopTyping={() => stopTyping(id)}
         onSend={(text) => {
           stick.current = true;
           return send.mutateAsync(text);

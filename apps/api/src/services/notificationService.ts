@@ -2,6 +2,7 @@ import type { Types } from "mongoose";
 import type { NotificationType } from "@commune/shared";
 import { logger } from "../config/logger.js";
 import { Notification } from "../models/Notification.js";
+import { emitToUsers } from "./realtime.js";
 
 interface NotifyInput {
   /** Recipient. */
@@ -32,6 +33,8 @@ export async function notify({ user, actor, type, post }: NotifyInput): Promise<
         { upsert: true },
       );
     }
+    // A hint only (no content): the client refetches its notifications.
+    await emitToUsers([user], "notification:new");
   } catch (err) {
     logger.warn({ err }, "Failed to create notification");
   }

@@ -5,6 +5,7 @@ import { Post } from "../models/Post.js";
 import { RefreshToken } from "../models/RefreshToken.js";
 import { Report } from "../models/Report.js";
 import { User } from "../models/User.js";
+import { disconnectUser } from "./realtime.js";
 import { deleteUploadIfUnused } from "./uploadService.js";
 
 /**
@@ -39,6 +40,7 @@ export async function banUser(
 ): Promise<void> {
   await User.updateOne({ _id: userId }, { $set: { banned: true } });
   await RefreshToken.deleteMany({ user: userId });
+  await disconnectUser(userId); // end live connections now
 
   if (options.removePosts) {
     const posts = await Post.find({ author: userId }).select("_id").lean();

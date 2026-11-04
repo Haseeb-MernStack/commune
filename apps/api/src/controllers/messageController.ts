@@ -5,6 +5,7 @@ import { Conversation } from "../models/Conversation.js";
 import { Message } from "../models/Message.js";
 import { User } from "../models/User.js";
 import { badRequest, forbidden, notFound } from "../utils/errors.js";
+import { emitToUsers } from "../services/realtime.js";
 import { isPlusActive } from "../utils/plan.js";
 import { findByUsername } from "./userController.js";
 
@@ -48,7 +49,9 @@ function toMessageDTO(m: LeanMessage): MessageDTO {
 }
 
 function toConversationDTO(c: LeanConversation, me: string, other: LeanUser): ConversationDTO {
-  const unread = c.unread && typeof c.unread === "object" ? Number(c.unread[me] ?? 0) : 0;
+  const counts = c.unread && typeof c.unread === "object" ? c.unread : {};
+  const unread = Number(counts[me] ?? 0);
+  const otherUnread = Number(counts[str(other._id)] ?? 0);
   return {
     id: str(c._id),
     other: {
@@ -67,6 +70,7 @@ function toConversationDTO(c: LeanConversation, me: string, other: LeanUser): Co
       : null,
     lastMessageAt: c.lastMessageAt.toISOString(),
     unread,
+    seenByOther: Boolean(c.lastMessageSender) && str(c.lastMessageSender) === me && otherUnread === 0,
   };
 }
 
@@ -93,7 +97,10 @@ async function saveMessage(convoId: string, me: string, otherId: string, text: s
       $inc: { [`unread.${otherId}`]: 1 },
     },
   );
-  return toMessageDTO(message.toObject() as unknown as LeanMessage);
+  const dto = toMessageDTO(message.toObject() as unknown as LeanMessage);
+  // Live delivery to the recipient, and to the sender's other tabs and devices.
+  await emitToUsers([me, otherId], "message:new", { message: dto });
+  return dto;
 }
 
 /** GET /messages: your conversations, most recent first. */
@@ -149,6 +156,7 @@ export async function getMessages(req: Request, res: Response) {
   // Opening the latest page counts as reading the conversation.
   if (!cursor && Number(convo.unread?.[me] ?? 0) > 0) {
     await Conversation.updateOne({ _id: str(convo._id) }, { $set: { [`unread.${me}`]: 0 } });
+    await emitToUsers([otherId], "message:read", { conversationId: str(convo._id), readerId: me });
   }
 
   const other = (await User.findById(otherId).select(USER_FIELDS).lean()) as unknown as LeanUser | null;
@@ -186,4 +194,15 @@ export async function start(req: Request, res: Response) {
 
   const message = await saveMessage(str(convo._id), me, targetId, req.body.text);
   res.status(201).json({ conversationId: str(convo._id), message });
+}
+
+/** POST /messages/:id/read: the person is looking at the conversation, so mark it read. */
+export async function markRead(req: Request, res: Response) {
+  const me = req.userId!;
+  const { convo, otherId } = await loadConversation(req.params.id, me);
+  if (Number(convo.unread?.[me] ?? 0) > 0) {
+    await Conversation.updateOne({ _id: str(convo._id) }, { $set: { [`unread.${me}`]: 0 } });
+    await emitToUsers([otherId], "message:read", { conversationId: str(convo._id), readerId: me });
+  }
+  res.status(204).end();
 }

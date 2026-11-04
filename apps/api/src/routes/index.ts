@@ -25,6 +25,7 @@ import {
   verifyEmailSchema,
 } from "@commune/shared";
 import * as account from "../controllers/accountController.js";
+import * as internal from "../controllers/internalController.js";
 import * as monitor from "../controllers/monitorController.js";
 import * as contact from "../controllers/contactController.js";
 import * as messages from "../controllers/messageController.js";
@@ -43,7 +44,7 @@ import * as search from "../controllers/searchController.js";
 import * as uploads from "../controllers/uploadController.js";
 import * as users from "../controllers/userController.js";
 import { requireActive, requireAdmin, requireAuth, requirePlus } from "../middleware/auth.js";
-import { authLimiter, clientErrorLimiter, checkoutLimiter, contactLimiter, messageLimiter, newChatLimiter, communityLimiter, emailLimiter, reportLimiter, publicLimiter, searchLimiter, uploadLimiter, viewLimiter } from "../middleware/rateLimit.js";
+import { authLimiter, clientErrorLimiter, readLimiter, checkoutLimiter, contactLimiter, messageLimiter, newChatLimiter, communityLimiter, emailLimiter, reportLimiter, publicLimiter, searchLimiter, uploadLimiter, viewLimiter } from "../middleware/rateLimit.js";
 import { parseImageUpload } from "../middleware/upload.js";
 import { validate } from "../middleware/validate.js";
 import { asyncHandler } from "../utils/errors.js";
@@ -61,6 +62,9 @@ const adminOnly = [requireAuth, requireActive, requireAdmin];
 // and is the one for an uptime monitor. Neither reveals versions, paths or settings.
 router.get("/health", monitor.live);
 router.get("/health/ready", monitor.ready);
+
+// Used only by the realtime service (shared secret; 404 for everyone else).
+router.get("/internal/conversations/:id/participants", asyncHandler(internal.conversationParticipants));
 
 // Errors from the browser (public: they can happen before sign-in; rate limited and capped).
 router.post(
@@ -294,6 +298,8 @@ router.get(
   validate(messagesQuerySchema, "query"),
   asyncHandler(messages.getMessages),
 );
+// After /messages/with/:username, so a user named "read" can still be messaged.
+router.post("/messages/:id/read", requireAuth, readLimiter, asyncHandler(messages.markRead));
 router.post(
   "/messages/:id",
   requireAuth,
