@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import type { AuthResponse, LoginInput, PublicUser, RegisterInput } from "@commune/shared";
+import { releasePushOnLogout } from "../lib/push";
 import { api, bootSession, readSessionHint, setAccessToken, writeSessionHint } from "../lib/api";
 
 // The last known profile, shown instantly on the next visit while the session is re-checked.
@@ -87,6 +88,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
+    // While the access token is still valid: stop this device receiving this person's notifications.
+    await releasePushOnLogout();
     await api("/auth/logout", { method: "POST" }).catch(() => undefined);
     setAccessToken(null);
     writeSessionHint("0");

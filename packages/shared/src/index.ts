@@ -186,6 +186,8 @@ export interface ConversationDTO {
   lastMessage: { text: string; senderId: string; createdAt: string } | null;
   lastMessageAt: string;
   unread: number;
+  /** True when the other person has read everything and your message is the latest one. */
+  seenByOther: boolean;
 }
 
 export interface MessagePage {
@@ -420,4 +422,78 @@ export interface ErrorEventDTO {
   firstSeen: string;
   lastSeen: string;
   resolved: boolean;
+}
+
+// ---- Realtime (Socket.IO) ----
+
+/** Events the API pushes to users through the realtime service. */
+export type PushedEvent = "message:new" | "message:read" | "notification:new";
+
+export interface MessageNewEvent {
+  message: MessageDTO;
+}
+export interface MessageReadEvent {
+  conversationId: string;
+  readerId: string;
+}
+/** Sent between the two people in a conversation. */
+export interface TypingEvent {
+  conversationId: string;
+  userId: string;
+  typing: boolean;
+}
+export interface PresenceEvent {
+  conversationId: string;
+  userId: string;
+  online: boolean;
+}
+
+// ---- Web Push ----
+
+/**
+ * Push subscriptions come from the browser, and the server sends a request to the address in
+ * them. Only the real push services are accepted, so nobody can make the server call an
+ * arbitrary address.
+ */
+const PUSH_HOSTS = [
+  /^fcm\.googleapis\.com$/, // Chrome, Edge, Android, Samsung
+  /^([a-z0-9-]+\.)*push\.services\.mozilla\.com$/, // Firefox
+  /^([a-z0-9-]+\.)*push\.apple\.com$/, // Safari and iPhone
+  /^([a-z0-9-]+\.)*notify\.windows\.com$/, // Edge on Windows
+];
+
+export function isAllowedPushEndpoint(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && !url.port && PUSH_HOSTS.some((re) => re.test(url.hostname));
+  } catch {
+    return false;
+  }
+}
+
+export const pushSubscribeSchema = z.object({
+  endpoint: z
+    .string()
+    .max(600)
+    .refine(isAllowedPushEndpoint, "This browser's push service is not supported"),
+  keys: z.object({
+    p256dh: z.string().regex(/^[A-Za-z0-9_-]{60,120}$/, "Invalid key"),
+    auth: z.string().regex(/^[A-Za-z0-9_-]{16,40}$/, "Invalid key"),
+  }),
+});
+export type PushSubscribeInput = z.infer<typeof pushSubscribeSchema>;
+
+export const pushUnsubscribeSchema = z.object({ endpoint: z.string().max(600) });
+
+export const pushPreferencesSchema = z.object({
+  messages: z.boolean(),
+  social: z.boolean(),
+});
+export type PushPreferences = z.infer<typeof pushPreferencesSchema>;
+
+export interface PushStatus {
+  /** False when the server has no VAPID keys: hide the feature. */
+  enabled: boolean;
+  publicKey: string | null;
+  preferences: PushPreferences;
 }

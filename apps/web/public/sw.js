@@ -4,6 +4,7 @@
  * What it does:
  *  - Makes the app installable and gives it a branded offline page.
  *  - Caches the app's own static files so repeat visits and slow networks are fast.
+ *  - Shows push notifications (new messages, likes, comments, follows) when the site is closed.
  *
  * What it deliberately does NOT do:
  *  - It never touches /api/* or /uploads/*, or any non-GET or cross-origin request. Account
@@ -103,3 +104,57 @@ async function staleWhileRevalidate(request) {
     .catch(() => undefined);
   return cached || (await refresh) || Response.error();
 }
+
+/* ---- Push notifications ---- */
+
+/** Only addresses on this site may be opened from a notification. */
+function safeTarget(value) {
+  try {
+    const url = new URL(String(value || "/"), self.location.origin);
+    return url.origin === self.location.origin ? url.pathname + url.search : "/";
+  } catch (_) {
+    return "/";
+  }
+}
+
+self.addEventListener("push", (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch (_) {
+    data = { body: event.data ? event.data.text() : "" };
+  }
+  const tag = data.tag ? String(data.tag).slice(0, 60) : undefined;
+  event.waitUntil(
+    self.registration.showNotification(String(data.title || "Commune").slice(0, 80), {
+      body: String(data.body || "").slice(0, 140),
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      tag,
+      // A new notification with the same tag replaces the old one but still alerts.
+      renotify: Boolean(tag),
+      data: { url: safeTarget(data.url) },
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const target = safeTarget(event.notification.data && event.notification.data.url);
+  event.waitUntil(
+    (async () => {
+      const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+      for (const client of windows) {
+        if (new URL(client.url).origin !== self.location.origin) continue;
+        try {
+          await client.focus();
+          if ("navigate" in client) await client.navigate(target);
+          return;
+        } catch (_) {
+          /* fall through to opening a new window */
+        }
+      }
+      await self.clients.openWindow(target);
+    })(),
+  );
+});

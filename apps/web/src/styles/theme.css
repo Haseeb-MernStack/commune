@@ -11,11 +11,13 @@
   --text: #12141c;
   --muted: #596073;
   --border: #dcdfe9;
-  --accent: #1b2559; /* midnight */
+  --accent: #1b2559;
+  /* midnight */
   --accent-hover: #10173f;
   --accent-contrast: #ffffff;
   --accent-soft: #e7eafa;
-  --gold: #ffb224; /* marigold: the one highlight */
+  --gold: #ffb224;
+  /* marigold: the one highlight */
   --gold-ink: #2b1b00;
   --like: #e5483a;
   --danger: #c8372d;
@@ -313,7 +315,7 @@ h3,
 }
 
 /* ---------- Timeline: posts read as one continuous column ---------- */
-.container > .post {
+.container>.post {
   margin: 0;
   padding: 16px;
   gap: 12px;
@@ -323,22 +325,22 @@ h3,
   transition: background 0.15s ease;
 }
 
-.container > .post + .post {
+.container>.post+.post {
   margin-top: -12px;
 }
 
-.container > :not(.post) + .post {
+.container> :not(.post)+.post {
   border-top-width: 1px;
   border-radius: var(--radius) var(--radius) 0 0;
 }
 
-.container > .post:last-child,
-.container > .post:has(+ :not(.post)) {
+.container>.post:last-child,
+.container>.post:has(+ :not(.post)) {
   border-radius: 0 0 var(--radius) var(--radius);
 }
 
-.container > :not(.post) + .post:last-child,
-.container > :not(.post) + .post:has(+ :not(.post)) {
+.container> :not(.post)+.post:last-child,
+.container> :not(.post)+.post:has(+ :not(.post)) {
   border-radius: var(--radius);
 }
 
@@ -599,7 +601,7 @@ h3,
   padding: calc(32px + env(safe-area-inset-top)) 20px calc(40px + env(safe-area-inset-bottom));
 }
 
-.auth-main > * {
+.auth-main>* {
   width: 100%;
   max-width: 420px;
 }
@@ -956,13 +958,13 @@ h3,
 
 /* ---------- Phones: posts run edge to edge, like an app ---------- */
 @media (max-width: 600px) {
-  .container > .post {
+  .container>.post {
     margin-inline: -12px;
     border-inline-width: 0;
     border-radius: 0 !important;
   }
 
-  .container > :not(.post) + .post {
+  .container> :not(.post)+.post {
     border-top-width: 1px;
   }
 
@@ -1020,6 +1022,7 @@ h3,
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .btn,
   .post-actions .btn-ghost svg {
     transition: none;
@@ -1062,4 +1065,115 @@ h3,
 
 .plus-features .card:last-child:nth-child(odd) {
   grid-column: 1 / -1;
+}
+
+/* ---- Live messaging: sending, typing, online and seen ---- */
+.bubble-row.pending .bubble {
+  opacity: 0.65;
+}
+
+.bubble-seen {
+  display: block;
+  text-align: right;
+  font-size: 11px;
+  opacity: 0.8;
+  margin-top: 2px;
+}
+
+.person-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.chat-status {
+  font-size: 12px;
+  color: var(--muted, #6b7280);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.typing-label {
+  color: var(--accent, #1b2559);
+}
+
+.presence-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22a06b;
+  display: inline-block;
+}
+
+.typing-bubble {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 12px 14px;
+}
+
+.typing-bubble i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.4;
+  animation: typing-dot 1.2s infinite ease-in-out;
+}
+
+.typing-bubble i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.typing-bubble i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes typing-dot {
+
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+
+  30% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .typing-bubble i {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
+/* ---- Push notification settings ---- */
+.push-settings {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 16px;
+}
+
+.push-title {
+  margin: 0;
+  font-size: 16px;
+}
+
+.push-settings .check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.push-settings .row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }

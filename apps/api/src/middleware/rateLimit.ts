@@ -116,6 +116,36 @@ export const newChatLimiter = rateLimit({
   message: { error: "You've started a lot of conversations, try again later." },
 });
 
+/** Subscribing, unsubscribing and changing push settings. */
+export const pushLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 30,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "Too many requests, try again later." },
+});
+
+/** "Send a test notification" button. */
+export const testPushLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 3,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "Test notifications are limited, try again in a few minutes." },
+});
+
+/** Marking a conversation read happens whenever a message arrives while it is open. */
+export const readLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 300,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "Slow down." },
+});
+
 /** Browser error reports: public, so keep it tight. */
 export const clientErrorLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,

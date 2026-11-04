@@ -2,6 +2,9 @@ import type { Types } from "mongoose";
 import type { NotificationType } from "@commune/shared";
 import { logger } from "../config/logger.js";
 import { Notification } from "../models/Notification.js";
+import { User } from "../models/User.js";
+import { pushConfigured, pushToUser } from "./pushService.js";
+import { emitToUsers } from "./realtime.js";
 
 interface NotifyInput {
   /** Recipient. */
@@ -31,6 +34,19 @@ export async function notify({ user, actor, type, post }: NotifyInput): Promise<
         { $set: { read: false, createdAt: new Date() } },
         { upsert: true },
       );
+    }
+    // A hint only (no content): the client refetches its notifications.
+    await emitToUsers([user], "notification:new");
+    if (pushConfigured()) {
+      const actorUser = (await User.findById(actor).select("username").lean()) as { username?: string } | null;
+      const name = `@${actorUser?.username ?? "Someone"}`;
+      const text = { like: "liked your post", comment: "commented on your post", follow: "started following you" }[type];
+      await pushToUser(user.toString(), "social", {
+        title: "Commune",
+        body: `${name} ${text}`,
+        url: post ? `/posts/${post.toString()}` : `/u/${actorUser?.username ?? ""}`,
+        tag: `social-${type}-${post?.toString() ?? actor}`,
+      });
     }
   } catch (err) {
     logger.warn({ err }, "Failed to create notification");

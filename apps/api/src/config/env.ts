@@ -54,6 +54,19 @@ const schema = z.object({
   // Where messages from the Contact page are emailed (needs RESEND_API_KEY). They are always
   // saved in the database too.
   CONTACT_EMAIL: z.string().default("").transform((v) => v?.trim() || undefined),
+  // The realtime (Socket.IO) service. Both must be set to push live events; without them the app
+  // simply falls back to polling. The secret must be the same on both services.
+  REALTIME_URL: z
+    .string()
+    .default("")
+    .transform((v) => v.trim().replace(/\/+$/, "") || undefined),
+  REALTIME_SECRET: z.string().default("").transform((v) => v.trim() || undefined),
+  // Web Push (notifications when the site is closed). Create the pair once with
+  // `npx web-push generate-vapid-keys`. Without both keys the feature is off.
+  VAPID_PUBLIC_KEY: z.string().default("").transform((v) => v.trim() || undefined),
+  VAPID_PRIVATE_KEY: z.string().default("").transform((v) => v.trim() || undefined),
+  // Contact for push services: a mailto: or https: address. Defaults to the site address.
+  VAPID_SUBJECT: z.string().default("").transform((v) => v.trim() || undefined),
   // Where "new error" alerts are emailed (needs RESEND_API_KEY). Falls back to CONTACT_EMAIL.
   ALERT_EMAIL: z.string().default("").transform((v) => v.trim() || undefined),
   // "true" blocks posting, liking, commenting and following until the email is verified.
