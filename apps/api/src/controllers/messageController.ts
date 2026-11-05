@@ -5,10 +5,7 @@ import { Conversation } from "../models/Conversation.js";
 import { Message } from "../models/Message.js";
 import { User } from "../models/User.js";
 import { badRequest, forbidden, notFound } from "../utils/errors.js";
-<<<<<<< HEAD
 import { pushConfigured, pushToUser } from "../services/pushService.js";
-=======
->>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
 import { emitToUsers } from "../services/realtime.js";
 import { isPlusActive } from "../utils/plan.js";
 import { findByUsername } from "./userController.js";
@@ -115,14 +112,10 @@ async function saveMessage(convoId: string, me: string, otherId: string, text: s
   );
   const dto = toMessageDTO(message.toObject() as unknown as LeanMessage);
   // Live delivery to the recipient, and to the sender's other tabs and devices.
-<<<<<<< HEAD
   await Promise.all([
     emitToUsers([me, otherId], "message:new", { message: dto }),
     notifyByPush(convoId, me, otherId, text),
   ]);
-=======
-  await emitToUsers([me, otherId], "message:new", { message: dto });
->>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
   return dto;
 }
 

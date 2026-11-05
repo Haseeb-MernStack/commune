@@ -116,7 +116,6 @@ export const newChatLimiter = rateLimit({
   message: { error: "You've started a lot of conversations, try again later." },
 });
 
-<<<<<<< HEAD
 /** Subscribing, unsubscribing and changing push settings. */
 export const pushLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
@@ -137,8 +136,6 @@ export const testPushLimiter = rateLimit({
   message: { error: "Test notifications are limited, try again in a few minutes." },
 });
 
-=======
->>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
 /** Marking a conversation read happens whenever a message arrives while it is open. */
 export const readLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,

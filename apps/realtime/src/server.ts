@@ -11,10 +11,7 @@ import { Membership } from "./membership.js";
 const PUSHABLE_EVENTS = new Set(["message:new", "message:read", "notification:new"]);
 
 const OBJECT_ID = /^[a-f0-9]{24}$/i;
-<<<<<<< HEAD
 const MAX_ACTIVE_LOOKUP = 50;
-=======
->>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
 const MAX_BODY_BYTES = 10_000;
 const MAX_ROOMS_PER_SOCKET = 20;
 const MAX_TARGETS_PER_EMIT = 10;
@@ -70,7 +67,6 @@ export function createRealtimeServer(config: Config, membership?: Membership) {
   const members = membership ?? new Membership(config.apiUrl, config.internalSecret);
   /** user id -> ids of their open sockets (a person can have several tabs and devices). */
   const online = new Map<string, Set<string>>();
-<<<<<<< HEAD
   /** user id -> ids of sockets whose tab is visible right now. Used to skip push notifications. */
   const visible = new Map<string, Set<string>>();
   function markVisible(userId: string, socketId: string, isVisible: boolean) {
@@ -80,8 +76,6 @@ export function createRealtimeServer(config: Config, membership?: Membership) {
     if (set.size === 0) visible.delete(userId);
     else visible.set(userId, set);
   }
-=======
->>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
 
   const httpServer = http.createServer((req, res) => {
     void handleHttp(req, res).catch((err: unknown) => {
@@ -113,14 +107,10 @@ export function createRealtimeServer(config: Config, membership?: Membership) {
       return send(res, 200, { status: "ok" });
     }
 
-<<<<<<< HEAD
     if (
       req.method === "POST" &&
       (path === "/internal/emit" || path === "/internal/disconnect" || path === "/internal/active")
     ) {
-=======
-    if (req.method === "POST" && (path === "/internal/emit" || path === "/internal/disconnect")) {
->>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
       if (!safeEqual(bearer(req.headers.authorization), config.internalSecret)) {
         return send(res, 401, { error: "Unauthorized" });
       }
@@ -132,7 +122,6 @@ export function createRealtimeServer(config: Config, membership?: Membership) {
       }
       const input = (typeof body === "object" && body !== null ? body : {}) as Record<string, unknown>;
 
-<<<<<<< HEAD
       if (path === "/internal/active") {
         const ids = input.userIds;
         if (
@@ -146,8 +135,6 @@ export function createRealtimeServer(config: Config, membership?: Membership) {
         return send(res, 200, { active: (ids as string[]).filter((id) => visible.has(id)) });
       }
 
-=======
->>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
       if (path === "/internal/disconnect") {
         if (typeof input.userId !== "string" || !OBJECT_ID.test(input.userId)) {
           return send(res, 400, { error: "Invalid user" });
@@ -242,7 +229,6 @@ export function createRealtimeServer(config: Config, membership?: Membership) {
       });
     });
 
-<<<<<<< HEAD
     // The browser says whether its tab is on screen. A visible tab already shows new messages,
     // so the API skips the push notification for that person.
     socket.on("visibility", (payload: unknown) => {
@@ -253,10 +239,6 @@ export function createRealtimeServer(config: Config, membership?: Membership) {
     socket.on("disconnect", () => {
       clearTimeout(expiryTimer);
       markVisible(userId, socket.id, false);
-=======
-    socket.on("disconnect", () => {
-      clearTimeout(expiryTimer);
->>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
       const set = online.get(userId);
       set?.delete(socket.id);
       if (set && set.size === 0) {
