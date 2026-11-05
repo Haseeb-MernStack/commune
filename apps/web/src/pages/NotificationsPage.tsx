@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import type { NotificationDTO } from "@commune/shared";
 import PushSettings from "../components/PushSettings";
+import SoundSettings from "../components/SoundSettings";
 import { timeAgo } from "../components/PostCard";
 import { useMarkAllRead, useNotifications } from "../hooks/useSocial";
 
@@ -26,6 +27,7 @@ export default function NotificationsPage() {
   return (
     <>
       <h1 className="page-title">Notifications</h1>
+      <SoundSettings />
       <PushSettings />
       {list.isLoading && <p className="muted center">Loading…</p>}
       {list.isError && <p className="error center">{list.error.message}</p>}

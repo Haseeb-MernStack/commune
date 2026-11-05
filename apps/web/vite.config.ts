@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig, type PluginOption } from "vite";
 import react from "@vitejs/plugin-react";
 
 // Resolve the shared package straight from its TypeScript source instead of relying on the
@@ -9,7 +9,7 @@ const sharedEntry = decodeURIComponent(
 ).replace(/^\/([A-Za-z]:)/, "$1");
 
 export default defineConfig(({ mode }) => ({
-  plugins: [react()],
+  plugins: [react() as unknown as PluginOption],
   resolve: { alias: { "@commune/shared": sharedEntry } },
   server: { port: 5173 },
   // Production bundles contain no console calls or debugger statements, so nothing can leak

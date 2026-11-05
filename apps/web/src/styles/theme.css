@@ -1150,7 +1150,6 @@ h3,
     animation: none;
     opacity: 0.7;
   }
-<<<<<<< HEAD
 }
 
 /* ---- Push notification settings ---- */
@@ -1177,6 +1176,42 @@ h3,
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-=======
->>>>>>> c8c01b67633c93be2fc611c7c617accf40c84b39
+}
+
+
+/* ---- Sound settings ---- */
+.sound-settings {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 16px;
+}
+
+.sound-settings .check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.sound-settings .row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sound-volume {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.sound-volume input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent, currentColor);
+}
+
+.sound-volume input[type="range"]:disabled {
+  opacity: 0.45;
 }
