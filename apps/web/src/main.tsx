@@ -8,9 +8,12 @@ import { RealtimeProvider } from "./store/realtime";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { installErrorReporting } from "./lib/report";
 import { registerServiceWorker } from "./lib/pwa";
+import { armSoundUnlock } from "./lib/sound";
 import "@fontsource-variable/bricolage-grotesque";
 import "./styles/global.css";
 import "./styles/theme.css";
+
+armSoundUnlock();
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 15_000, retry: 1, refetchOnWindowFocus: false } },

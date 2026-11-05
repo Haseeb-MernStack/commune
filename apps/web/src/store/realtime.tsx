@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { MessageDTO } from "@commune/shared";
 import type { ThreadPage } from "../hooks/useMessages";
 import { realtimeEnabled, startRealtime, stopRealtime } from "../lib/realtime";
+import { isViewingConversation, playSound } from "../lib/sound";
 import { useAuth } from "./auth";
 
 /** Adds a message to a loaded conversation unless it is already there (own sends arrive twice). */
@@ -35,7 +36,11 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
           return next;
         });
         void qc.invalidateQueries({ queryKey: ["conversations"] });
-        if (message.senderId !== userId) void qc.invalidateQueries({ queryKey: ["unread-messages"] });
+        if (message.senderId !== userId) {
+          void qc.invalidateQueries({ queryKey: ["unread-messages"] });
+          // A chime for someone else's message, unless you are already reading that conversation.
+          if (!isViewingConversation(message.conversationId)) playSound("message");
+        }
       },
       onRead: ({ conversationId }) => {
         qc.setQueryData<ThreadPage>(["thread", conversationId], (old) =>
@@ -44,6 +49,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         void qc.invalidateQueries({ queryKey: ["conversations"] });
       },
       onNotification: () => {
+        if (!(document.visibilityState === "visible" && window.location.pathname === "/notifications")) {
+          playSound("notification");
+        }
         void qc.invalidateQueries({ queryKey: ["notifications"] });
         void qc.invalidateQueries({ queryKey: ["unread-count"] });
       },
