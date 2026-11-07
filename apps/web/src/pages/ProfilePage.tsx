@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { ProfileSkeleton } from "../components/Skeleton";
 import type { ChangeEvent, FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import Avatar from "../components/Avatar";
@@ -27,7 +28,7 @@ export default function ProfilePage() {
   const [photoError, setPhotoError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  if (profile.isLoading) return <p className="muted center">Loading…</p>;
+  if (profile.isLoading) return <ProfileSkeleton />;
   if (profile.isError || !profile.data) return <p className="error center">User not found.</p>;
 
   const p = profile.data;

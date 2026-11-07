@@ -12,11 +12,14 @@ import { armSoundUnlock } from "./lib/sound";
 import "@fontsource-variable/bricolage-grotesque";
 import "./styles/global.css";
 import "./styles/theme.css";
+import "./styles/skeleton.css";
 
 armSoundUnlock();
 
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { staleTime: 15_000, retry: 1, refetchOnWindowFocus: false } },
+  defaultOptions: {
+    queries: { staleTime: 30_000, gcTime: 15 * 60_000, retry: 1, refetchOnWindowFocus: false },
+  },
 });
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

@@ -1,4 +1,5 @@
 import { Link, useParams } from "react-router-dom";
+import { CardsSkeleton } from "../components/Skeleton";
 import Composer from "../components/Composer";
 import PostList from "../components/PostList";
 import { useCommunity, useCommunityPosts, useMembership } from "../hooks/useCommunities";
@@ -9,7 +10,7 @@ export default function CommunityPage() {
   const posts = useCommunityPosts(slug);
   const { join, leave } = useMembership(slug);
 
-  if (community.isLoading) return <p className="muted center">Loading…</p>;
+  if (community.isLoading) return <CardsSkeleton count={2} />;
   if (community.isError || !community.data) {
     return (
       <p className="error center">

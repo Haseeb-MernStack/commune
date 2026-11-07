@@ -12,6 +12,8 @@ import RightRail from "./components/RightRail";
 import BottomNav from "./components/BottomNav";
 import Brand from "./components/BrandMark";
 import Icon from "./components/Icon";
+import { PageSkeleton } from "./components/Skeleton";
+import { prefetchLikelyRoutes } from "./lib/prefetch";
 
 const PostPage = lazy(() => import("./pages/PostPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
@@ -57,7 +59,15 @@ function RouteMeta() {
     const community = /^\/c\/([^/]+)/.exec(pathname)?.[1];
     const name =
       TITLES[pathname] ??
-      (user ? `@${decodeURIComponent(user)}` : community ? `c/${decodeURIComponent(community)}` : pathname.startsWith("/messages") ? "Messages" : pathname.startsWith("/posts/") ? "Post" : "Commune");
+      (user
+        ? `@${decodeURIComponent(user)}`
+        : community
+          ? `c/${decodeURIComponent(community)}`
+          : pathname.startsWith("/messages")
+            ? "Messages"
+            : pathname.startsWith("/posts/")
+              ? "Post"
+              : "Commune");
     document.title = pathname === "/" ? name : `${name} · Commune`;
 
     let link = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
@@ -76,121 +86,121 @@ function RouteMeta() {
 
 function Protected({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
-  if (loading) return <p className="muted center">Loading…</p>;
+  if (loading) return <PageSkeleton />;
   return user ? <>{children}</> : <Navigate to="/login" replace />;
 }
 
 /** "/" shows the feed to members and the public Explore page to everyone else. */
 function Home() {
   const { user, loading } = useAuth();
-  if (loading) return <p className="muted center">Loading…</p>;
+  if (loading) return <PageSkeleton />;
   return user ? <FeedPage /> : <ExplorePage />;
 }
 
 function AppRoutes() {
   return (
-    <Suspense fallback={<p className="muted center route-loading">Loading…</p>}>
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/explore" element={<ExplorePage />} />
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      <Route path="/reset-password" element={<ResetPasswordPage />} />
-      <Route path="/verify-email" element={<VerifyEmailPage />} />
-      <Route path="/" element={<Home />} />
-      <Route
-        path="/posts/:id"
-        element={
-          <Protected>
-            <PostPage />
-          </Protected>
-        }
-      />
-      <Route
-        path="/u/:username"
-        element={
-          <Protected>
-            <ProfilePage />
-          </Protected>
-        }
-      />
-      <Route
-        path="/notifications"
-        element={
-          <Protected>
-            <NotificationsPage />
-          </Protected>
-        }
-      />
-      <Route
-        path="/admin"
-        element={
-          <Protected>
-            <AdminPage />
-          </Protected>
-        }
-      />
+    <Suspense fallback={<PageSkeleton />}>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/explore" element={<ExplorePage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/" element={<Home />} />
+        <Route
+          path="/posts/:id"
+          element={
+            <Protected>
+              <PostPage />
+            </Protected>
+          }
+        />
+        <Route
+          path="/u/:username"
+          element={
+            <Protected>
+              <ProfilePage />
+            </Protected>
+          }
+        />
+        <Route
+          path="/notifications"
+          element={
+            <Protected>
+              <NotificationsPage />
+            </Protected>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <Protected>
+              <AdminPage />
+            </Protected>
+          }
+        />
 
-      <Route
-        path="/communities"
-        element={
-          <Protected>
-            <CommunitiesPage />
-          </Protected>
-        }
-      />
-      <Route
-        path="/c/:slug"
-        element={
-          <Protected>
-            <CommunityPage />
-          </Protected>
-        }
-      />
-      <Route
-        path="/search"
-        element={
-          <Protected>
-            <SearchPage />
-          </Protected>
-        }
-      />
-      <Route
-        path="/plus"
-        element={
-          <Protected>
-            <PlusPage />
-          </Protected>
-        }
-      />
-      <Route
-        path="/insights"
-        element={
-          <Protected>
-            <InsightsPage />
-          </Protected>
-        }
-      />
-      <Route path="/news" element={<NewsPage />} />
-      <Route path="/contact" element={<ContactPage />} />
-      <Route
-        path="/messages"
-        element={
-          <Protected>
-            <MessagesPage />
-          </Protected>
-        }
-      />
-      <Route
-        path="/messages/:id"
-        element={
-          <Protected>
-            <MessagesPage />
-          </Protected>
-        }
-      />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        <Route
+          path="/communities"
+          element={
+            <Protected>
+              <CommunitiesPage />
+            </Protected>
+          }
+        />
+        <Route
+          path="/c/:slug"
+          element={
+            <Protected>
+              <CommunityPage />
+            </Protected>
+          }
+        />
+        <Route
+          path="/search"
+          element={
+            <Protected>
+              <SearchPage />
+            </Protected>
+          }
+        />
+        <Route
+          path="/plus"
+          element={
+            <Protected>
+              <PlusPage />
+            </Protected>
+          }
+        />
+        <Route
+          path="/insights"
+          element={
+            <Protected>
+              <InsightsPage />
+            </Protected>
+          }
+        />
+        <Route path="/news" element={<NewsPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route
+          path="/messages"
+          element={
+            <Protected>
+              <MessagesPage />
+            </Protected>
+          }
+        />
+        <Route
+          path="/messages/:id"
+          element={
+            <Protected>
+              <MessagesPage />
+            </Protected>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </Suspense>
   );
 }
@@ -225,6 +235,11 @@ export default function App() {
   const { pathname } = useLocation();
   const { user } = useAuth();
   const authPage = AUTH_PATHS.includes(pathname);
+  const signedIn = Boolean(user);
+  // Once signed in, quietly download the most-used pages so tapping them is instant.
+  useEffect(() => {
+    if (signedIn) prefetchLikelyRoutes();
+  }, [signedIn]);
   // Messages need room for two panes, so that page drops the news column.
   const wide = pathname.startsWith("/messages");
 

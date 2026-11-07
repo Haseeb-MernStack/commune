@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
+import mongoose from "mongoose";
 import type { NewsItemDTO, NewsTopic } from "@commune/shared";
 import { logger } from "../config/logger.js";
+import { NewsCache } from "../models/NewsCache.js";
 
 /**
  * Live English news from the public RSS feeds of established publishers. Only the headline,
@@ -40,11 +42,14 @@ export const FEEDS: Record<NewsTopic, Feed[]> = {
 };
 
 const FRESH_MS = 10 * 60 * 1000; // serve from cache for 10 minutes
+// Between FRESH and this age, the older copy is served at once and refreshed behind the scenes,
+// so nobody waits for the feeds. Older than this, the visitor waits for fresh headlines.
+const SOFT_STALE_MS = 30 * 60 * 1000;
 const STALE_MS = 6 * 60 * 60 * 1000; // if every feed fails, an older copy is still better than nothing
 const MAX_ITEMS = 30;
 const MAX_PER_SOURCE = 12;
 const MAX_FEED_BYTES = 2_000_000;
-const FETCH_TIMEOUT_MS = 5000;
+const FETCH_TIMEOUT_MS = 3500;
 
 const ENTITIES: Record<string, string> = {
   amp: "&",
@@ -167,6 +172,30 @@ export function clearNewsCache() {
   inFlight.clear();
 }
 
+// ---- The copy shared by all server instances (skipped when there is no database connection) ----
+const dbReady = () => mongoose.connection.readyState === 1;
+
+async function readShared(topic: NewsTopic): Promise<CacheEntry | null> {
+  if (!dbReady()) return null;
+  try {
+    const doc = await NewsCache.findOne({ topic }).lean();
+    if (!doc || !Array.isArray(doc.items)) return null;
+    return { items: doc.items as NewsItemDTO[], at: new Date(doc.fetchedAt).getTime() };
+  } catch (err) {
+    logger.warn({ err: String(err), topic }, "Could not read the shared news cache");
+    return null;
+  }
+}
+
+async function writeShared(topic: NewsTopic, items: NewsItemDTO[], at: number): Promise<void> {
+  if (!dbReady()) return;
+  try {
+    await NewsCache.updateOne({ topic }, { $set: { items, fetchedAt: new Date(at) } }, { upsert: true });
+  } catch (err) {
+    logger.warn({ err: String(err), topic }, "Could not save the shared news cache");
+  }
+}
+
 async function refresh(topic: NewsTopic): Promise<NewsItemDTO[]> {
   const results = await Promise.allSettled(FEEDS[topic].map(fetchFeed));
   const lists: NewsItemDTO[][] = [];
@@ -176,23 +205,50 @@ async function refresh(topic: NewsTopic): Promise<NewsItemDTO[]> {
   });
   const items = mergeItems(lists);
   if (items.length === 0) throw new Error("No news feeds could be read");
-  cache.set(topic, { items, at: Date.now() });
+  const at = Date.now();
+  cache.set(topic, { items, at });
+  await writeShared(topic, items, at);
   return items;
 }
 
-/** Returns cached news when fresh, otherwise refreshes (one request at a time per topic). */
-export async function getNews(topic: NewsTopic): Promise<NewsItemDTO[]> {
-  const hit = cache.get(topic);
-  if (hit && Date.now() - hit.at < FRESH_MS) return hit.items;
-
+/** One refresh at a time per topic, however many visitors ask. */
+function startRefresh(topic: NewsTopic): Promise<NewsItemDTO[]> {
   let pending = inFlight.get(topic);
   if (!pending) {
     pending = refresh(topic).finally(() => inFlight.delete(topic));
     inFlight.set(topic, pending);
   }
+  return pending;
+}
+
+/**
+ * Fastest copy wins: this instance's memory, then the copy shared through the database, and only
+ * then the publishers' feeds. A copy that is a little old is still returned immediately while a
+ * refresh runs in the background.
+ */
+export async function getNews(topic: NewsTopic): Promise<NewsItemDTO[]> {
+  let hit = cache.get(topic);
+  if (!hit || Date.now() - hit.at >= FRESH_MS) {
+    const shared = await readShared(topic);
+    if (shared && (!hit || shared.at > hit.at)) {
+      hit = shared;
+      cache.set(topic, shared);
+    }
+  }
+
+  if (hit) {
+    const age = Date.now() - hit.at;
+    if (age < FRESH_MS) return hit.items;
+    if (age < SOFT_STALE_MS) {
+      startRefresh(topic).catch((err) => logger.warn({ err: String(err), topic }, "Background news refresh failed"));
+      return hit.items;
+    }
+  }
+
   try {
-    return await pending;
+    return await startRefresh(topic);
   } catch (err) {
+    // If every feed is down, an older copy (up to 6 hours) is better than an error.
     if (hit && Date.now() - hit.at < STALE_MS) return hit.items;
     throw err;
   }

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { CardsSkeleton } from "../components/Skeleton";
 import Icon from "../components/Icon";
 import { useInsights } from "../hooks/useBilling";
 import { useAuth } from "../store/auth";
@@ -30,7 +31,7 @@ export default function InsightsPage() {
       </section>
     );
   }
-  if (insights.isLoading) return <p className="muted center">Loading…</p>;
+  if (insights.isLoading) return <CardsSkeleton count={3} />;
   if (insights.isError || !insights.data) {
     return <p className="error center">{insights.error?.message ?? "Could not load insights."}</p>;
   }

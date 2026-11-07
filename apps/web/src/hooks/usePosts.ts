@@ -1,4 +1,4 @@
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient, type InfiniteData, type QueryClient } from "@tanstack/react-query";
 import type { CommentDTO, CreatePostInput, Page, PostDTO } from "@commune/shared";
 import { api, withQuery } from "../lib/api";
 
@@ -14,10 +14,21 @@ export function useFeed(feed: FeedType = "all") {
   });
 }
 
+function findPostInFeeds(qc: QueryClient, id: string): PostDTO | undefined {
+  for (const [, data] of qc.getQueriesData<InfiniteData<Page<PostDTO>>>({ queryKey: ["feed"] })) {
+    const hit = data?.pages.flatMap((p) => p.items).find((p) => p.id === id);
+    if (hit) return hit;
+  }
+  return undefined;
+}
+
 /** `pollWhileLocked` re-checks every 2s: after paying, the unlock arrives via a webhook. */
 export function usePost(id: string, pollWhileLocked = false) {
+  const qc = useQueryClient();
   return useQuery({
     queryKey: ["post", id],
+    // Opening a post you just saw in a feed shows it at once; the fresh copy loads behind it.
+    placeholderData: () => findPostInFeeds(qc, id),
     queryFn: () => api<PostDTO>(`/posts/${id}`),
     refetchInterval: (query) => (pollWhileLocked && query.state.data?.locked ? 2000 : false),
   });

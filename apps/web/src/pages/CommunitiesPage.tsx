@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { RowsSkeleton } from "../components/Skeleton";
 import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { createCommunitySchema } from "@commune/shared";
@@ -95,7 +96,7 @@ export default function CommunitiesPage() {
         ))}
       </div>
 
-      {list.isLoading && <p className="muted center">Loading…</p>}
+      {list.isLoading && <RowsSkeleton count={5} avatar={40} card />}
       {list.isError && <p className="error center">{list.error.message}</p>}
       {list.isSuccess && list.data.length === 0 && (
         <p className="muted center">

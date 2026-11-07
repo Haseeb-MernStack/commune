@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { prefetchRoute } from "../lib/prefetch";
 import { useAuth } from "../store/auth";
 import { useUnreadCount } from "../hooks/useSocial";
 import { useUnreadMessages } from "../hooks/useMessages";
@@ -16,7 +17,7 @@ export default function BottomNav() {
   const m = messages.data?.count ?? 0;
   const cls = ({ isActive }: { isActive: boolean }) => `tab-link${isActive ? " active" : ""}`;
   const tab = (to: string, icon: IconName, label: string, count = 0, end = false) => (
-    <NavLink to={to} end={end} className={cls} aria-label={count ? `${label}, ${count} unread` : label}>
+    <NavLink to={to} onPointerEnter={() => prefetchRoute(to)} onTouchStart={() => prefetchRoute(to)} onFocus={() => prefetchRoute(to)} end={end} className={cls} aria-label={count ? `${label}, ${count} unread` : label}>
       <span className="tab-icon">
         <Icon name={icon} size={25} />
         {count > 0 && <span className="dot" aria-hidden="true" />}
@@ -31,7 +32,7 @@ export default function BottomNav() {
       {tab("/news", "news", "News")}
       {tab("/messages", "mail", "Messages", m)}
       {tab("/notifications", "bell", "Alerts", n)}
-      <NavLink to={`/u/${user.username}`} className={cls} aria-label="Profile">
+      <NavLink to={`/u/${user.username}`} className={cls} aria-label="Profile" onTouchStart={() => prefetchRoute("/u/")}>
         <span className="tab-icon">
           <Avatar username={user.username} url={user.avatarUrl} size={26} />
         </span>
