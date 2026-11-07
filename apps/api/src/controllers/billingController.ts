@@ -10,6 +10,7 @@ import {
   cancelMockPlus,
 } from "../services/billingService.js";
 import {
+  PaymentsNotLiveError,
   createPlusCheckoutUrl,
   getCustomerPortalUrl,
   paymentsMode,
@@ -47,6 +48,10 @@ export async function checkout(req: Request, res: Response) {
     const body: CheckoutResponse = { url };
     res.json(body);
   } catch (err) {
+    if (err instanceof PaymentsNotLiveError) {
+      logger.error("Plus checkout refused: Lemon Squeezy is in test mode but test mode is not accepted");
+      throw new AppError(503, "Payments are not open yet, please try again soon");
+    }
     logger.error({ err }, "Could not create Plus checkout");
     throw new AppError(502, "Payments are unavailable right now, try again later");
   }

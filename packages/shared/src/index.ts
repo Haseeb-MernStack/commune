@@ -278,6 +278,13 @@ export interface BillingDTO {
   /** Subscription is cancelled: access continues until plusUntil, then stops. */
   cancelled: boolean;
   status: string | null;
+  /** Next charge (or the end of the paid period). Null if never subscribed. */
+  renewsAt: string | null;
+  endsAt: string | null;
+  /** The last renewal payment failed and the card needs updating. */
+  pastDue: boolean;
+  /** This server accepts Lemon Squeezy test-mode payments: nothing real is charged. */
+  testMode: boolean;
   priceLabel: string;
   /** False when payments aren't set up on this server. */
   available: boolean;

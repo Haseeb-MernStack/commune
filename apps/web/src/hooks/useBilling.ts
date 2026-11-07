@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import type { BillingDTO, CheckoutResponse, InsightsDTO, PublicUser } from "@commune/shared";
 import { api } from "../lib/api";
@@ -8,12 +8,19 @@ import { useAuth } from "../store/auth";
  * Billing state. With `waitForActivation` (right after returning from checkout) it re-checks
  * every 2 seconds until Plus is active, because the payment webhook arrives a moment later.
  */
+export const ACTIVATION_WAIT_MS = 60_000;
+
 export function useBilling(waitForActivation = false) {
   const { user, setUser } = useAuth();
+  const started = useRef(Date.now());
   const query = useQuery({
     queryKey: ["billing"],
     queryFn: () => api<BillingDTO>("/billing"),
-    refetchInterval: (q) => (waitForActivation && !q.state.data?.plus ? 2000 : false),
+    // Check every 2s for up to a minute after paying; the webhook normally lands within seconds.
+    refetchInterval: (q) =>
+      waitForActivation && !q.state.data?.plus && Date.now() - started.current < ACTIVATION_WAIT_MS ? 2000 : false,
+    // A returning customer should see their real plan, not a copy from before they paid.
+    staleTime: 0,
   });
 
   // Keep the logged-in user (and so every badge and limit in the UI) in step with the server.

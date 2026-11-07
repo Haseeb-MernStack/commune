@@ -8,6 +8,7 @@ import { Post } from "../models/Post.js";
 import { Purchase } from "../models/Purchase.js";
 import { User } from "../models/User.js";
 import {
+  PaymentsNotLiveError,
   createCheckoutUrl,
   parseWebhook,
   paymentsMode,
@@ -59,6 +60,10 @@ export async function checkout(req: Request, res: Response) {
     const body: CheckoutResponse = { url };
     res.json(body);
   } catch (err) {
+    if (err instanceof PaymentsNotLiveError) {
+      logger.error("Checkout refused: Lemon Squeezy is in test mode but test mode is not accepted");
+      throw new AppError(503, "Payments are not open yet, please try again soon");
+    }
     logger.error({ err }, "Could not create checkout");
     throw new AppError(502, "Payments are unavailable right now, try again later");
   }
@@ -96,6 +101,13 @@ export async function lemonSqueezyWebhook(req: Request, res: Response) {
   }
 
   const event = parseWebhook(payload);
+  // Test-mode events (fake card) must never grant anything on a live site. Answer 200 so
+  // Lemon Squeezy does not keep retrying, and note it in the log.
+  if (event.kind !== "ignored" && event.testMode && !env.LEMONSQUEEZY_ACCEPT_TEST_MODE) {
+    logger.warn({ kind: event.kind }, "Ignored a test-mode webhook (LEMONSQUEEZY_ACCEPT_TEST_MODE is off)");
+    res.json({ received: true, ignored: "test_mode" });
+    return;
+  }
   if (event.kind === "refunded") {
     // Revoke access and take the sale out of the creator's earnings.
     await Purchase.deleteOne({ provider: "lemonsqueezy", providerOrderId: event.orderId });

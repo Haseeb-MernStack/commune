@@ -69,6 +69,17 @@ const schema = z.object({
   VAPID_SUBJECT: z.string().default("").transform((v) => v.trim() || undefined),
   // Where "new error" alerts are emailed (needs RESEND_API_KEY). Falls back to CONTACT_EMAIL.
   ALERT_EMAIL: z.string().default("").transform((v) => v.trim() || undefined),
+  // Lemon Squeezy has a separate "test mode" (fake card numbers, no money). "false" (the default
+  // in production) ignores test-mode checkouts and webhooks, so nobody can get Plus without
+  // really paying. Set "true" only on a staging site or while you are testing. Unset = true in
+  // development and tests, false in production.
+  LEMONSQUEEZY_ACCEPT_TEST_MODE: z
+    .string()
+    .default("")
+    .transform((v) => {
+      const t = v.trim().toLowerCase();
+      return t === "true" ? true : t === "false" ? false : process.env.NODE_ENV !== "production";
+    }),
   // "true" blocks posting, liking, commenting and following until the email is verified.
   REQUIRE_VERIFIED_EMAIL: z
     .enum(["true", "false"])
