@@ -13,6 +13,7 @@ vi.hoisted(() => {
 });
 
 import { createApp } from "../app.js";
+import { env } from "../config/env.js";
 import { Subscription } from "../models/Subscription.js";
 import { User } from "../models/User.js";
 import { RENEWAL_GRACE_MS } from "../utils/plan.js";
@@ -132,12 +133,16 @@ describe("subscription webhooks", () => {
 
 describe("Plus checkout and portal with Lemon Squeezy", () => {
   it("creates a checkout for the Plus variant, tied to the user", async () => {
-    vi.spyOn(User, "findById").mockReturnValue(chain({ email: "sam@example.com", plusUntil: null }) as never);
+    vi.spyOn(User, "findById").mockReturnValue(
+      chain({ email: "sam@example.com", plusUntil: null }) as never,
+    );
     vi.spyOn(Subscription, "findOne").mockReturnValue(chain(null) as never);
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       status: 201,
-      json: async () => ({ data: { attributes: { url: "https://shop.lemonsqueezy.com/checkout/plus" } } }),
+      json: async () => ({
+        data: { attributes: { url: "https://shop.lemonsqueezy.com/checkout/plus" } },
+      }),
     });
     vi.stubGlobal("fetch", fetchMock);
 
@@ -164,7 +169,9 @@ describe("Plus checkout and portal with Lemon Squeezy", () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => ({ data: { attributes: { urls: { customer_portal: "https://portal.example/x" } } } }),
+      json: async () => ({
+        data: { attributes: { urls: { customer_portal: "https://portal.example/x" } } },
+      }),
     });
     vi.stubGlobal("fetch", fetchMock);
 
@@ -177,11 +184,109 @@ describe("Plus checkout and portal with Lemon Squeezy", () => {
   });
 
   it("returns 502 without leaking provider details when checkout fails", async () => {
-    vi.spyOn(User, "findById").mockReturnValue(chain({ email: "a@b.co", plusUntil: null }) as never);
+    vi.spyOn(User, "findById").mockReturnValue(
+      chain({ email: "a@b.co", plusUntil: null }) as never,
+    );
     vi.spyOn(Subscription, "findOne").mockReturnValue(chain(null) as never);
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 500, text: async () => "secret" }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: false, status: 500, text: async () => "secret" }),
+    );
     const res = await request(app).post("/api/billing/checkout").set(auth);
     expect(res.status).toBe(502);
     expect(JSON.stringify(res.body)).not.toContain("secret");
+  });
+});
+
+describe("test mode safeguards (live-only server)", () => {
+  afterEach(() => {
+    env.LEMONSQUEEZY_ACCEPT_TEST_MODE = true;
+  });
+
+  const withTestMode = (testMode: boolean) => {
+    const payload = subscriptionEvent("subscription_created");
+    return { ...payload, meta: { ...payload.meta, test_mode: testMode } };
+  };
+
+  it("ignores test-mode webhooks, so a fake card never grants Plus", async () => {
+    env.LEMONSQUEEZY_ACCEPT_TEST_MODE = false;
+    const { upsert, user } = spies();
+    const res = await send(withTestMode(true));
+    expect(res.status).toBe(200);
+    expect(res.body.ignored).toBe("test_mode");
+    expect(upsert).not.toHaveBeenCalled();
+    expect(user).not.toHaveBeenCalled();
+  });
+
+  it("still applies real (live-mode) webhooks", async () => {
+    env.LEMONSQUEEZY_ACCEPT_TEST_MODE = false;
+    const { upsert } = spies();
+    expect((await send(withTestMode(false))).status).toBe(200);
+    expect(upsert).toHaveBeenCalled();
+  });
+
+  it("accepts test-mode webhooks when test mode is switched on", async () => {
+    env.LEMONSQUEEZY_ACCEPT_TEST_MODE = true;
+    const { upsert } = spies();
+    await send(withTestMode(true));
+    expect(upsert).toHaveBeenCalledWith(
+      expect.anything(),
+      { $set: expect.objectContaining({ testMode: true }) },
+      { upsert: true },
+    );
+  });
+
+  it("does not send buyers to a test-mode checkout", async () => {
+    env.LEMONSQUEEZY_ACCEPT_TEST_MODE = false;
+    vi.spyOn(User, "findById").mockReturnValue(
+      chain({ email: "a@b.co", plusUntil: null }) as never,
+    );
+    vi.spyOn(Subscription, "findOne").mockReturnValue(chain(null) as never);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 201,
+        json: async () => ({
+          data: { attributes: { url: "https://shop.example/test", test_mode: true } },
+        }),
+      }),
+    );
+    const res = await request(app).post("/api/billing/checkout").set(auth);
+    expect(res.status).toBe(503);
+    expect(JSON.stringify(res.body)).not.toContain("shop.example");
+  });
+});
+
+describe("finding the account behind a subscription", () => {
+  it("falls back to the buyer's email when the checkout carried no user id", async () => {
+    const { upsert, user } = spies();
+    const findByEmail = vi
+      .spyOn(User, "findOne")
+      .mockReturnValue(chain({ _id: new mongoose.Types.ObjectId(USER) }) as never);
+    const res = await send(
+      subscriptionEvent("subscription_created", { user_email: "Sam@Example.com" }, null),
+    );
+    expect(res.status).toBe(200);
+    expect(findByEmail).toHaveBeenCalledWith({ email: "sam@example.com" });
+    expect(upsert).toHaveBeenCalledWith(
+      { providerSubscriptionId: "sub_77" },
+      { $set: expect.objectContaining({ user: USER }) },
+      { upsert: true },
+    );
+    expect(user).toHaveBeenCalledWith({ _id: USER }, expect.anything());
+  });
+
+  it("keeps using the account already linked to the subscription", async () => {
+    const { upsert } = spies({
+      user: new mongoose.Types.ObjectId(USER),
+      providerUpdatedAt: new Date("2020-01-01T00:00:00Z"),
+    });
+    await send(subscriptionEvent("subscription_updated", {}, null));
+    expect(upsert).toHaveBeenCalledWith(
+      { providerSubscriptionId: "sub_77" },
+      { $set: expect.objectContaining({ user: USER }) },
+      { upsert: true },
+    );
   });
 });

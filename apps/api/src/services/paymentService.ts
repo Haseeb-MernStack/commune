@@ -39,34 +39,22 @@ export interface CheckoutRequest {
   priceCents: number;
 }
 
-/** Creates a hosted checkout for one post at its price and returns the URL to send the buyer to. */
-export async function createCheckoutUrl(req: CheckoutRequest): Promise<string> {
+/** Creates a hosted checkout at Lemon Squeezy and returns its URL. */
+async function createHostedCheckout(
+  attributes: Record<string, unknown>,
+  variantId: string,
+): Promise<string> {
   if (!ls) throw new Error("Lemon Squeezy is not configured");
   const res = await fetch("https://api.lemonsqueezy.com/v1/checkouts", {
     method: "POST",
-    headers: {
-      Accept: "application/vnd.api+json",
-      "Content-Type": "application/vnd.api+json",
-      Authorization: `Bearer ${ls.apiKey}`,
-    },
+    headers: apiHeaders(ls.apiKey),
     body: JSON.stringify({
       data: {
         type: "checkouts",
-        attributes: {
-          custom_price: req.priceCents,
-          product_options: {
-            name: "Unlock a post on Commune",
-            redirect_url: `${env.CLIENT_ORIGIN}/posts/${req.postId}?unlocked=1`,
-          },
-          checkout_data: {
-            email: req.email,
-            // Echoed back in the webhook, which is how we know who bought what.
-            custom: { post_id: req.postId, user_id: req.userId },
-          },
-        },
+        attributes,
         relationships: {
           store: { data: { type: "stores", id: ls.storeId } },
-          variant: { data: { type: "variants", id: ls.variantId } },
+          variant: { data: { type: "variants", id: variantId } },
         },
       },
     }),
@@ -75,10 +63,37 @@ export async function createCheckoutUrl(req: CheckoutRequest): Promise<string> {
     const detail = await res.text().catch(() => "");
     throw new Error(`Lemon Squeezy returned ${res.status}: ${detail.slice(0, 200)}`);
   }
-  const body = (await res.json()) as { data?: { attributes?: { url?: string } } };
+  const body = (await res.json()) as {
+    data?: { attributes?: { url?: string; test_mode?: boolean } };
+  };
   const url = body.data?.attributes?.url;
   if (!url) throw new Error("Lemon Squeezy response had no checkout URL");
+  // A test-mode API key makes test-mode checkouts. On a live site those would let people "buy"
+  // with the fake card 4242..., so refuse to send anyone there.
+  if (body.data?.attributes?.test_mode === true && !env.LEMONSQUEEZY_ACCEPT_TEST_MODE) {
+    throw new PaymentsNotLiveError();
+  }
   return url;
+}
+
+/** Creates a hosted checkout for one post at its price and returns the URL to send the buyer to. */
+export async function createCheckoutUrl(req: CheckoutRequest): Promise<string> {
+  if (!ls) throw new Error("Lemon Squeezy is not configured");
+  return createHostedCheckout(
+    {
+      custom_price: req.priceCents,
+      product_options: {
+        name: "Unlock a post on Commune",
+        redirect_url: `${env.CLIENT_ORIGIN}/posts/${req.postId}?unlocked=1`,
+      },
+      checkout_data: {
+        email: req.email,
+        // Echoed back in the webhook, which is how we know who bought what.
+        custom: { post_id: req.postId, user_id: req.userId },
+      },
+    },
+    ls.variantId,
+  );
 }
 
 function apiHeaders(apiKey: string) {
@@ -90,36 +105,21 @@ function apiHeaders(apiKey: string) {
 }
 
 /** Starts a Commune Plus subscription checkout and returns the hosted payment page URL. */
-export async function createPlusCheckoutUrl(req: { userId: string; email: string }): Promise<string> {
+export async function createPlusCheckoutUrl(req: {
+  userId: string;
+  email: string;
+}): Promise<string> {
   if (!ls?.plusVariantId) throw new Error("Commune Plus is not configured");
-  const res = await fetch("https://api.lemonsqueezy.com/v1/checkouts", {
-    method: "POST",
-    headers: apiHeaders(ls.apiKey),
-    body: JSON.stringify({
-      data: {
-        type: "checkouts",
-        attributes: {
-          product_options: {
-            name: "Commune Plus",
-            redirect_url: `${env.CLIENT_ORIGIN}/plus?welcome=1`,
-          },
-          checkout_data: { email: req.email, custom: { user_id: req.userId, plan: "plus" } },
-        },
-        relationships: {
-          store: { data: { type: "stores", id: ls.storeId } },
-          variant: { data: { type: "variants", id: ls.plusVariantId } },
-        },
+  return createHostedCheckout(
+    {
+      product_options: {
+        name: "Commune Plus",
+        redirect_url: `${env.CLIENT_ORIGIN}/plus?welcome=1`,
       },
-    }),
-  });
-  if (!res.ok) {
-    const detail = await res.text().catch(() => "");
-    throw new Error(`Lemon Squeezy returned ${res.status}: ${detail.slice(0, 200)}`);
-  }
-  const body = (await res.json()) as { data?: { attributes?: { url?: string } } };
-  const url = body.data?.attributes?.url;
-  if (!url) throw new Error("Lemon Squeezy response had no checkout URL");
-  return url;
+      checkout_data: { email: req.email, custom: { user_id: req.userId, plan: "plus" } },
+    },
+    ls.plusVariantId,
+  );
 }
 
 /** A fresh customer-portal link (update card, cancel, invoices). These links expire quickly. */
@@ -147,18 +147,29 @@ export function verifyWebhookSignature(rawBody: Buffer, signature: string | unde
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
+/** Thrown when Lemon Squeezy is still in test mode but this server only accepts real payments. */
+export class PaymentsNotLiveError extends Error {
+  constructor() {
+    super("Lemon Squeezy returned a test-mode checkout, but test mode is not accepted here");
+  }
+}
+
 export type WebhookEvent =
   | {
       kind: "paid";
+      testMode: boolean;
       orderId: string;
       postId: string;
       userId: string;
       amountCents: number;
       currency: string;
     }
-  | { kind: "refunded"; orderId: string }
+  | { kind: "refunded"; testMode: boolean; orderId: string }
   | {
       kind: "subscription";
+      testMode: boolean;
+      /** The buyer's email as Lemon Squeezy has it; only used to find the account as a last resort. */
+      email: string | null;
       subscriptionId: string;
       customerId: string | null;
       userId: string | null;
@@ -171,12 +182,17 @@ export type WebhookEvent =
   | { kind: "ignored" };
 
 interface OrderPayload {
-  meta?: { event_name?: string; custom_data?: { post_id?: string; user_id?: string } };
+  meta?: {
+    event_name?: string;
+    test_mode?: boolean;
+    custom_data?: { post_id?: string; user_id?: string };
+  };
   data?: {
     id?: string | number;
     type?: string;
     attributes?: {
       customer_id?: string | number;
+      user_email?: string;
       cancelled?: boolean;
       renews_at?: string | null;
       ends_at?: string | null;
@@ -195,6 +211,7 @@ export function parseWebhook(payload: unknown): WebhookEvent {
   const event = p.meta?.event_name;
   const orderId = p.data?.id != null ? String(p.data.id) : null;
   if (!orderId) return { kind: "ignored" };
+  const testMode = p.meta?.test_mode === true;
 
   // Every subscription_* event carries the full subscription, so one handler covers creation,
   // renewal, cancellation, expiry and recovery. (Payment events carry invoices: ignored.)
@@ -205,6 +222,8 @@ export function parseWebhook(payload: unknown): WebhookEvent {
     const date = (v: string | null | undefined) => (v ? new Date(v) : null);
     return {
       kind: "subscription",
+      testMode,
+      email: typeof a.user_email === "string" ? a.user_email : null,
       subscriptionId: orderId,
       customerId: a.customer_id != null ? String(a.customer_id) : null,
       userId: p.meta?.custom_data?.user_id ?? null,
@@ -216,7 +235,7 @@ export function parseWebhook(payload: unknown): WebhookEvent {
     };
   }
 
-  if (event === "order_refunded") return { kind: "refunded", orderId };
+  if (event === "order_refunded") return { kind: "refunded", testMode, orderId };
 
   const a = p.data?.attributes;
   const postId = p.meta?.custom_data?.post_id;
@@ -227,6 +246,7 @@ export function parseWebhook(payload: unknown): WebhookEvent {
     const amountCents = Math.max(0, (a.subtotal ?? 0) - (a.discount_total ?? 0));
     return {
       kind: "paid",
+      testMode,
       orderId,
       postId,
       userId,
