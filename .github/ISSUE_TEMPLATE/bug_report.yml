@@ -1,0 +1,62 @@
+name: Bug report
+description: Something is broken or behaves differently than expected
+title: "bug: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. **Do not post passwords, tokens or `.env` contents.**
+        For security problems use the private reporting link instead of this form.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to ...
+        2. Click ...
+        3. See the error
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where does it happen?
+      options:
+        - Web app (screen or layout)
+        - API
+        - Real-time messages
+        - Push notifications
+        - Payments or Commune Plus
+        - Uploads
+        - Documentation
+        - Not sure
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Browser, device and operating system
+      placeholder: "Chrome 130 on Windows 11, or Safari on iPhone 15 (iOS 18)"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error messages or screenshots
+      description: Paste browser console or API log lines, or drag a screenshot in. Remove anything private first.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched the existing issues and did not find this one
+          required: true
+        - label: I removed passwords, tokens and personal data from this report
+          required: true

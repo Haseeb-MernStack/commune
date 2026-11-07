@@ -1,0 +1,17 @@
+# Keep line endings the same on Windows, macOS and Linux (the repository stores LF).
+* text=auto eol=lf
+
+# Files that must never be touched by line-ending conversion.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.mp3 binary
+*.woff binary
+*.woff2 binary
+*.zip binary
+
+# Generated: hide from language stats and collapse in pull request diffs.
+package-lock.json linguist-generated=true -diff

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/Haseeb-MernStack/commune/security/advisories/new
+    about: Please report security problems privately here, not in a public issue.
+  - name: Ask a question
+    url: https://github.com/Haseeb-MernStack/commune/discussions
+    about: Questions and ideas that are not bugs. Needs Discussions to be switched on in the repository settings.
