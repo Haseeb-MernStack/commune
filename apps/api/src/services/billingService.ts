@@ -14,16 +14,23 @@ type SubscriptionEvent = Extract<WebhookEvent, { kind: "subscription" }>;
  * plusUntil. Safe to call repeatedly and out of order.
  */
 export async function applySubscriptionEvent(event: SubscriptionEvent): Promise<void> {
-  if (!event.userId) {
-    // Subscriptions bought outside our checkout carry no user id; we can't tell whose it is.
-    logger.error({ subscriptionId: event.subscriptionId }, "Subscription event without a user id");
-    return;
-  }
-
   const existing = await Subscription.findOne({ providerSubscriptionId: event.subscriptionId })
-    .select("providerUpdatedAt")
+    .select("user providerUpdatedAt")
     .lean();
   if (existing && existing.providerUpdatedAt.getTime() > event.updatedAt.getTime()) return; // stale
+
+  // Whose subscription is this? Our checkout tags it with the user id. If that is missing (a
+  // subscription made outside our checkout), fall back to the account we already linked to it,
+  // then to the buyer's email address (the webhook is signed, so the email can be trusted).
+  let userId = event.userId ?? existing?.user?.toString() ?? null;
+  if (!userId && event.email) {
+    const byEmail = await User.findOne({ email: event.email.toLowerCase() }).select("_id").lean();
+    userId = byEmail?._id.toString() ?? null;
+  }
+  if (!userId) {
+    logger.error({ subscriptionId: event.subscriptionId }, "Subscription event for an unknown user");
+    return;
+  }
 
   const snapshot = {
     status: event.status,
@@ -35,16 +42,17 @@ export async function applySubscriptionEvent(event: SubscriptionEvent): Promise<
     { providerSubscriptionId: event.subscriptionId },
     {
       $set: {
-        user: event.userId,
+        user: userId,
         provider: "lemonsqueezy",
         providerCustomerId: event.customerId,
         providerUpdatedAt: event.updatedAt,
+        testMode: event.testMode,
         ...snapshot,
       },
     },
     { upsert: true },
   );
-  await User.updateOne({ _id: event.userId }, { $set: { plusUntil: plusUntilFor(snapshot) } });
+  await User.updateOne({ _id: userId }, { $set: { plusUntil: plusUntilFor(snapshot) } });
 }
 
 /** Local-development stand-in for a purchase: 30 days of Plus, no payment. Never in production. */
@@ -80,13 +88,18 @@ export async function cancelMockPlus(userId: string): Promise<void> {
 export async function billingFor(userId: string): Promise<BillingDTO> {
   const [user, sub] = await Promise.all([
     User.findById(userId).select("plusUntil").lean(),
-    Subscription.findOne({ user: userId }).select("status cancelled").lean(),
+    Subscription.findOne({ user: userId }).select("status cancelled renewsAt endsAt").lean(),
   ]);
   return {
     plus: isPlusActive(user?.plusUntil),
     plusUntil: user?.plusUntil ? user.plusUntil.toISOString() : null,
     cancelled: Boolean(sub?.cancelled),
     status: sub?.status ?? null,
+    renewsAt: sub?.renewsAt ? new Date(sub.renewsAt).toISOString() : null,
+    endsAt: sub?.endsAt ? new Date(sub.endsAt).toISOString() : null,
+    // A renewal payment failed: access continues briefly while the provider retries the card.
+    pastDue: sub?.status === "past_due",
+    testMode: paymentsMode === "lemonsqueezy" && env.LEMONSQUEEZY_ACCEPT_TEST_MODE,
     priceLabel: env.PLUS_PRICE_LABEL,
     available: plusAvailable && paymentsMode !== null,
   };
