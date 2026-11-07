@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { RowsSkeleton, ThreadSkeleton } from "../components/Skeleton";
 import type { FormEvent, KeyboardEvent } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { MESSAGE_MAX_LENGTH, type MessageDTO } from "@commune/shared";
@@ -163,7 +164,7 @@ function Thread({ id }: { id: string }) {
     }
   };
 
-  if (thread.isLoading) return <p className="muted center">Loading…</p>;
+  if (thread.isLoading) return <ThreadSkeleton />;
   if (thread.isError || !thread.data) return <p className="error center">Conversation not found.</p>;
   const other = thread.data.conversation?.other;
 
@@ -293,7 +294,7 @@ export default function MessagesPage() {
     <div className={`chat${showThread ? " chat-open" : ""}`}>
       <section className="card chat-list" aria-label="Conversations">
         <h1 className="chat-title">Messages</h1>
-        {conversations.isLoading && <p className="muted center">Loading…</p>}
+        {conversations.isLoading && <RowsSkeleton count={6} />}
         {conversations.isError && <p className="error center">Could not load messages.</p>}
         {conversations.data && list.length === 0 && (
           <p className="muted center">

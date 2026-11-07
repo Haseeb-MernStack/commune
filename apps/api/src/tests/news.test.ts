@@ -1,7 +1,16 @@
 import request from "supertest";
+import mongoose from "mongoose";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { NewsCache } from "../models/NewsCache.js";
 import { createApp } from "../app.js";
-import { cleanText, clearNewsCache, getNews, mergeItems, parseFeed, safeUrl } from "../services/newsService.js";
+import {
+  cleanText,
+  clearNewsCache,
+  getNews,
+  mergeItems,
+  parseFeed,
+  safeUrl,
+} from "../services/newsService.js";
 
 const app = createApp();
 
@@ -15,7 +24,12 @@ const RSS = `<?xml version="1.0"?><rss><channel>
 const ATOM = `<feed><entry><title>Atom story</title><link rel="alternate" href="https://example.com/atom"/><updated>2026-10-26T12:00:00Z</updated></entry></feed>`;
 
 beforeEach(() => clearNewsCache());
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+  // Remove the fake "database connected" flag some tests set on the connection itself.
+  delete (mongoose.connection as unknown as { readyState?: number }).readyState;
+});
 
 describe("news parsing", () => {
   it("cleans CDATA, entities and tags", () => {
@@ -83,14 +97,66 @@ describe("getNews cache", () => {
   });
 
   it("throws when every feed fails and nothing is cached", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => new Response("", { status: 500 })));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("", { status: 500 })),
+    );
     await expect(getNews("sport")).rejects.toThrow();
+  });
+});
+
+describe("shared news cache", () => {
+  const item = {
+    id: "abc",
+    title: "Shared story",
+    link: "https://example.com/s",
+    source: "Test",
+    publishedAt: "2026-10-26T10:00:00.000Z",
+  };
+
+  /** Pretends the database is connected and holds a copy fetched `ageMs` ago. */
+  function sharedCopy(ageMs: number) {
+    Object.defineProperty(mongoose.connection, "readyState", { get: () => 1, configurable: true });
+    vi.spyOn(NewsCache, "findOne").mockReturnValue({
+      lean: async () => ({ topic: "top", items: [item], fetchedAt: new Date(Date.now() - ageMs) }),
+    } as never);
+    vi.spyOn(NewsCache, "updateOne").mockResolvedValue({} as never);
+  }
+
+  it("serves a fresh shared copy without downloading any feed", async () => {
+    sharedCopy(60_000);
+    const fetchMock = vi.fn(async () => new Response(RSS, { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    expect(await getNews("top")).toEqual([item]);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("serves a slightly old copy at once and refreshes it behind the scenes", async () => {
+    sharedCopy(20 * 60_000);
+    const fetchMock = vi.fn(async () => new Response(RSS, { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    expect(await getNews("top")).toEqual([item]); // the old copy, immediately
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    await vi.waitFor(() => expect(NewsCache.updateOne).toHaveBeenCalled());
+  });
+
+  it("waits for new headlines when the copy is too old", async () => {
+    sharedCopy(2 * 60 * 60_000);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(RSS, { status: 200 })),
+    );
+    const result = await getNews("top");
+    expect(result[0]!.title).not.toBe("Shared story");
   });
 });
 
 describe("GET /api/news", () => {
   it("is public and returns items with cache headers", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => new Response(RSS, { status: 200 })));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(RSS, { status: 200 })),
+    );
     const res = await request(app).get("/api/news");
     expect(res.status).toBe(200);
     expect(res.headers["cache-control"]).toContain("s-maxage=600");
@@ -102,7 +168,12 @@ describe("GET /api/news", () => {
   });
 
   it("answers 503 without leaking details when feeds are down", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("secret network detail"); }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new Error("secret network detail");
+      }),
+    );
     const res = await request(app).get("/api/news?topic=business");
     expect(res.status).toBe(503);
     expect(JSON.stringify(res.body)).not.toContain("secret");

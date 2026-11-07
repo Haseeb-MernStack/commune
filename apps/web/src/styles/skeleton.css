@@ -1,0 +1,147 @@
+/* Loading placeholders ("skeletons"). They copy the shape of the real content, so the page
+   does not jump when the data arrives. Colours come from the text colour, so they work in
+   light and dark mode without extra settings. */
+.sk {
+    display: block;
+    border-radius: 8px;
+    background: rgba(128, 128, 128, 0.16);
+    background: linear-gradient(100deg,
+            color-mix(in srgb, currentColor 8%, transparent) 30%,
+            color-mix(in srgb, currentColor 16%, transparent) 50%,
+            color-mix(in srgb, currentColor 8%, transparent) 70%);
+    background-size: 300% 100%;
+    animation: sk-shimmer 1.4s ease-in-out infinite;
+}
+
+.sk-circle {
+    border-radius: 50%;
+    flex: none;
+}
+
+.sk-line {
+    height: 12px;
+}
+
+.sk-line.tall {
+    height: 16px;
+}
+
+.sk-pill {
+    height: 28px;
+    width: 56px;
+    border-radius: 999px;
+}
+
+.sk-image {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    border-radius: 12px;
+    margin-top: 10px;
+}
+
+@keyframes sk-shimmer {
+    from {
+        background-position: 100% 0;
+    }
+
+    to {
+        background-position: 0 0;
+    }
+}
+
+/* A skeleton post uses the real post layout (class "post post-head") so sizes match. */
+.sk-post .post-main {
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+}
+
+.sk-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sk-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.sk-stack {
+    display: grid;
+    gap: 10px;
+}
+
+.sk-news {
+    padding: 10px 16px;
+    display: grid;
+    gap: 8px;
+}
+
+.sk-news-card {
+    display: grid;
+    gap: 10px;
+}
+
+.sk-profile {
+    display: grid;
+    gap: 14px;
+    padding: 20px 16px;
+}
+
+.sk-profile .sk-row {
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.sk-convo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+}
+
+.sk-convo .sk-stack {
+    flex: 1;
+    min-width: 0;
+}
+
+.sk-thread {
+    display: grid;
+    gap: 12px;
+    padding: 16px;
+}
+
+.sk-bubble {
+    height: 38px;
+    border-radius: 18px;
+}
+
+.sk-bubble.me {
+    justify-self: end;
+}
+
+.sk-page-title {
+    height: 26px;
+    width: 180px;
+    margin: 4px 0 16px;
+}
+
+.sk-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sk {
+        animation: none;
+    }
+}

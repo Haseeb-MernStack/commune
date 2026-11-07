@@ -1,4 +1,5 @@
 import { Link, NavLink } from "react-router-dom";
+import { prefetchRoute } from "../lib/prefetch";
 import { useAuth } from "../store/auth";
 import { useUnreadCount } from "../hooks/useSocial";
 import { useUnreadMessages } from "../hooks/useMessages";
@@ -19,7 +20,7 @@ export default function LeftNav() {
   const cls = ({ isActive }: { isActive: boolean }) => `side-link${isActive ? " active" : ""}`;
   const badge = (count: number) => (count > 0 ? <span className="pill">{count > 99 ? "99+" : count}</span> : null);
   const link = (to: string, icon: IconName, label: string, count = 0, end = false) => (
-    <NavLink to={to} end={end} className={cls} aria-label={count ? `${label}, ${count} unread` : undefined}>
+    <NavLink to={to} onPointerEnter={() => prefetchRoute(to)} onTouchStart={() => prefetchRoute(to)} onFocus={() => prefetchRoute(to)} end={end} className={cls} aria-label={count ? `${label}, ${count} unread` : undefined}>
       <span className="side-icon">
         <Icon name={icon} size={24} />
       </span>

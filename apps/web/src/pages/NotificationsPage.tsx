@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import type { NotificationDTO } from "@commune/shared";
 import PushSettings from "../components/PushSettings";
 import SoundSettings from "../components/SoundSettings";
+import { RowsSkeleton } from "../components/Skeleton";
 import { timeAgo } from "../components/PostCard";
 import { useMarkAllRead, useNotifications } from "../hooks/useSocial";
 
@@ -29,7 +30,7 @@ export default function NotificationsPage() {
       <h1 className="page-title">Notifications</h1>
       <SoundSettings />
       <PushSettings />
-      {list.isLoading && <p className="muted center">Loading…</p>}
+      {list.isLoading && <RowsSkeleton count={5} avatar={36} card />}
       {list.isError && <p className="error center">{list.error.message}</p>}
       {list.isSuccess && list.data.length === 0 && (
         <p className="muted center">Nothing yet. Likes, comments and new followers show up here.</p>

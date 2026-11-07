@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useNews } from "../hooks/useNews";
 import { timeAgo } from "./PostCard";
+import { NewsPanelSkeleton } from "./Skeleton";
 
 /** "What's happening": live headlines. Every item opens the publisher's own page. */
 export default function NewsPanel({ limit = 4 }: { limit?: number }) {
@@ -15,13 +16,7 @@ export default function NewsPanel({ limit = 4 }: { limit?: number }) {
         </span>
       </div>
 
-      {news.isLoading && (
-        <div aria-busy="true">
-          {Array.from({ length: 4 }, (_, i) => (
-            <div key={i} className="skeleton" />
-          ))}
-        </div>
-      )}
+      {news.isLoading && <NewsPanelSkeleton count={limit} />}
 
       {news.isError && (
         <p className="muted small">

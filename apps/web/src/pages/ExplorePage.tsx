@@ -5,6 +5,8 @@ import Icon from "../components/Icon";
 import PlusBadge from "../components/PlusBadge";
 import AdSlot, { FEED_AD_SLOT } from "../components/AdSlot";
 import { timeAgo } from "../components/PostCard";
+import { PostListSkeleton } from "../components/Skeleton";
+import { useLoadMoreOnVisible } from "../hooks/useInfiniteScroll";
 import { usePublicPosts } from "../hooks/usePublic";
 import { assetUrl } from "../lib/api";
 import { useAuth } from "../store/auth";
@@ -21,6 +23,8 @@ export default function ExplorePage() {
   const { user } = useAuth();
   const query = usePublicPosts();
   const posts = query.data?.pages.flatMap((p) => p.items) ?? [];
+  const { hasNextPage, isFetchingNextPage, isError, fetchNextPage } = query;
+  const sentinel = useLoadMoreOnVisible(() => void fetchNextPage(), hasNextPage && !isFetchingNextPage && !isError);
 
   return (
     <>
@@ -44,13 +48,7 @@ export default function ExplorePage() {
         )}
       </section>
 
-      {query.isLoading && (
-        <div aria-busy="true" aria-label="Loading posts">
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="card skeleton-post" />
-          ))}
-        </div>
-      )}
+      {query.isLoading && <PostListSkeleton />}
       {query.isError && <p className="error center">{query.error.message}</p>}
       {query.isSuccess && posts.length === 0 && (
         <p className="muted center">Nothing here yet. Be the first to post!</p>
@@ -92,13 +90,14 @@ export default function ExplorePage() {
         </Fragment>
       ))}
 
-      {query.hasNextPage && (
+      {isFetchingNextPage && <PostListSkeleton count={1} />}
+      {query.hasNextPage && <div ref={sentinel} aria-hidden="true" />}
+      {query.hasNextPage && !isFetchingNextPage && (
         <button
           className="btn btn-ghost block"
           onClick={() => void query.fetchNextPage()}
-          disabled={query.isFetchingNextPage}
         >
-          {query.isFetchingNextPage ? "Loading…" : "Load more"}
+          Load more
         </button>
       )}
     </>

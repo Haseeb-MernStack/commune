@@ -17,6 +17,11 @@ const postSchema = new Schema(
   { timestamps: true },
 );
 
+// Feeds list posts newest first (sorted by _id), for everyone, for the people you follow and per
+// community. These indexes let MongoDB read exactly one page instead of sorting many posts.
+postSchema.index({ author: 1, _id: -1 });
+postSchema.index({ community: 1, _id: -1 });
+
 // Full-text search over the free text only. premiumContent is deliberately NOT indexed, so
 // searching can never reveal paid content.
 postSchema.index({ content: "text" });

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { PostListSkeleton } from "../components/Skeleton";
 import type { FormEvent } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import Avatar from "../components/Avatar";
@@ -29,7 +30,7 @@ export default function PostPage() {
       <Link to="/" className="muted">
         ← Back to feed
       </Link>
-      {post.isLoading && <p className="muted center">Loading…</p>}
+      {post.isLoading && <PostListSkeleton count={1} />}
       {post.isError && <p className="error center">Post not found.</p>}
       {justPaid && post.data?.locked && (
         <p className="notice">Payment received. Unlocking your post, this takes a few seconds…</p>

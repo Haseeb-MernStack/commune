@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { NewsCardsSkeleton } from "../components/Skeleton";
 import { NEWS_TOPICS, type NewsTopic } from "@commune/shared";
 import { useNews } from "../hooks/useNews";
 import { timeAgo } from "../components/PostCard";
@@ -32,7 +33,7 @@ export default function NewsPage() {
         ))}
       </div>
 
-      {news.isLoading && <p className="muted center">Loading headlines…</p>}
+      {news.isLoading && <NewsCardsSkeleton />}
       {news.isError && (
         <p className="error center">
           News is unavailable right now.{" "}
