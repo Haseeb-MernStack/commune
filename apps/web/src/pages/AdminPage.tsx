@@ -27,7 +27,10 @@ function ReportItem({ report, actionable }: { report: ReportDTO; actionable: boo
     }
   };
   const removeAndSuspend = () => {
-    if (report.post && window.confirm(`Remove this post and suspend @${report.post.author.username}?`)) {
+    if (
+      report.post &&
+      window.confirm(`Remove this post and suspend @${report.post.author.username}?`)
+    ) {
       resolve.mutate({ id: report.id, action: "remove_post_and_ban" });
     }
   };
@@ -44,7 +47,11 @@ function ReportItem({ report, actionable }: { report: ReportDTO; actionable: boo
 
       {report.post ? (
         <div className="report-post post-head">
-          <Avatar username={report.post.author.username} url={report.post.author.avatarUrl} size={32} />
+          <Avatar
+            username={report.post.author.username}
+            url={report.post.author.avatarUrl}
+            size={32}
+          />
           <div className="post-main">
             <strong>@{report.post.author.username}</strong>
             {report.post.content && <p className="post-body">{report.post.content}</p>}
@@ -64,7 +71,11 @@ function ReportItem({ report, actionable }: { report: ReportDTO; actionable: boo
 
       {actionable && (
         <div className="row report-actions">
-          <button className="btn btn-outline" onClick={() => dismiss.mutate(report.id)} disabled={busy}>
+          <button
+            className="btn btn-outline"
+            onClick={() => dismiss.mutate(report.id)}
+            disabled={busy}
+          >
             Dismiss
           </button>
           {report.post && (
@@ -107,11 +118,17 @@ function ErrorsPanel() {
           {e.stack && (
             <details>
               <summary className="muted">Stack trace</summary>
-              <pre style={{ whiteSpace: "pre-wrap", fontSize: 12, overflowWrap: "anywhere" }}>{e.stack}</pre>
+              <pre style={{ whiteSpace: "pre-wrap", fontSize: 12, overflowWrap: "anywhere" }}>
+                {e.stack}
+              </pre>
             </details>
           )}
           <div className="row report-actions">
-            <button className="btn btn-outline" onClick={() => resolve.mutate(e.id)} disabled={resolve.isPending}>
+            <button
+              className="btn btn-outline"
+              onClick={() => resolve.mutate(e.id)}
+              disabled={resolve.isPending}
+            >
               Mark as fixed
             </button>
           </div>
@@ -135,51 +152,61 @@ export default function AdminPage() {
     <>
       <h1 className="page-title">Admin</h1>
       <div className="tabs" role="tablist" aria-label="Admin sections">
-        <button role="tab" aria-selected={view === "reports"} className={`tab ${view === "reports" ? "active" : ""}`} onClick={() => setView("reports")}>
+        <button
+          role="tab"
+          aria-selected={view === "reports"}
+          className={`tab ${view === "reports" ? "active" : ""}`}
+          onClick={() => setView("reports")}
+        >
           Moderation
         </button>
-        <button role="tab" aria-selected={view === "errors"} className={`tab ${view === "errors" ? "active" : ""}`} onClick={() => setView("errors")}>
+        <button
+          role="tab"
+          aria-selected={view === "errors"}
+          className={`tab ${view === "errors" ? "active" : ""}`}
+          onClick={() => setView("errors")}
+        >
           Errors
         </button>
       </div>
       {view === "errors" ? (
         <ErrorsPanel />
       ) : (
-      <>
-      <div className="tabs" role="tablist">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            role="tab"
-            aria-selected={t.id === status}
-            className={`tab ${t.id === status ? "active" : ""}`}
-            onClick={() => setStatus(t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+        <>
+          <div className="tabs" role="tablist">
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                role="tab"
+                aria-selected={t.id === status}
+                className={`tab ${t.id === status ? "active" : ""}`}
+                onClick={() => setStatus(t.id)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
 
-      {reports.isLoading && <p className="muted center">Loading…</p>}
-      {reports.isError && <p className="error center">{reports.error.message}</p>}
-      {reports.isSuccess && items.length === 0 && (
-        <p className="muted center">
-          {status === "open" ? "No open reports. Nice and quiet." : "Nothing here yet."}
-        </p>
-      )}
-      {items.map((r) => (
-        <ReportItem key={r.id} report={r} actionable={status === "open"} />
-      ))}
-      {reports.hasNextPage && (
-        <button
-          className="btn btn-ghost block"
-          onClick={() => void reports.fetchNextPage()}
-          disabled={reports.isFetchingNextPage}
-        >
-          {reports.isFetchingNextPage ? "Loading…" : "Load more"}
-        </button>
-      )}
-      </>
+          {reports.isLoading && <p className="muted center">Loading…</p>}
+          {reports.isError && <p className="error center">{reports.error.message}</p>}
+          {reports.isSuccess && items.length === 0 && (
+            <p className="muted center">
+              {status === "open" ? "No open reports. Nice and quiet." : "Nothing here yet."}
+            </p>
+          )}
+          {items.map((r) => (
+            <ReportItem key={r.id} report={r} actionable={status === "open"} />
+          ))}
+          {reports.hasNextPage && (
+            <button
+              className="btn btn-ghost block"
+              onClick={() => void reports.fetchNextPage()}
+              disabled={reports.isFetchingNextPage}
+            >
+              {reports.isFetchingNextPage ? "Loading…" : "Load more"}
+            </button>
+          )}
+        </>
       )}
     </>
   );

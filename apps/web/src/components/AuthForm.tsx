@@ -22,9 +22,7 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
     e.preventDefault();
     setError(null);
     const parsed =
-      mode === "login"
-        ? loginSchema.safeParse(fields)
-        : registerSchema.safeParse(fields);
+      mode === "login" ? loginSchema.safeParse(fields) : registerSchema.safeParse(fields);
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Invalid input");
       return;

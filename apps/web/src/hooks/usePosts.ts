@@ -1,4 +1,11 @@
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient, type InfiniteData, type QueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type InfiniteData,
+  type QueryClient,
+} from "@tanstack/react-query";
 import type { CommentDTO, CreatePostInput, Page, PostDTO } from "@commune/shared";
 import { api, withQuery } from "../lib/api";
 
@@ -44,8 +51,7 @@ export function useComments(id: string) {
 export function useCreatePost() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: CreatePostInput) =>
-      api<PostDTO>("/posts", { method: "POST", body: input }),
+    mutationFn: (input: CreatePostInput) => api<PostDTO>("/posts", { method: "POST", body: input }),
     // ["feed"] also covers community feeds, which are keyed ["feed", "community", slug].
     onSuccess: () => qc.invalidateQueries({ queryKey: ["feed"] }),
   });

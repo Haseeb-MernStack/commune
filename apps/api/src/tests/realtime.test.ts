@@ -71,7 +71,9 @@ describe("GET /api/internal/conversations/:id/participants", () => {
 
   it("is invisible without the secret", async () => {
     enableRealtime();
-    expect((await request(app).get(`/api/internal/conversations/${id}/participants`)).status).toBe(404);
+    expect((await request(app).get(`/api/internal/conversations/${id}/participants`)).status).toBe(
+      404,
+    );
     const wrong = await request(app)
       .get(`/api/internal/conversations/${id}/participants`)
       .set("Authorization", "Bearer nope");
@@ -108,13 +110,23 @@ describe("POST /api/messages/:id/read", () => {
     const fetchMock = vi.fn(async () => new Response(null, { status: 204 }));
     vi.stubGlobal("fetch", fetchMock);
     vi.spyOn(Conversation, "findById").mockImplementation((() =>
-      leanOf({ _id: convoId, participants: [ME, OTHER], lastMessageAt: new Date(), unread: { [ME]: 3 } })) as never);
+      leanOf({
+        _id: convoId,
+        participants: [ME, OTHER],
+        lastMessageAt: new Date(),
+        unread: { [ME]: 3 },
+      })) as never);
     const update = vi.spyOn(Conversation, "updateOne").mockResolvedValue({} as never);
 
     const res = await request(app).post(`/api/messages/${convoId}/read`).set(auth);
     expect(res.status).toBe(204);
-    expect(update).toHaveBeenCalledWith({ _id: convoId.toString() }, { $set: { [`unread.${ME}`]: 0 } });
-    const body = JSON.parse((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body as string);
+    expect(update).toHaveBeenCalledWith(
+      { _id: convoId.toString() },
+      { $set: { [`unread.${ME}`]: 0 } },
+    );
+    const body = JSON.parse(
+      (fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body as string,
+    );
     expect(body).toMatchObject({
       to: [OTHER.toString()],
       event: "message:read",
@@ -125,7 +137,12 @@ describe("POST /api/messages/:id/read", () => {
   it("does nothing when there was nothing unread", async () => {
     const update = vi.spyOn(Conversation, "updateOne").mockResolvedValue({} as never);
     vi.spyOn(Conversation, "findById").mockImplementation((() =>
-      leanOf({ _id: convoId, participants: [ME, OTHER], lastMessageAt: new Date(), unread: {} })) as never);
+      leanOf({
+        _id: convoId,
+        participants: [ME, OTHER],
+        lastMessageAt: new Date(),
+        unread: {},
+      })) as never);
     expect((await request(app).post(`/api/messages/${convoId}/read`).set(auth)).status).toBe(204);
     expect(update).not.toHaveBeenCalled();
   });

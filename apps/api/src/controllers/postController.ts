@@ -166,7 +166,9 @@ export async function deletePost(req: Request, res: Response) {
     post.author.toString() === req.userId ||
     req.userRole === "admin" ||
     (post.community != null &&
-      Boolean(await Membership.exists({ user: req.userId, community: post.community, role: "owner" })));
+      Boolean(
+        await Membership.exists({ user: req.userId, community: post.community, role: "owner" }),
+      ));
   if (!allowed) throw forbidden("You can only delete your own posts");
 
   await removePost(id, req.userId);

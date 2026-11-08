@@ -27,8 +27,8 @@ export default function PushSettings() {
   if (!pushSupported()) {
     body = needsInstallForPush() ? (
       <p className="muted">
-        On iPhone, first add Commune to your Home Screen (Share → Add to Home Screen), then open it from
-        there to turn on notifications.
+        On iPhone, first add Commune to your Home Screen (Share → Add to Home Screen), then open it
+        from there to turn on notifications.
       </p>
     ) : (
       <p className="muted">This browser does not support push notifications.</p>
@@ -36,21 +36,24 @@ export default function PushSettings() {
   } else if (needsInstallForPush()) {
     body = (
       <p className="muted">
-        On iPhone, add Commune to your Home Screen (Share → Add to Home Screen) and open it from there to
-        turn on notifications.
+        On iPhone, add Commune to your Home Screen (Share → Add to Home Screen) and open it from
+        there to turn on notifications.
       </p>
     );
   } else if (pushPermission() === "denied" && !subscribed) {
     body = (
       <p className="muted">
-        Notifications are blocked for this site. Allow them in your browser's site settings, then come back
-        here.
+        Notifications are blocked for this site. Allow them in your browser's site settings, then
+        come back here.
       </p>
     );
   } else if (!subscribed) {
     body = (
       <>
-        <p className="muted">Get a notification for new messages, likes, comments and followers, even when Commune is closed.</p>
+        <p className="muted">
+          Get a notification for new messages, likes, comments and followers, even when Commune is
+          closed.
+        </p>
         <button className="btn" disabled={enable.isPending} onClick={() => enable.mutate()}>
           {enable.isPending ? "Turning on…" : "Turn on notifications"}
         </button>
@@ -77,10 +80,18 @@ export default function PushSettings() {
           <span>Likes, comments and new followers</span>
         </label>
         <div className="row">
-          <button className="btn btn-outline" disabled={test.isPending} onClick={() => test.mutate()}>
+          <button
+            className="btn btn-outline"
+            disabled={test.isPending}
+            onClick={() => test.mutate()}
+          >
             Send a test
           </button>
-          <button className="btn btn-ghost" disabled={disable.isPending} onClick={() => disable.mutate()}>
+          <button
+            className="btn btn-ghost"
+            disabled={disable.isPending}
+            onClick={() => disable.mutate()}
+          >
             Turn off on this device
           </button>
         </div>

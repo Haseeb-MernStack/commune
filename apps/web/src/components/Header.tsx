@@ -123,8 +123,19 @@ export default function Header() {
 
       {/* Slide-in menu (right side) */}
       <div className={`drawer-root${open ? " open" : ""}`} aria-hidden={!open}>
-        <button className="drawer-overlay" tabIndex={-1} aria-label="Close menu" onClick={() => setOpen(false)} />
-        <aside id="mobile-menu" className="drawer" role="dialog" aria-modal="true" aria-label="Menu">
+        <button
+          className="drawer-overlay"
+          tabIndex={-1}
+          aria-label="Close menu"
+          onClick={() => setOpen(false)}
+        />
+        <aside
+          id="mobile-menu"
+          className="drawer"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Menu"
+        >
           {user ? (
             <>
               <Link to={`/u/${user.username}`} className="drawer-profile">
@@ -140,9 +151,23 @@ export default function Header() {
                 {item("/", "home", "Home", undefined, true)}
                 {item("/communities", "users", "Communities")}
                 {item("/news", "news", "News")}
-                {item("/notifications", "bell", "Notifications", count > 0 && <span className="pill">{countLabel}</span>)}
-                {item("/messages", "mail", "Messages", msgCount > 0 && <span className="pill">{msgCount}</span>)}
-                {item(user.plus ? "/insights" : "/plus", user.plus ? "chart" : "sparkle", user.plus ? "Insights" : "Commune Plus")}
+                {item(
+                  "/notifications",
+                  "bell",
+                  "Notifications",
+                  count > 0 && <span className="pill">{countLabel}</span>,
+                )}
+                {item(
+                  "/messages",
+                  "mail",
+                  "Messages",
+                  msgCount > 0 && <span className="pill">{msgCount}</span>,
+                )}
+                {item(
+                  user.plus ? "/insights" : "/plus",
+                  user.plus ? "chart" : "sparkle",
+                  user.plus ? "Insights" : "Commune Plus",
+                )}
                 {user.plus && item("/plus", "card", "Billing")}
                 {user.role === "admin" && item("/admin", "shield", "Admin")}
                 {item("/contact", "contact", "Contact")}

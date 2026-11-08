@@ -13,6 +13,7 @@
 
 - [ ] `npm run typecheck`
 - [ ] `npm test`
+- [ ] `npm run lint`
 - [ ] `npm run build`
 - [ ] Tried it in the browser (screenshots below for visible changes)
 

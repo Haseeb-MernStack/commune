@@ -44,12 +44,16 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       },
       onRead: ({ conversationId }) => {
         qc.setQueryData<ThreadPage>(["thread", conversationId], (old) =>
-          old?.conversation ? { ...old, conversation: { ...old.conversation, seenByOther: true } } : old,
+          old?.conversation
+            ? { ...old, conversation: { ...old.conversation, seenByOther: true } }
+            : old,
         );
         void qc.invalidateQueries({ queryKey: ["conversations"] });
       },
       onNotification: () => {
-        if (!(document.visibilityState === "visible" && window.location.pathname === "/notifications")) {
+        if (!(
+          document.visibilityState === "visible" && window.location.pathname === "/notifications"
+        )) {
           playSound("notification");
         }
         void qc.invalidateQueries({ queryKey: ["notifications"] });
@@ -57,7 +61,13 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       },
       onResync: () => {
         // Events sent while the connection was down are gone, so ask the server what changed.
-        for (const key of ["thread", "conversations", "unread-messages", "notifications", "unread-count"]) {
+        for (const key of [
+          "thread",
+          "conversations",
+          "unread-messages",
+          "notifications",
+          "unread-count",
+        ]) {
           void qc.invalidateQueries({ queryKey: [key] });
         }
       },

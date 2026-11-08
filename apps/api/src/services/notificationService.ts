@@ -38,9 +38,15 @@ export async function notify({ user, actor, type, post }: NotifyInput): Promise<
     // A hint only (no content): the client refetches its notifications.
     await emitToUsers([user], "notification:new");
     if (pushConfigured()) {
-      const actorUser = (await User.findById(actor).select("username").lean()) as { username?: string } | null;
+      const actorUser = (await User.findById(actor).select("username").lean()) as {
+        username?: string;
+      } | null;
       const name = `@${actorUser?.username ?? "Someone"}`;
-      const text = { like: "liked your post", comment: "commented on your post", follow: "started following you" }[type];
+      const text = {
+        like: "liked your post",
+        comment: "commented on your post",
+        follow: "started following you",
+      }[type];
       await pushToUser(user.toString(), "social", {
         title: "Commune",
         body: `${name} ${text}`,

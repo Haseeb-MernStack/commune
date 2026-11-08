@@ -53,7 +53,9 @@ describe("POST /api/uploads/complete", () => {
   const id = "a".repeat(32);
 
   it("requires a login", async () => {
-    expect((await request(app).post("/api/uploads/complete").send({ id, format: "png" })).status).toBe(401);
+    expect(
+      (await request(app).post("/api/uploads/complete").send({ id, format: "png" })).status,
+    ).toBe(401);
   });
 
   it("rejects malformed ids and formats", async () => {
@@ -66,7 +68,10 @@ describe("POST /api/uploads/complete", () => {
   it("returns the stored reference once the file exists in storage", async () => {
     const fetchMock = vi.fn(async () => new Response(null, { status: 200 }));
     vi.stubGlobal("fetch", fetchMock);
-    const res = await request(app).post("/api/uploads/complete").set(auth).send({ id, format: "jpeg" });
+    const res = await request(app)
+      .post("/api/uploads/complete")
+      .set(auth)
+      .send({ id, format: "jpeg" });
     expect(res.status).toBe(201);
     expect(res.body.url).toBe(`/uploads/${id}.jpg`);
     expect(uploadUrlSchema.safeParse(res.body.url).success).toBe(true);
@@ -76,14 +81,28 @@ describe("POST /api/uploads/complete", () => {
   });
 
   it("refuses files that are not in storage", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => new Response(null, { status: 404 })));
-    const res = await request(app).post("/api/uploads/complete").set(auth).send({ id, format: "png" });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(null, { status: 404 })),
+    );
+    const res = await request(app)
+      .post("/api/uploads/complete")
+      .set(auth)
+      .send({ id, format: "png" });
     expect(res.status).toBe(400);
   });
 
   it("refuses when storage cannot be reached", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("network down"); }));
-    const res = await request(app).post("/api/uploads/complete").set(auth).send({ id, format: "png" });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new Error("network down");
+      }),
+    );
+    const res = await request(app)
+      .post("/api/uploads/complete")
+      .set(auth)
+      .send({ id, format: "png" });
     expect(res.status).toBe(400);
   });
 });

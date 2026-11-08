@@ -48,7 +48,9 @@ export interface SaleInput {
 export async function recordPurchase(sale: SaleInput): Promise<boolean> {
   // Plus members keep more of each sale. The rate is fixed at the moment of the sale.
   const creator = await User.findById(sale.creatorId).select("plusUntil").lean();
-  const feePercent = isPlusActive(creator?.plusUntil) ? env.PLUS_FEE_PERCENT : env.PLATFORM_FEE_PERCENT;
+  const feePercent = isPlusActive(creator?.plusUntil)
+    ? env.PLUS_FEE_PERCENT
+    : env.PLATFORM_FEE_PERCENT;
   try {
     await Purchase.create({
       user: sale.userId,

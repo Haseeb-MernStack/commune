@@ -78,10 +78,7 @@ async function saveStored(name: string, buffer: Buffer): Promise<void> {
   form.set("api_key", cloud.key);
   form.set("timestamp", timestamp);
   form.set("public_id", publicId);
-  form.set(
-    "signature",
-    cloudinarySignature({ public_id: publicId, timestamp }, cloud.secret),
-  );
+  form.set("signature", cloudinarySignature({ public_id: publicId, timestamp }, cloud.secret));
 
   const res = await fetch(`https://api.cloudinary.com/v1_1/${cloud.name}/image/upload`, {
     method: "POST",
@@ -148,10 +145,13 @@ export async function confirmDirectUpload(id: string, format: string): Promise<s
   const ext = format === "jpeg" ? "jpg" : format;
   let ok = false;
   try {
-    const res = await fetch(`https://res.cloudinary.com/${cloud.name}/image/upload/${FOLDER}/${id}`, {
-      method: "HEAD",
-      signal: AbortSignal.timeout(8000),
-    });
+    const res = await fetch(
+      `https://res.cloudinary.com/${cloud.name}/image/upload/${FOLDER}/${id}`,
+      {
+        method: "HEAD",
+        signal: AbortSignal.timeout(8000),
+      },
+    );
     ok = res.ok;
   } catch (err) {
     logger.warn({ err: String(err) }, "Could not verify direct upload");

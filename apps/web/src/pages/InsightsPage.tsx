@@ -53,8 +53,13 @@ export default function InsightsPage() {
       </div>
 
       <section className="card">
-        <strong>Views, last 30 days</strong> <span className="muted">· {nf.format(last30)} total</span>
-        <div className="bars" role="img" aria-label={`Daily views over the last 30 days, ${last30} in total`}>
+        <strong>Views, last 30 days</strong>{" "}
+        <span className="muted">· {nf.format(last30)} total</span>
+        <div
+          className="bars"
+          role="img"
+          aria-label={`Daily views over the last 30 days, ${last30} in total`}
+        >
           {daily.map((d) => (
             <div
               key={d.day}
@@ -76,9 +81,15 @@ export default function InsightsPage() {
           <Link key={p.id} to={`/posts/${p.id}`} className="top-post">
             <span>{p.content || "(image post)"}</span>
             <span className="muted">
-              <span className="metric"><Icon name="eye" size={16} /> {nf.format(p.views)}</span>{" "}
-              <span className="metric"><Icon name="heart" size={16} /> {nf.format(p.likes)}</span>{" "}
-              <span className="metric"><Icon name="comment" size={16} /> {nf.format(p.comments)}</span>
+              <span className="metric">
+                <Icon name="eye" size={16} /> {nf.format(p.views)}
+              </span>{" "}
+              <span className="metric">
+                <Icon name="heart" size={16} /> {nf.format(p.likes)}
+              </span>{" "}
+              <span className="metric">
+                <Icon name="comment" size={16} /> {nf.format(p.comments)}
+              </span>
             </span>
           </Link>
         ))}

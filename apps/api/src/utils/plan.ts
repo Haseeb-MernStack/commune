@@ -27,7 +27,9 @@ export function plusUntilFor(sub: SubscriptionSnapshot, now = Date.now()): Date 
     case "on_trial":
       // Cancelled subscriptions keep working until the paid period ends.
       if (sub.cancelled) return sub.endsAt ?? sub.renewsAt ?? none;
-      return sub.renewsAt ? new Date(sub.renewsAt.getTime() + RENEWAL_GRACE_MS) : new Date(now + 35 * DAY_MS);
+      return sub.renewsAt
+        ? new Date(sub.renewsAt.getTime() + RENEWAL_GRACE_MS)
+        : new Date(now + 35 * DAY_MS);
     case "past_due":
       // A renewal payment failed. Keep access briefly while the provider retries.
       return sub.renewsAt ? new Date(sub.renewsAt.getTime() + RENEWAL_GRACE_MS) : none;

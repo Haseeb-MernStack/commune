@@ -94,7 +94,8 @@ export async function verifyGoogleIdToken(token: string): Promise<GoogleProfile>
 
   if (!claims.iss || !ISSUERS.includes(claims.iss)) throw fail();
   if (claims.aud !== env.GOOGLE_CLIENT_ID) throw fail();
-  if (typeof claims.exp !== "number" || claims.exp * 1000 + CLOCK_SKEW_MS < Date.now()) throw fail();
+  if (typeof claims.exp !== "number" || claims.exp * 1000 + CLOCK_SKEW_MS < Date.now())
+    throw fail();
   if (!claims.sub || !claims.email) throw fail();
   // Only trust an email address Google itself has verified.
   if (claims.email_verified !== true && claims.email_verified !== "true") throw fail();

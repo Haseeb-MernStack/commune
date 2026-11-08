@@ -30,7 +30,8 @@ export default function CommunitiesPage() {
     });
   };
 
-  const set = (key: keyof typeof form) => (value: string) => setForm((f) => ({ ...f, [key]: value }));
+  const set = (key: keyof typeof form) => (value: string) =>
+    setForm((f) => ({ ...f, [key]: value }));
 
   return (
     <>

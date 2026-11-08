@@ -18,9 +18,18 @@ export default function LeftNav() {
   const n = notifications.data?.count ?? 0;
   const m = messages.data?.count ?? 0;
   const cls = ({ isActive }: { isActive: boolean }) => `side-link${isActive ? " active" : ""}`;
-  const badge = (count: number) => (count > 0 ? <span className="pill">{count > 99 ? "99+" : count}</span> : null);
+  const badge = (count: number) =>
+    count > 0 ? <span className="pill">{count > 99 ? "99+" : count}</span> : null;
   const link = (to: string, icon: IconName, label: string, count = 0, end = false) => (
-    <NavLink to={to} onPointerEnter={() => prefetchRoute(to)} onTouchStart={() => prefetchRoute(to)} onFocus={() => prefetchRoute(to)} end={end} className={cls} aria-label={count ? `${label}, ${count} unread` : undefined}>
+    <NavLink
+      to={to}
+      onPointerEnter={() => prefetchRoute(to)}
+      onTouchStart={() => prefetchRoute(to)}
+      onFocus={() => prefetchRoute(to)}
+      end={end}
+      className={cls}
+      aria-label={count ? `${label}, ${count} unread` : undefined}
+    >
       <span className="side-icon">
         <Icon name={icon} size={24} />
       </span>
@@ -42,7 +51,11 @@ export default function LeftNav() {
         {link("/notifications", "bell", "Notifications", n)}
         {link("/messages", "mail", "Messages", m)}
         {link(`/u/${user.username}`, "user", "Profile")}
-        {link(user.plus ? "/insights" : "/plus", user.plus ? "chart" : "sparkle", user.plus ? "Insights" : "Commune Plus")}
+        {link(
+          user.plus ? "/insights" : "/plus",
+          user.plus ? "chart" : "sparkle",
+          user.plus ? "Insights" : "Commune Plus",
+        )}
         {user.role === "admin" && link("/admin", "shield", "Admin")}
         {link("/contact", "contact", "Contact")}
       </nav>
@@ -57,7 +70,12 @@ export default function LeftNav() {
             @{user.username} <PlusBadge plus={user.plus} />
           </span>
         </Link>
-        <button className="icon-btn side-logout" onClick={() => void logout()} aria-label="Log out" title="Log out">
+        <button
+          className="icon-btn side-logout"
+          onClick={() => void logout()}
+          aria-label="Log out"
+          title="Log out"
+        >
           <Icon name="logout" size={20} />
         </button>
       </div>

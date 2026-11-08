@@ -40,8 +40,16 @@ describe("error scrubbing and grouping", () => {
   });
 
   it("groups the same error for different ids", () => {
-    const a = fingerprintOf({ source: "api", message: "Cannot find 507f1f77bcf86cd799439011", route: "GET /posts/:id" });
-    const b = fingerprintOf({ source: "api", message: "Cannot find 507f1f77bcf86cd799439012", route: "GET /posts/:id" });
+    const a = fingerprintOf({
+      source: "api",
+      message: "Cannot find 507f1f77bcf86cd799439011",
+      route: "GET /posts/:id",
+    });
+    const b = fingerprintOf({
+      source: "api",
+      message: "Cannot find 507f1f77bcf86cd799439012",
+      route: "GET /posts/:id",
+    });
     expect(a).toBe(b);
   });
 

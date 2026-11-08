@@ -59,8 +59,14 @@ describe("push endpoint allowlist (the server calls these addresses)", () => {
   ])("rejects %s", (url) => expect(isAllowedPushEndpoint(url)).toBe(false));
 
   it("validates keys", () => {
-    expect(pushSubscribeSchema.safeParse({ endpoint: ENDPOINT, keys: { p256dh: P256, auth: AUTH_KEY } }).success).toBe(true);
-    expect(pushSubscribeSchema.safeParse({ endpoint: ENDPOINT, keys: { p256dh: "x", auth: AUTH_KEY } }).success).toBe(false);
+    expect(
+      pushSubscribeSchema.safeParse({ endpoint: ENDPOINT, keys: { p256dh: P256, auth: AUTH_KEY } })
+        .success,
+    ).toBe(true);
+    expect(
+      pushSubscribeSchema.safeParse({ endpoint: ENDPOINT, keys: { p256dh: "x", auth: AUTH_KEY } })
+        .success,
+    ).toBe(false);
   });
 });
 
@@ -73,14 +79,24 @@ describe("push routes", () => {
   it("report that push is off when no keys are set", async () => {
     vi.spyOn(User, "findById").mockImplementation((() => ({ select: () => leanOf({}) })) as never);
     const res = await request(app).get("/api/push/status").set(auth);
-    expect(res.body).toMatchObject({ enabled: false, publicKey: null, preferences: { messages: true, social: true } });
+    expect(res.body).toMatchObject({
+      enabled: false,
+      publicKey: null,
+      preferences: { messages: true, social: true },
+    });
   });
 
   it("hand out the public key and saved preferences when push is on", async () => {
     configure(true);
-    vi.spyOn(User, "findById").mockImplementation((() => ({ select: () => leanOf({ pushMessages: false }) })) as never);
+    vi.spyOn(User, "findById").mockImplementation((() => ({
+      select: () => leanOf({ pushMessages: false }),
+    })) as never);
     const res = await request(app).get("/api/push/status").set(auth);
-    expect(res.body).toMatchObject({ enabled: true, publicKey: "pub", preferences: { messages: false, social: true } });
+    expect(res.body).toMatchObject({
+      enabled: true,
+      publicKey: "pub",
+      preferences: { messages: false, social: true },
+    });
   });
 
   it("refuse a subscription pointing at an arbitrary address", async () => {
@@ -101,24 +117,38 @@ describe("push routes", () => {
       .set(auth)
       .send({ endpoint: ENDPOINT, keys: { p256dh: P256, auth: AUTH_KEY } });
     expect(res.status).toBe(204);
-    const [filter, update] = upsert.mock.calls[0] as unknown as [{ endpoint: string }, { $set: { user: string } }];
+    const [filter, update] = upsert.mock.calls[0] as unknown as [
+      { endpoint: string },
+      { $set: { user: string } },
+    ];
     expect(filter.endpoint).toBe(ENDPOINT);
     expect(update.$set.user).toBe(ME);
   });
 
   it("only remove the caller's own subscription", async () => {
     const del = vi.spyOn(PushSubscription, "deleteOne").mockResolvedValue({} as never);
-    const res = await request(app).post("/api/push/unsubscribe").set(auth).send({ endpoint: ENDPOINT });
+    const res = await request(app)
+      .post("/api/push/unsubscribe")
+      .set(auth)
+      .send({ endpoint: ENDPOINT });
     expect(res.status).toBe(204);
     expect(del).toHaveBeenCalledWith({ user: ME, endpoint: ENDPOINT });
   });
 
   it("save preferences", async () => {
     const update = vi.spyOn(User, "updateOne").mockResolvedValue({} as never);
-    const res = await request(app).put("/api/push/preferences").set(auth).send({ messages: false, social: true });
+    const res = await request(app)
+      .put("/api/push/preferences")
+      .set(auth)
+      .send({ messages: false, social: true });
     expect(res.status).toBe(204);
-    expect(update).toHaveBeenCalledWith({ _id: ME }, { $set: { pushMessages: false, pushSocial: true } });
-    expect((await request(app).put("/api/push/preferences").set(auth).send({ messages: "no" })).status).toBe(400);
+    expect(update).toHaveBeenCalledWith(
+      { _id: ME },
+      { $set: { pushMessages: false, pushSocial: true } },
+    );
+    expect(
+      (await request(app).put("/api/push/preferences").set(auth).send({ messages: "no" })).status,
+    ).toBe(400);
   });
 });
 
@@ -126,7 +156,9 @@ describe("pushToUser", () => {
   const payload = { title: "@sam", body: "hello", url: "/messages/1", tag: "msg-1" };
   const sub = { _id: "s1", endpoint: ENDPOINT, p256dh: P256, auth: AUTH_KEY };
   const prefs = (value: unknown) =>
-    vi.spyOn(User, "findById").mockImplementation((() => ({ select: () => leanOf(value) })) as never);
+    vi
+      .spyOn(User, "findById")
+      .mockImplementation((() => ({ select: () => leanOf(value) })) as never);
   const subs = (value: unknown[]) =>
     vi.spyOn(PushSubscription, "find").mockImplementation((() => leanOf(value)) as never);
 
@@ -142,7 +174,10 @@ describe("pushToUser", () => {
     subs([sub, { ...sub, _id: "s2", endpoint: ENDPOINT + "2" }]);
     await pushToUser(ME, "message", payload);
     expect(sendNotification).toHaveBeenCalledTimes(2);
-    const [target, body] = sendNotification.mock.calls[0] as unknown as [{ endpoint: string }, string];
+    const [target, body] = sendNotification.mock.calls[0] as unknown as [
+      { endpoint: string },
+      string,
+    ];
     expect(target.endpoint).toBe(ENDPOINT);
     expect(JSON.parse(body)).toEqual(payload);
   });
@@ -163,7 +198,10 @@ describe("pushToUser", () => {
     configure(true);
     (env as { REALTIME_URL?: string }).REALTIME_URL = "http://realtime.test";
     (env as { REALTIME_SECRET?: string }).REALTIME_SECRET = "r".repeat(40);
-    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ active: [ME] }), { status: 200 })));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify({ active: [ME] }), { status: 200 })),
+    );
     prefs({});
     subs([sub]);
     await pushToUser(ME, "message", payload);
@@ -174,9 +212,12 @@ describe("pushToUser", () => {
     configure(true);
     (env as { REALTIME_URL?: string }).REALTIME_URL = "http://realtime.test";
     (env as { REALTIME_SECRET?: string }).REALTIME_SECRET = "r".repeat(40);
-    vi.stubGlobal("fetch", vi.fn(async () => {
-      throw new Error("down");
-    }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new Error("down");
+      }),
+    );
     prefs({});
     subs([sub]);
     await pushToUser(ME, "message", payload);

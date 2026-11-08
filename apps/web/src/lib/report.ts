@@ -23,7 +23,10 @@ const IGNORED = [
 export function reportError(source: "window" | "promise" | "react", error: unknown): void {
   if (!import.meta.env.PROD) return;
   try {
-    const err = error instanceof Error ? error : new Error(typeof error === "string" ? error : "Unknown error");
+    const err =
+      error instanceof Error
+        ? error
+        : new Error(typeof error === "string" ? error : "Unknown error");
     const message = (err.message || err.name || "Unknown error").slice(0, 300);
     const stack = (err.stack ?? "").slice(0, 2000);
     if (IGNORED.some((re) => re.test(message) || re.test(stack))) return;
@@ -32,7 +35,12 @@ export function reportError(source: "window" | "promise" | "react", error: unkno
     void fetch(`${API_BASE}/client-errors`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message, stack, source, path: window.location.pathname.slice(0, 200) }),
+      body: JSON.stringify({
+        message,
+        stack,
+        source,
+        path: window.location.pathname.slice(0, 200),
+      }),
       keepalive: true,
     }).catch(() => undefined);
   } catch {

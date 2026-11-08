@@ -4,11 +4,7 @@ import { env } from "../config/env.js";
 import { logger } from "../config/logger.js";
 import { Subscription } from "../models/Subscription.js";
 import { User } from "../models/User.js";
-import {
-  activateMockPlus,
-  billingFor,
-  cancelMockPlus,
-} from "../services/billingService.js";
+import { activateMockPlus, billingFor, cancelMockPlus } from "../services/billingService.js";
 import {
   PaymentsNotLiveError,
   createPlusCheckoutUrl,
@@ -25,7 +21,8 @@ export async function status(req: Request, res: Response) {
 
 /** Starts the Commune Plus purchase. Returns the URL to send the browser to. */
 export async function checkout(req: Request, res: Response) {
-  if (!plusAvailable || paymentsMode === null) throw new AppError(503, "Commune Plus isn't available yet");
+  if (!plusAvailable || paymentsMode === null)
+    throw new AppError(503, "Commune Plus isn't available yet");
 
   const user = await User.findById(req.userId).select("email plusUntil").lean();
   if (!user) throw notFound("User not found");
@@ -49,7 +46,9 @@ export async function checkout(req: Request, res: Response) {
     res.json(body);
   } catch (err) {
     if (err instanceof PaymentsNotLiveError) {
-      logger.error("Plus checkout refused: Lemon Squeezy is in test mode but test mode is not accepted");
+      logger.error(
+        "Plus checkout refused: Lemon Squeezy is in test mode but test mode is not accepted",
+      );
       throw new AppError(503, "Payments are not open yet, please try again soon");
     }
     logger.error({ err }, "Could not create Plus checkout");

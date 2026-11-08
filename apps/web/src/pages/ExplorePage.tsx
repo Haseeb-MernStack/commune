@@ -24,7 +24,10 @@ export default function ExplorePage() {
   const query = usePublicPosts();
   const posts = query.data?.pages.flatMap((p) => p.items) ?? [];
   const { hasNextPage, isFetchingNextPage, isError, fetchNextPage } = query;
-  const sentinel = useLoadMoreOnVisible(() => void fetchNextPage(), hasNextPage && !isFetchingNextPage && !isError);
+  const sentinel = useLoadMoreOnVisible(
+    () => void fetchNextPage(),
+    hasNextPage && !isFetchingNextPage && !isError,
+  );
 
   return (
     <>
@@ -93,10 +96,7 @@ export default function ExplorePage() {
       {isFetchingNextPage && <PostListSkeleton count={1} />}
       {query.hasNextPage && <div ref={sentinel} aria-hidden="true" />}
       {query.hasNextPage && !isFetchingNextPage && (
-        <button
-          className="btn btn-ghost block"
-          onClick={() => void query.fetchNextPage()}
-        >
+        <button className="btn btn-ghost block" onClick={() => void query.fetchNextPage()}>
           Load more
         </button>
       )}

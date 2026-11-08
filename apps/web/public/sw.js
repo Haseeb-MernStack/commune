@@ -32,7 +32,9 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
       const names = await caches.keys();
-      await Promise.all(names.filter((n) => !KNOWN_CACHES.includes(n)).map((n) => caches.delete(n)));
+      await Promise.all(
+        names.filter((n) => !KNOWN_CACHES.includes(n)).map((n) => caches.delete(n)),
+      );
       await self.clients.claim();
     })(),
   );

@@ -28,7 +28,13 @@ export default function NewsPanel({ limit = 4 }: { limit?: number }) {
       )}
 
       {news.data?.slice(0, limit).map((n) => (
-        <a key={n.id} className="news-item" href={n.link} target="_blank" rel="noopener noreferrer nofollow">
+        <a
+          key={n.id}
+          className="news-item"
+          href={n.link}
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+        >
           <span className="muted small">
             {n.source} · {timeAgo(n.publishedAt)} ago
           </span>

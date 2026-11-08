@@ -55,7 +55,10 @@ function takeEarly(path: string): Promise<Response> | undefined {
 }
 
 async function refreshSession(): Promise<AuthResponse | null> {
-  refreshing ??= (takeEarly("/auth/refresh") ?? fetch(`${BASE}/auth/refresh`, { method: "POST", credentials: "include" }))
+  refreshing ??= (
+    takeEarly("/auth/refresh") ??
+    fetch(`${BASE}/auth/refresh`, { method: "POST", credentials: "include" })
+  )
     .then(async (res) => {
       if (!res.ok) return null;
       const data = (await res.json()) as AuthResponse;

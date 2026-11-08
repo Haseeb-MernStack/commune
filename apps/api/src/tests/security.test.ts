@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import request from "supertest";
 import { describe, expect, it } from "vitest";
 import { createApp } from "../app.js";
-import { signAccessToken, verifyAccessToken } from "../utils/tokens.js";
+import { verifyAccessToken } from "../utils/tokens.js";
 
 const app = createApp();
 
@@ -30,7 +30,9 @@ describe("API responses", () => {
 
 describe("access tokens", () => {
   it("refuse a token signed with another algorithm", () => {
-    const forged = jwt.sign({ sub: "u1" }, "test-secret-test-secret-test-secret-123", { algorithm: "HS512" });
+    const forged = jwt.sign({ sub: "u1" }, "test-secret-test-secret-test-secret-123", {
+      algorithm: "HS512",
+    });
     expect(() => verifyAccessToken(forged)).toThrow();
   });
 

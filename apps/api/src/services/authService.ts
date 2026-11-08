@@ -127,7 +127,10 @@ const randomPasswordHash = () => bcrypt.hash(crypto.randomBytes(32).toString("he
 
 async function uniqueUsername(profile: GoogleProfile): Promise<string> {
   const raw = profile.name ?? profile.email.split("@")[0] ?? "";
-  let base = raw.normalize("NFKD").replace(/[^a-zA-Z0-9_]/g, "").slice(0, 16);
+  let base = raw
+    .normalize("NFKD")
+    .replace(/[^a-zA-Z0-9_]/g, "")
+    .slice(0, 16);
   if (base.length < 3) base = "user";
   for (let attempt = 0; attempt < 6; attempt++) {
     const candidate =

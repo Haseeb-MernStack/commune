@@ -104,7 +104,10 @@ export async function lemonSqueezyWebhook(req: Request, res: Response) {
   // Test-mode events (fake card) must never grant anything on a live site. Answer 200 so
   // Lemon Squeezy does not keep retrying, and note it in the log.
   if (event.kind !== "ignored" && event.testMode && !env.LEMONSQUEEZY_ACCEPT_TEST_MODE) {
-    logger.warn({ kind: event.kind }, "Ignored a test-mode webhook (LEMONSQUEEZY_ACCEPT_TEST_MODE is off)");
+    logger.warn(
+      { kind: event.kind },
+      "Ignored a test-mode webhook (LEMONSQUEEZY_ACCEPT_TEST_MODE is off)",
+    );
     res.json({ received: true, ignored: "test_mode" });
     return;
   }
@@ -114,9 +117,10 @@ export async function lemonSqueezyWebhook(req: Request, res: Response) {
   } else if (event.kind === "subscription") {
     await applySubscriptionEvent(event);
   } else if (event.kind === "paid") {
-    const valid =
-      mongoose.isValidObjectId(event.postId) && mongoose.isValidObjectId(event.userId);
-    const post = valid ? await Post.findById(event.postId).select("author priceCents").lean() : null;
+    const valid = mongoose.isValidObjectId(event.postId) && mongoose.isValidObjectId(event.userId);
+    const post = valid
+      ? await Post.findById(event.postId).select("author priceCents").lean()
+      : null;
     if (!post || post.priceCents == null) {
       // Paid for a post that no longer exists. Log loudly: this needs a manual refund.
       logger.error({ event }, "Payment received for a missing or free post");

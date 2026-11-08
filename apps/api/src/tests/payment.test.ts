@@ -149,6 +149,12 @@ describe("webhook and earnings without Lemon Squeezy configured", () => {
     vi.spyOn(Purchase, "aggregate").mockResolvedValue([] as never);
     const res = await request(app).get("/api/users/me/earnings").set(auth);
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ currency: "USD", sales: 0, grossCents: 0, feeCents: 0, netCents: 0 });
+    expect(res.body).toEqual({
+      currency: "USD",
+      sales: 0,
+      grossCents: 0,
+      feeCents: 0,
+      netCents: 0,
+    });
   });
 });

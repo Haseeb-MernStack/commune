@@ -71,7 +71,8 @@ function toConversationDTO(c: LeanConversation, me: string, other: LeanUser): Co
       : null,
     lastMessageAt: c.lastMessageAt.toISOString(),
     unread,
-    seenByOther: Boolean(c.lastMessageSender) && str(c.lastMessageSender) === me && otherUnread === 0,
+    seenByOther:
+      Boolean(c.lastMessageSender) && str(c.lastMessageSender) === me && otherUnread === 0,
   };
 }
 
@@ -80,7 +81,8 @@ async function loadConversation(id: string | undefined, me: string) {
   if (!id || !mongoose.isValidObjectId(id)) throw notFound("Conversation not found");
   const convo = (await Conversation.findById(id).lean()) as LeanConversation | null;
   // Same answer for "doesn't exist" and "not yours" so ids can't be probed.
-  if (!convo || !convo.participants.some((p) => str(p) === me)) throw notFound("Conversation not found");
+  if (!convo || !convo.participants.some((p) => str(p) === me))
+    throw notFound("Conversation not found");
   const otherId = convo.participants.map(str).find((p) => p !== me);
   return { convo, otherId: otherId ?? me };
 }
@@ -88,7 +90,9 @@ async function loadConversation(id: string | undefined, me: string) {
 /** Push notification for the recipient when they are not looking at the site. Never throws. */
 async function notifyByPush(convoId: string, me: string, otherId: string, text: string) {
   if (!pushConfigured()) return;
-  const sender = (await User.findById(me).select("username").lean()) as { username?: string } | null;
+  const sender = (await User.findById(me).select("username").lean()) as {
+    username?: string;
+  } | null;
   await pushToUser(otherId, "message", {
     title: `@${sender?.username ?? "Someone"}`,
     body: text,
@@ -175,7 +179,9 @@ export async function getMessages(req: Request, res: Response) {
     await emitToUsers([otherId], "message:read", { conversationId: str(convo._id), readerId: me });
   }
 
-  const other = (await User.findById(otherId).select(USER_FIELDS).lean()) as unknown as LeanUser | null;
+  const other = (await User.findById(otherId)
+    .select(USER_FIELDS)
+    .lean()) as unknown as LeanUser | null;
   const result: MessagePage & { conversation?: ConversationDTO } = {
     items: page.reverse().map(toMessageDTO), // oldest first for display
     nextCursor,
@@ -188,7 +194,9 @@ export async function getMessages(req: Request, res: Response) {
 export async function send(req: Request, res: Response) {
   const me = req.userId!;
   const { convo, otherId } = await loadConversation(req.params.id, me);
-  const other = (await User.findById(otherId).select("banned").lean()) as { banned?: boolean } | null;
+  const other = (await User.findById(otherId).select("banned").lean()) as {
+    banned?: boolean;
+  } | null;
   if (!other || other.banned) throw forbidden("You can't message this account");
   res.status(201).json(await saveMessage(str(convo._id), me, otherId, req.body.text));
 }

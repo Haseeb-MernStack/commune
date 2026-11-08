@@ -5,7 +5,9 @@ const ID = "cccccccccccccccccccccccc";
 
 describe("Membership", () => {
   it("asks the API with the shared secret and caches the answer", async () => {
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ participants: ["a", "b"] }), { status: 200 }));
+    const fetchMock = vi.fn(
+      async () => new Response(JSON.stringify({ participants: ["a", "b"] }), { status: 200 }),
+    );
     const m = new Membership("http://api.test", "secret", fetchMock as never);
     expect(await m.isMember(ID, "a")).toBe(true);
     expect(await m.isMember(ID, "z")).toBe(false);
@@ -15,7 +17,11 @@ describe("Membership", () => {
   });
 
   it("treats an unknown conversation as no access", async () => {
-    const m = new Membership("http://api.test", "s", (async () => new Response("{}", { status: 404 })) as never);
+    const m = new Membership(
+      "http://api.test",
+      "s",
+      (async () => new Response("{}", { status: 404 })) as never,
+    );
     expect(await m.isMember(ID, "a")).toBe(false);
   });
 

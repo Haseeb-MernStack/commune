@@ -37,7 +37,11 @@ function idToken(
     exp: Math.floor(Date.now() / 1000) + 3600,
     ...claims,
   });
-  const sig = crypto.sign("RSA-SHA256", Buffer.from(`${header}.${payload}`), opts.key ?? privateKey);
+  const sig = crypto.sign(
+    "RSA-SHA256",
+    Buffer.from(`${header}.${payload}`),
+    opts.key ?? privateKey,
+  );
   return `${header}.${payload}.${b64(sig)}`;
 }
 
@@ -136,7 +140,12 @@ describe("POST /api/auth/google: accounts", () => {
 
   it("links an existing password account and cancels a password set before verification", async () => {
     const save = vi.fn().mockResolvedValue(undefined);
-    const existing: Record<string, unknown> = newUser({ emailVerified: false, passwordHash: "old-hash", googleId: undefined, save });
+    const existing: Record<string, unknown> = newUser({
+      emailVerified: false,
+      passwordHash: "old-hash",
+      googleId: undefined,
+      save,
+    });
     vi.spyOn(User, "findOne").mockImplementation(((filter: Record<string, unknown>) =>
       Promise.resolve("googleId" in filter ? null : existing)) as never);
 

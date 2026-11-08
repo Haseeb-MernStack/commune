@@ -28,7 +28,10 @@ export async function applySubscriptionEvent(event: SubscriptionEvent): Promise<
     userId = byEmail?._id.toString() ?? null;
   }
   if (!userId) {
-    logger.error({ subscriptionId: event.subscriptionId }, "Subscription event for an unknown user");
+    logger.error(
+      { subscriptionId: event.subscriptionId },
+      "Subscription event for an unknown user",
+    );
     return;
   }
 
@@ -80,7 +83,14 @@ export async function cancelMockPlus(userId: string): Promise<void> {
   if (isProd) throw new Error("Mock billing is disabled in production");
   await Subscription.updateOne(
     { user: userId },
-    { $set: { status: "cancelled", cancelled: true, endsAt: new Date(), providerUpdatedAt: new Date() } },
+    {
+      $set: {
+        status: "cancelled",
+        cancelled: true,
+        endsAt: new Date(),
+        providerUpdatedAt: new Date(),
+      },
+    },
   );
   await User.updateOne({ _id: userId }, { $set: { plusUntil: new Date() } });
 }

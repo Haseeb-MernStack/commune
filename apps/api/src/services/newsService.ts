@@ -115,7 +115,11 @@ export function parseFeed(xml: string, source: string): NewsItemDTO[] {
       const href = /<link[^>]*\shref=["']([^"']+)["'][^>]*>/i.exec(block);
       link = safeUrl(href ? href[1]! : null);
     }
-    const dateRaw = tag(block, "pubDate") ?? tag(block, "published") ?? tag(block, "updated") ?? tag(block, "dc:date");
+    const dateRaw =
+      tag(block, "pubDate") ??
+      tag(block, "published") ??
+      tag(block, "updated") ??
+      tag(block, "dc:date");
     const time = dateRaw ? Date.parse(cleanText(dateRaw)) : NaN;
     if (!title || !link || Number.isNaN(time)) continue;
     items.push({
@@ -152,7 +156,10 @@ export function mergeItems(lists: NewsItemDTO[][], now = Date.now()): NewsItemDT
     .filter((i) => Date.parse(i.publishedAt) <= now + 10 * 60 * 1000) // ignore far-future dates
     .sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt))
     .filter((i) => {
-      const key = i.title.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+      const key = i.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim();
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -190,7 +197,11 @@ async function readShared(topic: NewsTopic): Promise<CacheEntry | null> {
 async function writeShared(topic: NewsTopic, items: NewsItemDTO[], at: number): Promise<void> {
   if (!dbReady()) return;
   try {
-    await NewsCache.updateOne({ topic }, { $set: { items, fetchedAt: new Date(at) } }, { upsert: true });
+    await NewsCache.updateOne(
+      { topic },
+      { $set: { items, fetchedAt: new Date(at) } },
+      { upsert: true },
+    );
   } catch (err) {
     logger.warn({ err: String(err), topic }, "Could not save the shared news cache");
   }
@@ -240,7 +251,9 @@ export async function getNews(topic: NewsTopic): Promise<NewsItemDTO[]> {
     const age = Date.now() - hit.at;
     if (age < FRESH_MS) return hit.items;
     if (age < SOFT_STALE_MS) {
-      startRefresh(topic).catch((err) => logger.warn({ err: String(err), topic }, "Background news refresh failed"));
+      startRefresh(topic).catch((err) =>
+        logger.warn({ err: String(err), topic }, "Background news refresh failed"),
+      );
       return hit.items;
     }
   }

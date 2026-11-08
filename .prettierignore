@@ -1,0 +1,11 @@
+node_modules
+dist
+build
+coverage
+package-lock.json
+apps/api/uploads
+docs/screenshots
+docs/social-preview.png
+# Hand-compacted stylesheets and prose: reformatting them only creates noise.
+*.css
+*.md

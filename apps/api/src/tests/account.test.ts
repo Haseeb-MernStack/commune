@@ -159,7 +159,12 @@ describe("POST /api/auth/resend-verification", () => {
 
   it("sends a new link to an unverified user", async () => {
     vi.spyOn(User, "findById").mockReturnValue(
-      chain({ _id: USER_ID, email: "sam@example.com", username: "sam", emailVerified: false }) as never,
+      chain({
+        _id: USER_ID,
+        email: "sam@example.com",
+        username: "sam",
+        emailVerified: false,
+      }) as never,
     );
     const res = await request(app).post("/api/auth/resend-verification").set(auth);
     expect(res.status).toBe(204);
@@ -169,7 +174,12 @@ describe("POST /api/auth/resend-verification", () => {
 
   it("does nothing for an already verified user", async () => {
     vi.spyOn(User, "findById").mockReturnValue(
-      chain({ _id: USER_ID, email: "sam@example.com", username: "sam", emailVerified: true }) as never,
+      chain({
+        _id: USER_ID,
+        email: "sam@example.com",
+        username: "sam",
+        emailVerified: true,
+      }) as never,
     );
     const res = await request(app).post("/api/auth/resend-verification").set(auth);
     expect(res.status).toBe(204);
@@ -178,7 +188,13 @@ describe("POST /api/auth/resend-verification", () => {
 
   it("refuses suspended accounts", async () => {
     vi.spyOn(User, "findById").mockReturnValue(
-      chain({ _id: USER_ID, email: "a@b.co", username: "x", emailVerified: false, banned: true }) as never,
+      chain({
+        _id: USER_ID,
+        email: "a@b.co",
+        username: "x",
+        emailVerified: false,
+        banned: true,
+      }) as never,
     );
     const res = await request(app).post("/api/auth/resend-verification").set(auth);
     expect(res.status).toBe(403);

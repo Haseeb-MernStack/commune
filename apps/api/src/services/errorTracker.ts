@@ -33,7 +33,14 @@ export function fingerprintOf(report: ErrorReport): string {
   const firstFrame = (report.stack ?? "").split("\n").find((l) => /\bat\b|@/.test(l)) ?? "";
   return crypto
     .createHash("sha1")
-    .update([report.source, normalize(report.route ?? ""), normalize(report.message), normalize(firstFrame)].join("|"))
+    .update(
+      [
+        report.source,
+        normalize(report.route ?? ""),
+        normalize(report.message),
+        normalize(firstFrame),
+      ].join("|"),
+    )
     .digest("hex");
 }
 

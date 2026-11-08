@@ -46,7 +46,9 @@ export default function SoundSettings() {
           Hear notification chime
         </button>
       </div>
-      <p className="muted small">Saved on this device. Chimes stay quiet while you are looking at the conversation.</p>
+      <p className="muted small">
+        Saved on this device. Chimes stay quiet while you are looking at the conversation.
+      </p>
     </section>
   );
 }
