@@ -25,7 +25,6 @@ const USER_ID = new mongoose.Types.ObjectId(USER);
 const auth = { Authorization: `Bearer ${signAccessToken(USER)}` };
 const chain = (value: unknown) => ({ select: () => ({ lean: () => Promise.resolve(value) }) });
 
-
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
