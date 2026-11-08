@@ -1,0 +1,29 @@
+name: Release
+
+# Reads the commit messages merged into main and keeps ONE "release" pull request up to date with the next
+# version number and a changelog. Merging that pull request creates the tag (v1.2.3) and the GitHub release.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.repository == 'Haseeb-MernStack/commune'
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+          # Pull requests opened with the default token do not start other workflows, so CI would not run on
+          # the release pull request. An optional personal access token fixes that (see docs/RELEASING.md).
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}

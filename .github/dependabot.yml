@@ -5,6 +5,11 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    labels: [dependencies]
+    # Titles follow Conventional Commits, so the PR title check passes and the release notes stay tidy.
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
     groups:
       minor-and-patch:
         update-types: [minor, patch]
@@ -12,3 +17,6 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    labels: [dependencies]
+    commit-message:
+      prefix: "ci(deps)"

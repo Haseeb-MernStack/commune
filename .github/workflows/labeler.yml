@@ -1,0 +1,20 @@
+name: Label pull requests
+
+# pull_request_target lets the label be added even on pull requests from forks. It is safe here because the
+# job never checks out or runs the pull request's code: it only reads the list of changed files.
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/labeler@v5
+        with:
+          sync-labels: true

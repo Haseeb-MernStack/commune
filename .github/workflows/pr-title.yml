@@ -1,0 +1,31 @@
+name: PR title
+
+# Pull request titles become the commit message when squash-merged, and the release notes and version
+# number are built from them, so they must follow Conventional Commits: "feat: add hashtags".
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  conventional-title:
+    name: Conventional PR title
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Check the title
+        env:
+          # Passed through an environment variable, never pasted into the script, so a hostile title cannot run code.
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          pattern='^(feat|fix|perf|refactor|docs|test|build|ci|chore|style|revert)(\([a-z0-9._/,-]+\))?!?: .{3,}'
+          if [[ ! "$TITLE" =~ $pattern ]]; then
+            echo "::error title=Pull request title::'$TITLE' does not follow Conventional Commits."
+            echo "Use: type(optional-scope): short description"
+            echo "Types: feat, fix, perf, refactor, docs, test, build, ci, chore, style, revert"
+            echo "Examples: 'feat: add hashtags', 'fix(api): stop duplicate notifications', 'feat!: change the login API'"
+            exit 1
+          fi
+          echo "Title OK: $TITLE"
