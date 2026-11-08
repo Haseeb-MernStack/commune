@@ -34,12 +34,17 @@ const order = (overrides: Record<string, unknown> = {}, event = "order_created")
   meta: { event_name: event, custom_data: { post_id: POST_ID, user_id: BUYER } },
   data: {
     id: "9001",
-    attributes: { status: "paid", subtotal: 1000, discount_total: 0, currency: "usd", ...overrides },
+    attributes: {
+      status: "paid",
+      subtotal: 1000,
+      discount_total: 0,
+      currency: "usd",
+      ...overrides,
+    },
   },
 });
 
-const sign = (raw: string) =>
-  crypto.createHmac("sha256", "whsec_test").update(raw).digest("hex");
+const sign = (raw: string) => crypto.createHmac("sha256", "whsec_test").update(raw).digest("hex");
 
 function send(payload: unknown, signature?: string) {
   const raw = JSON.stringify(payload);
@@ -52,13 +57,17 @@ function send(payload: unknown, signature?: string) {
 
 describe("checkout with Lemon Squeezy", () => {
   it("creates a hosted checkout at the post's price and returns its URL", async () => {
-    vi.spyOn(Post, "findById").mockReturnValue(chain({ author: CREATOR, priceCents: 750 }) as never);
+    vi.spyOn(Post, "findById").mockReturnValue(
+      chain({ author: CREATOR, priceCents: 750 }) as never,
+    );
     vi.spyOn(Purchase, "exists").mockResolvedValue(null as never);
     vi.spyOn(User, "findById").mockReturnValue(chain({ email: "buyer@example.com" }) as never);
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       status: 201,
-      json: async () => ({ data: { attributes: { url: "https://shop.lemonsqueezy.com/checkout/x" } } }),
+      json: async () => ({
+        data: { attributes: { url: "https://shop.lemonsqueezy.com/checkout/x" } },
+      }),
     });
     vi.stubGlobal("fetch", fetchMock);
 
@@ -66,7 +75,10 @@ describe("checkout with Lemon Squeezy", () => {
     expect(res.status).toBe(200);
     expect(res.body.url).toBe("https://shop.lemonsqueezy.com/checkout/x");
 
-    const [url, init] = fetchMock.mock.calls[0] as [string, { headers: Record<string, string>; body: string }];
+    const [url, init] = fetchMock.mock.calls[0] as [
+      string,
+      { headers: Record<string, string>; body: string },
+    ];
     expect(url).toBe("https://api.lemonsqueezy.com/v1/checkouts");
     expect(init.headers.Authorization).toBe("Bearer ls_key");
     const body = JSON.parse(init.body) as {
@@ -85,7 +97,9 @@ describe("checkout with Lemon Squeezy", () => {
   });
 
   it("returns 502 when the provider fails, without leaking details", async () => {
-    vi.spyOn(Post, "findById").mockReturnValue(chain({ author: CREATOR, priceCents: 750 }) as never);
+    vi.spyOn(Post, "findById").mockReturnValue(
+      chain({ author: CREATOR, priceCents: 750 }) as never,
+    );
     vi.spyOn(Purchase, "exists").mockResolvedValue(null as never);
     vi.spyOn(User, "findById").mockReturnValue(chain({ email: "b@example.com" }) as never);
     vi.stubGlobal(
@@ -111,7 +125,9 @@ describe("POST /api/webhooks/lemonsqueezy", () => {
   });
 
   it("records a paid order with the fee split", async () => {
-    vi.spyOn(Post, "findById").mockReturnValue(chain({ author: CREATOR, priceCents: 1000 }) as never);
+    vi.spyOn(Post, "findById").mockReturnValue(
+      chain({ author: CREATOR, priceCents: 1000 }) as never,
+    );
     const create = vi.spyOn(Purchase, "create").mockResolvedValue({} as never);
     const res = await send(order());
     expect(res.status).toBe(200);
@@ -131,15 +147,21 @@ describe("POST /api/webhooks/lemonsqueezy", () => {
   });
 
   it("subtracts discounts from the amount", async () => {
-    vi.spyOn(Post, "findById").mockReturnValue(chain({ author: CREATOR, priceCents: 1000 }) as never);
+    vi.spyOn(Post, "findById").mockReturnValue(
+      chain({ author: CREATOR, priceCents: 1000 }) as never,
+    );
     const create = vi.spyOn(Purchase, "create").mockResolvedValue({} as never);
     await send(order({ discount_total: 250 }));
     expect(create).toHaveBeenCalledWith(expect.objectContaining({ amountCents: 750 }));
   });
 
   it("treats a redelivered webhook as success without double counting", async () => {
-    vi.spyOn(Post, "findById").mockReturnValue(chain({ author: CREATOR, priceCents: 1000 }) as never);
-    vi.spyOn(Purchase, "create").mockRejectedValue(Object.assign(new Error("dup"), { code: 11000 }));
+    vi.spyOn(Post, "findById").mockReturnValue(
+      chain({ author: CREATOR, priceCents: 1000 }) as never,
+    );
+    vi.spyOn(Purchase, "create").mockRejectedValue(
+      Object.assign(new Error("dup"), { code: 11000 }),
+    );
     const res = await send(order());
     expect(res.status).toBe(200);
   });

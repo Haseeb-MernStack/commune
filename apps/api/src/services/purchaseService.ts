@@ -52,7 +52,9 @@ export async function recordPurchase(sale: SaleInput): Promise<boolean> {
   const postId = new mongoose.Types.ObjectId(sale.postId);
   const creatorId = new mongoose.Types.ObjectId(sale.creatorId);
   const creator = await User.findById(creatorId).select("plusUntil").lean();
-  const feePercent = isPlusActive(creator?.plusUntil) ? env.PLUS_FEE_PERCENT : env.PLATFORM_FEE_PERCENT;
+  const feePercent = isPlusActive(creator?.plusUntil)
+    ? env.PLUS_FEE_PERCENT
+    : env.PLATFORM_FEE_PERCENT;
   try {
     await Purchase.create({
       user: userId,
