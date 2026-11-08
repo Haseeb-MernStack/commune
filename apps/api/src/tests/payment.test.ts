@@ -122,9 +122,9 @@ describe("POST /api/posts/:id/checkout (mock mode)", () => {
     expect(res.body.url).toBe(`http://localhost:5173/posts/${POST_ID}?unlocked=1`);
     expect(create).toHaveBeenCalledWith(
       expect.objectContaining({
-        user: ME,
-        post: POST_ID,
-        creator: OTHER,
+        user: new mongoose.Types.ObjectId(ME),
+        post: new mongoose.Types.ObjectId(POST_ID),
+        creator: new mongoose.Types.ObjectId(OTHER),
         amountCents: 1000,
         feeCents: 200,
         creatorShareCents: 800,
