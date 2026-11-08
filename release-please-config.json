@@ -1,5 +1,5 @@
+
 {
-<<<<<<< HEAD
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
   "release-type": "node",
   "include-component-in-tag": false,
@@ -58,63 +58,3 @@
     }
   ]
 }
-=======
-    "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
-    "release-type": "node",
-    "include-component-in-tag": false,
-    "bump-minor-pre-major": true,
-    "packages": {
-        ".": {
-            "package-name": "commune",
-            "changelog-path": "CHANGELOG.md"
-        }
-    },
-    "changelog-sections": [
-        {
-            "type": "feat",
-            "section": "Features"
-        },
-        {
-            "type": "fix",
-            "section": "Bug fixes"
-        },
-        {
-            "type": "perf",
-            "section": "Performance"
-        },
-        {
-            "type": "refactor",
-            "section": "Refactoring"
-        },
-        {
-            "type": "docs",
-            "section": "Documentation"
-        },
-        {
-            "type": "build",
-            "section": "Build",
-            "hidden": true
-        },
-        {
-            "type": "ci",
-            "section": "CI",
-            "hidden": true
-        },
-        {
-            "type": "test",
-            "section": "Tests",
-            "hidden": true
-        },
-        {
-            "type": "style",
-            "section": "Style",
-            "hidden": true
-        },
-        {
-            "type": "chore",
-            "section": "Chores",
-            "hidden": true
-        }
-    ]
-}
->>>>>>> 44eeb043d716e330f0d9d989d7733ac201125349
