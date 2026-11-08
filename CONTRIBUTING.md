@@ -13,7 +13,7 @@ Thanks for helping out.
 - TypeScript strict mode everywhere.
 - Validation schemas live in `packages/shared` so web and API stay in sync.
 - Controllers stay thin; business logic goes in `apps/api/src/services`.
-- Commit messages follow Conventional Commits (`feat:`, `fix:`, `docs:`).
+- Pull request titles follow Conventional Commits (`feat: add hashtags`, `fix(api): stop duplicates`). They become the commit message and drive the changelog and version number; a check enforces it. See [docs/RELEASING.md](docs/RELEASING.md).
 
 ## Community
 

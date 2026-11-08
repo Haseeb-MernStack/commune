@@ -1,0 +1,26 @@
+# Labels added automatically to pull requests, from the files they change.
+web:
+  - changed-files:
+      - any-glob-to-any-file: apps/web/**
+api:
+  - changed-files:
+      - any-glob-to-any-file: apps/api/**
+realtime:
+  - changed-files:
+      - any-glob-to-any-file: apps/realtime/**
+shared:
+  - changed-files:
+      - any-glob-to-any-file: packages/shared/**
+docs:
+  - changed-files:
+      - any-glob-to-any-file: ["docs/**", "**/*.md"]
+ci:
+  - changed-files:
+      - any-glob-to-any-file: [".github/**", "render.yaml"]
+tests:
+  - changed-files:
+      - any-glob-to-any-file: ["**/tests/**", "**/*.test.ts", "**/*.test.tsx"]
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          ["package.json", "**/package.json", "package-lock.json"]
