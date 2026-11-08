@@ -226,7 +226,7 @@ export function parseWebhook(payload: unknown): WebhookEvent {
       email: typeof a.user_email === "string" ? a.user_email : null,
       subscriptionId: orderId,
       customerId: a.customer_id != null ? String(a.customer_id) : null,
-      userId: p.meta?.custom_data?.user_id ?? null,
+      userId: typeof p.meta?.custom_data?.user_id === "string" ? p.meta.custom_data.user_id : null,
       status: a.status,
       cancelled: Boolean(a.cancelled),
       renewsAt: date(a.renews_at),
