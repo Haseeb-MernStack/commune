@@ -1,0 +1,28 @@
+{
+  "name": "Commune",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/commune",
+  "forwardPorts": [5173, 4000, 4100],
+  "portsAttributes": {
+    "5173": { "label": "Web app" },
+    "4000": { "label": "API" },
+    "4100": { "label": "Realtime" }
+  },
+  "postCreateCommand": "cp -n .env.example .env && npm install",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "vitest.explorer",
+        "ms-playwright.playwright",
+        "mongodb.mongodb-vscode"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+      }
+    }
+  }
+}
