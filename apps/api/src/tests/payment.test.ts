@@ -122,9 +122,9 @@ describe("POST /api/posts/:id/checkout (mock mode)", () => {
     expect(res.body.url).toBe(`http://localhost:5173/posts/${POST_ID}?unlocked=1`);
     expect(create).toHaveBeenCalledWith(
       expect.objectContaining({
-        user: ME,
-        post: POST_ID,
-        creator: OTHER,
+        user: new mongoose.Types.ObjectId(ME),
+        post: new mongoose.Types.ObjectId(POST_ID),
+        creator: new mongoose.Types.ObjectId(OTHER),
         amountCents: 1000,
         feeCents: 200,
         creatorShareCents: 800,
@@ -149,6 +149,12 @@ describe("webhook and earnings without Lemon Squeezy configured", () => {
     vi.spyOn(Purchase, "aggregate").mockResolvedValue([] as never);
     const res = await request(app).get("/api/users/me/earnings").set(auth);
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ currency: "USD", sales: 0, grossCents: 0, feeCents: 0, netCents: 0 });
+    expect(res.body).toEqual({
+      currency: "USD",
+      sales: 0,
+      grossCents: 0,
+      feeCents: 0,
+      netCents: 0,
+    });
   });
 });

@@ -14,7 +14,10 @@ export default function PostList({
   const posts = query.data?.pages.flatMap((p) => p.items) ?? [];
   const { hasNextPage, isFetchingNextPage, isError, fetchNextPage } = query;
   // Fetch the next page before the reader reaches the end.
-  const sentinel = useLoadMoreOnVisible(() => void fetchNextPage(), hasNextPage && !isFetchingNextPage && !isError);
+  const sentinel = useLoadMoreOnVisible(
+    () => void fetchNextPage(),
+    hasNextPage && !isFetchingNextPage && !isError,
+  );
 
   return (
     <>
@@ -27,10 +30,7 @@ export default function PostList({
       {isFetchingNextPage && <PostListSkeleton count={1} />}
       {query.hasNextPage && <div ref={sentinel} aria-hidden="true" />}
       {query.hasNextPage && !isFetchingNextPage && (
-        <button
-          className="btn btn-ghost block"
-          onClick={() => void query.fetchNextPage()}
-        >
+        <button className="btn btn-ghost block" onClick={() => void query.fetchNextPage()}>
           Load more
         </button>
       )}

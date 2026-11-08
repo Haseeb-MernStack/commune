@@ -15,7 +15,6 @@ import { useAuth } from "../store/auth";
 import Avatar from "./Avatar";
 import Icon from "./Icon";
 
-
 export default function Composer({ communitySlug }: { communitySlug?: string }) {
   const { user } = useAuth();
   const MAX = user?.plus ? PLUS_POST_LENGTH : FREE_POST_LENGTH;
@@ -34,7 +33,12 @@ export default function Composer({ communitySlug }: { communitySlug?: string }) 
   const upload = useUploadImage("post");
 
   // Free the temporary preview when it is replaced or the composer goes away.
-  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
+  useEffect(
+    () => () => {
+      if (preview) URL.revokeObjectURL(preview);
+    },
+    [preview],
+  );
 
   /** Used by the file picker, paste and drag-and-drop. */
   const handleFile = (file: File) => {
@@ -67,7 +71,9 @@ export default function Composer({ communitySlug }: { communitySlug?: string }) 
   };
 
   const imageFrom = (files: FileList | null | undefined) =>
-    Array.from(files ?? []).find((f) => f.type.startsWith("image/") || /\.(png|jpe?g|gif|webp)$/i.test(f.name));
+    Array.from(files ?? []).find(
+      (f) => f.type.startsWith("image/") || /\.(png|jpe?g|gif|webp)$/i.test(f.name),
+    );
 
   const onPaste = (e: ClipboardEvent) => {
     const file = imageFrom(e.clipboardData.files);
@@ -95,14 +101,18 @@ export default function Composer({ communitySlug }: { communitySlug?: string }) 
   const priceCents = Math.round(Number(price) * 100);
   const priceOk = priceCents >= MIN_PRICE_CENTS && priceCents <= MAX_PRICE_CENTS;
   const paidOk = !paid || (priceOk && premium.trim().length > 0);
-  const canPost =
-    (content.trim().length > 0 || imageUrl !== null) && !upload.isPending && paidOk;
+  const canPost = (content.trim().length > 0 || imageUrl !== null) && !upload.isPending && paidOk;
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!canPost) return;
     create.mutate(
-      { content, imageUrl, ...(communitySlug ? { community: communitySlug } : {}), ...(paid ? { priceCents, premiumContent: premium } : {}) },
+      {
+        content,
+        imageUrl,
+        ...(communitySlug ? { community: communitySlug } : {}),
+        ...(paid ? { priceCents, premiumContent: premium } : {}),
+      },
       {
         onSuccess: () => {
           setContent("");
@@ -129,14 +139,16 @@ export default function Composer({ communitySlug }: { communitySlug?: string }) 
       <div className="composer-row">
         {user && <Avatar username={user.username} url={user.avatarUrl} size={42} />}
         <textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        placeholder={communitySlug ? `Post in c/${communitySlug}` : "What's happening in your community?"}
-        maxLength={MAX}
-        rows={2}
-        aria-label="Write a post"
-        onPaste={onPaste}
-      />
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder={
+            communitySlug ? `Post in c/${communitySlug}` : "What's happening in your community?"
+          }
+          maxLength={MAX}
+          rows={2}
+          aria-label="Write a post"
+          onPaste={onPaste}
+        />
       </div>
 
       {paid && (
@@ -178,7 +190,12 @@ export default function Composer({ communitySlug }: { communitySlug?: string }) 
               <span style={{ width: `${Math.max(6, upload.progress ?? 0)}%` }} />
             </div>
           )}
-          <button type="button" className="image-remove" aria-label="Remove image" onClick={removeImage}>
+          <button
+            type="button"
+            className="image-remove"
+            aria-label="Remove image"
+            onClick={removeImage}
+          >
             ×
           </button>
         </div>

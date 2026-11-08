@@ -72,9 +72,7 @@ export default function SearchPage() {
         </>
       )}
 
-      {tab === "posts" && (
-        <PostList query={posts} emptyMessage="No posts match those words." />
-      )}
+      {tab === "posts" && <PostList query={posts} emptyMessage="No posts match those words." />}
     </>
   );
 }

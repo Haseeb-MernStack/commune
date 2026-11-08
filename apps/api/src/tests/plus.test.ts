@@ -23,7 +23,9 @@ const chain = (value: unknown) => ({ select: () => ({ lean: () => Promise.resolv
 
 /** Makes every User.findById(...).select(...).lean() return this user. */
 const asUser = (user: Record<string, unknown>) =>
-  vi.spyOn(User, "findById").mockReturnValue(chain({ role: "user", banned: false, ...user }) as never);
+  vi
+    .spyOn(User, "findById")
+    .mockReturnValue(chain({ role: "user", banned: false, ...user }) as never);
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -31,7 +33,12 @@ afterEach(() => {
 
 describe("plan rules", () => {
   const now = Date.parse("2030-01-10T00:00:00Z");
-  const base = { status: "active", cancelled: false, renewsAt: new Date("2030-02-01T00:00:00Z"), endsAt: null };
+  const base = {
+    status: "active",
+    cancelled: false,
+    renewsAt: new Date("2030-02-01T00:00:00Z"),
+    endsAt: null,
+  };
 
   it("keeps access through the renewal date plus a grace period", () => {
     expect(plusUntilFor(base, now).getTime()).toBe(base.renewsAt.getTime() + RENEWAL_GRACE_MS);
@@ -40,7 +47,9 @@ describe("plan rules", () => {
   it("lets a cancelled subscription run to the end of the paid period, then stops", () => {
     const endsAt = new Date("2030-02-01T00:00:00Z");
     expect(plusUntilFor({ ...base, cancelled: true, endsAt }, now)).toEqual(endsAt);
-    expect(plusUntilFor({ ...base, status: "cancelled", cancelled: true, endsAt }, now)).toEqual(endsAt);
+    expect(plusUntilFor({ ...base, status: "cancelled", cancelled: true, endsAt }, now)).toEqual(
+      endsAt,
+    );
   });
 
   it("gives no access when expired, paused, unpaid or unknown", () => {
@@ -66,10 +75,17 @@ describe("plan rules", () => {
 describe("billing (simulated payments in development)", () => {
   it("GET /api/billing reports the plan", async () => {
     asUser({ plusUntil: future() });
-    vi.spyOn(Subscription, "findOne").mockReturnValue(chain({ status: "active", cancelled: false }) as never);
+    vi.spyOn(Subscription, "findOne").mockReturnValue(
+      chain({ status: "active", cancelled: false }) as never,
+    );
     const res = await request(app).get("/api/billing").set(auth);
     expect(res.status).toBe(200);
-    expect(res.body).toMatchObject({ plus: true, cancelled: false, status: "active", available: true });
+    expect(res.body).toMatchObject({
+      plus: true,
+      cancelled: false,
+      status: "active",
+      available: true,
+    });
     expect(res.body.priceLabel).toBe("$5 / month");
   });
 
@@ -131,7 +147,9 @@ describe("Plus features", () => {
     const author = { _id: oid(), username: "sam", avatarUrl: null, plusUntil: future() };
     vi.spyOn(Post, "create").mockResolvedValue({ _id: oid() } as never);
     vi.spyOn(Post, "findById").mockReturnValue({
-      populate: () => ({ populate: () => ({ lean: () => Promise.resolve(row(author, longText)) }) }),
+      populate: () => ({
+        populate: () => ({ lean: () => Promise.resolve(row(author, longText)) }),
+      }),
     } as never);
     const res = await request(app).post("/api/posts").set(auth).send({ content: longText });
     expect(res.status).toBe(201);
@@ -140,7 +158,10 @@ describe("Plus features", () => {
 
   it("still rejects posts over the Plus limit", async () => {
     asUser({ plusUntil: future() });
-    const res = await request(app).post("/api/posts").set(auth).send({ content: "x".repeat(2001) });
+    const res = await request(app)
+      .post("/api/posts")
+      .set(auth)
+      .send({ content: "x".repeat(2001) });
     expect(res.status).toBe(400);
   });
 
@@ -172,16 +193,27 @@ describe("GET /api/insights", () => {
   it("returns totals, a 30-day series and top posts", async () => {
     asUser({ plusUntil: future() });
     const today = lastDays().at(-1)!;
-    vi.spyOn(Post, "aggregate").mockResolvedValue([{ posts: 3, views: 10, likes: 4, comments: 2 }] as never);
+    vi.spyOn(Post, "aggregate").mockResolvedValue([
+      { posts: 3, views: 10, likes: 4, comments: 2 },
+    ] as never);
     vi.spyOn(PostView, "aggregate").mockResolvedValue([{ _id: today, views: 5 }] as never);
-    vi.spyOn(Follow, "countDocuments").mockResolvedValueOnce(7 as never).mockResolvedValueOnce(2 as never);
+    vi.spyOn(Follow, "countDocuments")
+      .mockResolvedValueOnce(7 as never)
+      .mockResolvedValueOnce(2 as never);
     vi.spyOn(Post, "find").mockReturnValue({
       sort: () => ({
         limit: () => ({
           select: () => ({
             lean: () =>
               Promise.resolve([
-                { _id: oid(), content: "Top post", viewCount: 9, likeCount: 3, commentCount: 1, createdAt: new Date() },
+                {
+                  _id: oid(),
+                  content: "Top post",
+                  viewCount: 9,
+                  likeCount: 3,
+                  commentCount: 1,
+                  createdAt: new Date(),
+                },
               ]),
           }),
         }),

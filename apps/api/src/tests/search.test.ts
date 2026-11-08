@@ -58,11 +58,13 @@ describe("search routes", () => {
 
 describe("GET /api/search/users", () => {
   it("matches usernames by escaped prefix and hides suspended accounts", async () => {
-    const find = vi.spyOn(User, "find").mockReturnValue(
-      queryChain([
-        { _id: new mongoose.Types.ObjectId(), username: "sam_dev", bio: "hi", avatarUrl: null },
-      ]) as never,
-    );
+    const find = vi
+      .spyOn(User, "find")
+      .mockReturnValue(
+        queryChain([
+          { _id: new mongoose.Types.ObjectId(), username: "sam_dev", bio: "hi", avatarUrl: null },
+        ]) as never,
+      );
     const res = await request(app).get("/api/search/users?q=sa.m").set(auth);
     expect(res.status).toBe(200);
     expect(find).toHaveBeenCalledWith({

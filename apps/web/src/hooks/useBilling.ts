@@ -18,7 +18,9 @@ export function useBilling(waitForActivation = false) {
     queryFn: () => api<BillingDTO>("/billing"),
     // Check every 2s for up to a minute after paying; the webhook normally lands within seconds.
     refetchInterval: (q) =>
-      waitForActivation && !q.state.data?.plus && Date.now() - started.current < ACTIVATION_WAIT_MS ? 2000 : false,
+      waitForActivation && !q.state.data?.plus && Date.now() - started.current < ACTIVATION_WAIT_MS
+        ? 2000
+        : false,
     // A returning customer should see their real plan, not a copy from before they paid.
     staleTime: 0,
   });
@@ -27,7 +29,9 @@ export function useBilling(waitForActivation = false) {
   const plus = query.data?.plus;
   useEffect(() => {
     if (plus === undefined || !user || user.plus === plus) return;
-    void api<PublicUser>("/users/me").then(setUser).catch(() => undefined);
+    void api<PublicUser>("/users/me")
+      .then(setUser)
+      .catch(() => undefined);
   }, [plus, user, setUser]);
 
   return query;

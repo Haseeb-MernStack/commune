@@ -47,18 +47,24 @@ export interface SaleInput {
 /** Records a purchase. Returns false if this order (or buyer + post) was already recorded. */
 export async function recordPurchase(sale: SaleInput): Promise<boolean> {
   // Plus members keep more of each sale. The rate is fixed at the moment of the sale.
-  const creator = await User.findById(sale.creatorId).select("plusUntil").lean();
-  const feePercent = isPlusActive(creator?.plusUntil) ? env.PLUS_FEE_PERCENT : env.PLATFORM_FEE_PERCENT;
+  // Ids can originate in a webhook body: only ever use them as real ObjectIds.
+  const userId = new mongoose.Types.ObjectId(sale.userId);
+  const postId = new mongoose.Types.ObjectId(sale.postId);
+  const creatorId = new mongoose.Types.ObjectId(sale.creatorId);
+  const creator = await User.findById(creatorId).select("plusUntil").lean();
+  const feePercent = isPlusActive(creator?.plusUntil)
+    ? env.PLUS_FEE_PERCENT
+    : env.PLATFORM_FEE_PERCENT;
   try {
     await Purchase.create({
-      user: sale.userId,
-      post: sale.postId,
-      creator: sale.creatorId,
+      user: userId,
+      post: postId,
+      creator: creatorId,
       amountCents: sale.amountCents,
       ...splitSale(sale.amountCents, feePercent),
       currency: sale.currency,
       provider: sale.provider,
-      providerOrderId: sale.orderId,
+      providerOrderId: String(sale.orderId),
     });
     return true;
   } catch (err) {

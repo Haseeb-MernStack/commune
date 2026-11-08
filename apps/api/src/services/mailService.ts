@@ -16,7 +16,10 @@ export interface Mail {
 export async function sendMail(mail: Mail): Promise<void> {
   if (!env.RESEND_API_KEY) {
     if (isProd) {
-      logger.warn({ to: mail.to, subject: mail.subject }, "Email not sent: RESEND_API_KEY is not set");
+      logger.warn(
+        { to: mail.to, subject: mail.subject },
+        "Email not sent: RESEND_API_KEY is not set",
+      );
     } else {
       logger.info(`\n--- EMAIL to ${mail.to} ---\n${mail.subject}\n\n${mail.text}\n---`);
     }

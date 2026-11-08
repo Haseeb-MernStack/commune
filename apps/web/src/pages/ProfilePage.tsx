@@ -37,7 +37,8 @@ export default function ProfilePage() {
   const isAdmin = me?.role === "admin";
 
   const suspend = () => {
-    if (!window.confirm(`Suspend @${p.username}? They will be logged out and unable to post.`)) return;
+    if (!window.confirm(`Suspend @${p.username}? They will be logged out and unable to post.`))
+      return;
     const removePosts = window.confirm("Also delete all of their posts?");
     ban.mutate(removePosts);
   };
@@ -90,7 +91,10 @@ export default function ProfilePage() {
             )
           ) : (
             <div className="row">
-              <Link className="btn btn-outline" to={`/messages?to=${encodeURIComponent(p.username)}`}>
+              <Link
+                className="btn btn-outline"
+                to={`/messages?to=${encodeURIComponent(p.username)}`}
+              >
                 <Icon name="mail" size={18} /> Message
               </Link>
               <button
@@ -122,7 +126,9 @@ export default function ProfilePage() {
               disabled={photoBusy}
             >
               {photoBusy
-                ? upload.progress ? `Uploading ${upload.progress}%` : "Saving photo…"
+                ? upload.progress
+                  ? `Uploading ${upload.progress}%`
+                  : "Saving photo…"
                 : "Change photo"}
             </button>
             {p.avatarUrl && (

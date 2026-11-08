@@ -19,11 +19,11 @@ services:
       - key: NODE_ENV
         value: production
       # Fill these in on the Render dashboard (never commit them):
-      - key: JWT_ACCESS_SECRET   # exactly the same value as on the API project
+      - key: JWT_ACCESS_SECRET # exactly the same value as on the API project
         sync: false
-      - key: REALTIME_SECRET     # new random value, the same on the API project
+      - key: REALTIME_SECRET # new random value, the same on the API project
         sync: false
-      - key: CLIENT_ORIGIN       # https://commune-mu.vercel.app (no trailing slash)
+      - key: CLIENT_ORIGIN # https://commune-mu.vercel.app (no trailing slash)
         sync: false
-      - key: API_URL             # https://commune-8im5.vercel.app
+      - key: API_URL # https://commune-8im5.vercel.app
         sync: false

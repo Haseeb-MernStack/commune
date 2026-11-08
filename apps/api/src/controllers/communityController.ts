@@ -25,7 +25,11 @@ async function findBySlug(raw: string | undefined) {
 const isDuplicate = (err: unknown) => (err as { code?: number }).code === 11000;
 
 export async function create(req: Request, res: Response) {
-  const { slug, name, description } = req.body as { slug: string; name: string; description: string };
+  const { slug, name, description } = req.body as {
+    slug: string;
+    name: string;
+    description: string;
+  };
 
   // A cap keeps one account from claiming every good name.
   const [owned, owner] = await Promise.all([
@@ -72,7 +76,10 @@ export async function list(req: Request, res: Response) {
     filter.$or = [{ slug: pattern }, { name: pattern }];
   }
 
-  const rows = await Community.find(filter).sort({ memberCount: -1, _id: -1 }).limit(LIST_LIMIT).lean();
+  const rows = await Community.find(filter)
+    .sort({ memberCount: -1, _id: -1 })
+    .limit(LIST_LIMIT)
+    .lean();
   const items: CommunityDTO[] = rows.map((c) =>
     toCommunityDTO(c, (roles.get(c._id.toString()) as "owner" | "member" | undefined) ?? null),
   );

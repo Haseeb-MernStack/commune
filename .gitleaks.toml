@@ -1,0 +1,10 @@
+# Gitleaks config: keep the default rules, and allow the throwaway credentials the browser
+# tests use. They only exist for a disposable e2e database and are not real secrets.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Test fixtures, not secrets"
+paths = [
+  '''e2e/.*''',
+]

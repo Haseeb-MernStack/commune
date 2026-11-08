@@ -42,9 +42,12 @@ export function useDisablePush() {
 export function useSavePushPreferences() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (prefs: PushPreferences) => api<void>("/push/preferences", { method: "PUT", body: prefs }),
+    mutationFn: (prefs: PushPreferences) =>
+      api<void>("/push/preferences", { method: "PUT", body: prefs }),
     onMutate: async (prefs) => {
-      qc.setQueryData<PushStatus>(["push-status"], (old) => (old ? { ...old, preferences: prefs } : old));
+      qc.setQueryData<PushStatus>(["push-status"], (old) =>
+        old ? { ...old, preferences: prefs } : old,
+      );
     },
     onError: () => void qc.invalidateQueries({ queryKey: ["push-status"] }),
   });

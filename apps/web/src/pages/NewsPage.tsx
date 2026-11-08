@@ -43,14 +43,22 @@ export default function NewsPage() {
         </p>
       )}
       {news.data?.map((n) => (
-        <a key={n.id} className="card news-card" href={n.link} target="_blank" rel="noopener noreferrer nofollow">
+        <a
+          key={n.id}
+          className="card news-card"
+          href={n.link}
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+        >
           <span className="muted small">
             {n.source} · {timeAgo(n.publishedAt)} ago
           </span>
           <strong>{n.title}</strong>
         </a>
       ))}
-      <p className="muted small center">Headlines from BBC, NPR, The Guardian and Al Jazeera. Links open the publisher's site.</p>
+      <p className="muted small center">
+        Headlines from BBC, NPR, The Guardian and Al Jazeera. Links open the publisher's site.
+      </p>
     </>
   );
 }

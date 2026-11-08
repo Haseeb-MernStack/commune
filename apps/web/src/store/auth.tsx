@@ -69,23 +69,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [setUser]);
 
-  const apply = (res: AuthResponse) => {
-    setAccessToken(res.accessToken);
-    writeSessionHint("1");
-    setUser(res.user);
-  };
+  const apply = useCallback(
+    (res: AuthResponse) => {
+      setAccessToken(res.accessToken);
+      writeSessionHint("1");
+      setUser(res.user);
+    },
+    [setUser],
+  );
 
-  const login = useCallback(async (input: LoginInput) => {
-    apply(await api<AuthResponse>("/auth/login", { method: "POST", body: input }));
-  }, []);
+  const login = useCallback(
+    async (input: LoginInput) => {
+      apply(await api<AuthResponse>("/auth/login", { method: "POST", body: input }));
+    },
+    [apply],
+  );
 
-  const register = useCallback(async (input: RegisterInput) => {
-    apply(await api<AuthResponse>("/auth/register", { method: "POST", body: input }));
-  }, []);
+  const register = useCallback(
+    async (input: RegisterInput) => {
+      apply(await api<AuthResponse>("/auth/register", { method: "POST", body: input }));
+    },
+    [apply],
+  );
 
-  const loginWithGoogle = useCallback(async (credential: string) => {
-    apply(await api<AuthResponse>("/auth/google", { method: "POST", body: { credential } }));
-  }, []);
+  const loginWithGoogle = useCallback(
+    async (credential: string) => {
+      apply(await api<AuthResponse>("/auth/google", { method: "POST", body: { credential } }));
+    },
+    [apply],
+  );
 
   const logout = useCallback(async () => {
     // While the access token is still valid: stop this device receiving this person's notifications.
@@ -94,11 +106,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAccessToken(null);
     writeSessionHint("0");
     setUser(null);
-  }, []);
+  }, [setUser]);
 
   const value = useMemo(
     () => ({ user, loading, login, register, loginWithGoogle, logout, setUser }),
-    [user, loading, login, register, loginWithGoogle, logout],
+    [user, loading, login, register, loginWithGoogle, logout, setUser],
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -16,6 +16,8 @@ describe("loadConfig", () => {
   });
 
   it("lists every problem at once", () => {
-    expect(() => loadConfig({ JWT_ACCESS_SECRET: "short" })).toThrow(/JWT_ACCESS_SECRET[\s\S]*REALTIME_SECRET[\s\S]*CLIENT_ORIGIN[\s\S]*API_URL/);
+    expect(() => loadConfig({ JWT_ACCESS_SECRET: "short" })).toThrow(
+      /JWT_ACCESS_SECRET[\s\S]*REALTIME_SECRET[\s\S]*CLIENT_ORIGIN[\s\S]*API_URL/,
+    );
   });
 });

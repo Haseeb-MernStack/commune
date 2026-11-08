@@ -6,7 +6,12 @@ import { useAuth } from "../store/auth";
 
 export default function ContactPage() {
   const { user } = useAuth();
-  const [fields, setFields] = useState({ name: user?.username ?? "", email: "", message: "", website: "" });
+  const [fields, setFields] = useState({
+    name: user?.username ?? "",
+    email: "",
+    message: "",
+    website: "",
+  });
   const [error, setError] = useState<string | null>(null);
   const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
 
@@ -47,7 +52,13 @@ export default function ContactPage() {
       </label>
       <label>
         Email
-        <input type="email" value={fields.email} onChange={set("email")} maxLength={120} autoComplete="email" />
+        <input
+          type="email"
+          value={fields.email}
+          onChange={set("email")}
+          maxLength={120}
+          autoComplete="email"
+        />
       </label>
       <label>
         Message

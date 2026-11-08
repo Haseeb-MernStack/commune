@@ -20,7 +20,10 @@ async function post<T = null>(path: string, body: unknown): Promise<T | null> {
   try {
     const res = await fetch(`${env.REALTIME_URL}${path}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${env.REALTIME_SECRET}` },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${env.REALTIME_SECRET}`,
+      },
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
@@ -34,7 +37,11 @@ async function post<T = null>(path: string, body: unknown): Promise<T | null> {
 }
 
 /** Sends an event to every open tab and device of these users. */
-export async function emitToUsers(userIds: Array<string | { toString(): string }>, event: PushedEvent, payload: unknown = {}) {
+export async function emitToUsers(
+  userIds: Array<string | { toString(): string }>,
+  event: PushedEvent,
+  payload: unknown = {},
+) {
   const to = [...new Set(userIds.map((id) => id.toString()))];
   if (to.length === 0) return;
   await post("/internal/emit", { to, event, payload });

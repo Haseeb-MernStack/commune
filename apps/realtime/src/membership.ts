@@ -29,17 +29,24 @@ export class Membership {
     if (hit && hit.expires > Date.now()) return hit.participants;
 
     try {
-      const res = await this.fetchImpl(`${this.apiUrl}/api/internal/conversations/${conversationId}/participants`, {
-        headers: { Authorization: `Bearer ${this.secret}` },
-        signal: AbortSignal.timeout(4000),
-      });
+      const res = await this.fetchImpl(
+        `${this.apiUrl}/api/internal/conversations/${conversationId}/participants`,
+        {
+          headers: { Authorization: `Bearer ${this.secret}` },
+          signal: AbortSignal.timeout(4000),
+        },
+      );
       if (res.status === 404) return this.remember(conversationId, null, MISSING_TTL_MS);
       if (!res.ok) {
         log("warn", "Membership lookup failed", { status: res.status });
         return null; // not cached: try again next time
       }
       const body = (await res.json()) as { participants?: unknown };
-      if (!Array.isArray(body.participants) || !body.participants.every((p) => typeof p === "string")) return null;
+      if (
+        !Array.isArray(body.participants) ||
+        !body.participants.every((p) => typeof p === "string")
+      )
+        return null;
       return this.remember(conversationId, body.participants as string[], FOUND_TTL_MS);
     } catch (err) {
       log("warn", "Membership lookup error", { err: String(err) });

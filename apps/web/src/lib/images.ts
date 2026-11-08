@@ -37,7 +37,9 @@ export const AVATAR_PHOTO: PrepareOptions = { maxSide: 512, square: true };
 const KEEP_BELOW_BYTES = 600 * 1024;
 const TARGET_BYTES = 2.5 * 1024 * 1024;
 
-async function decode(file: File): Promise<{ source: CanvasImageSource; width: number; height: number; close: () => void }> {
+async function decode(
+  file: File,
+): Promise<{ source: CanvasImageSource; width: number; height: number; close: () => void }> {
   if (typeof createImageBitmap === "function") {
     try {
       const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
@@ -52,7 +54,12 @@ async function decode(file: File): Promise<{ source: CanvasImageSource; width: n
     img.decoding = "async";
     img.src = url;
     await img.decode();
-    return { source: img, width: img.naturalWidth, height: img.naturalHeight, close: () => URL.revokeObjectURL(url) };
+    return {
+      source: img,
+      width: img.naturalWidth,
+      height: img.naturalHeight,
+      close: () => URL.revokeObjectURL(url),
+    };
   } catch {
     URL.revokeObjectURL(url);
     throw new Error("We couldn't read that image. Try another photo.");

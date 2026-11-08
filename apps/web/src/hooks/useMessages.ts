@@ -122,10 +122,13 @@ export function useStartChat(username: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (text: string) =>
-      api<{ conversationId: string; message: MessageDTO }>(`/messages/with/${encodeURIComponent(username)}`, {
-        method: "POST",
-        body: { text },
-      }),
+      api<{ conversationId: string; message: MessageDTO }>(
+        `/messages/with/${encodeURIComponent(username)}`,
+        {
+          method: "POST",
+          body: { text },
+        },
+      ),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ["conversations"] }),
   });
 }

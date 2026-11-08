@@ -47,7 +47,10 @@ function sendToCloud(
  * serverless request-size limit; if that fails for any reason it falls back to uploading
  * through the API.
  */
-export async function uploadImage(file: File, onProgress?: (percent: number) => void): Promise<UploadResponse> {
+export async function uploadImage(
+  file: File,
+  onProgress?: (percent: number) => void,
+): Promise<UploadResponse> {
   let ticket: UploadTicket = { mode: "server" };
   try {
     ticket = await api<UploadTicket>("/uploads/sign", { method: "POST" });

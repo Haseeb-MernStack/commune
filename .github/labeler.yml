@@ -22,5 +22,4 @@ tests:
       - any-glob-to-any-file: ["**/tests/**", "**/*.test.ts", "**/*.test.tsx"]
 dependencies:
   - changed-files:
-      - any-glob-to-any-file:
-          ["package.json", "**/package.json", "package-lock.json"]
+      - any-glob-to-any-file: ["package.json", "**/package.json", "package-lock.json"]

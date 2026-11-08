@@ -6,7 +6,9 @@ export function useCommunities(filter: { q?: string; mine?: boolean }) {
   return useQuery({
     queryKey: ["communities", filter],
     queryFn: () =>
-      api<CommunityDTO[]>(withQuery("/communities", { q: filter.q, mine: filter.mine ? "1" : undefined })),
+      api<CommunityDTO[]>(
+        withQuery("/communities", { q: filter.q, mine: filter.mine ? "1" : undefined }),
+      ),
   });
 }
 

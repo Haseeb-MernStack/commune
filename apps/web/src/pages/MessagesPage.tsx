@@ -124,7 +124,9 @@ function Thread({ id }: { id: string }) {
   // it read (the first load is already marked read by the server).
   const lastMessage = messages[messages.length - 1];
   const lastFromOther =
-    Boolean(lastMessage) && lastMessage!.senderId !== user?.id && !lastMessage!.id.startsWith(PENDING_PREFIX);
+    Boolean(lastMessage) &&
+    lastMessage!.senderId !== user?.id &&
+    !lastMessage!.id.startsWith(PENDING_PREFIX);
   const markedRef = useRef<string | null>(null);
   useEffect(() => {
     if (thread.isSuccess && markedRef.current === null) markedRef.current = lastMessage?.id ?? "";
@@ -165,7 +167,8 @@ function Thread({ id }: { id: string }) {
   };
 
   if (thread.isLoading) return <ThreadSkeleton />;
-  if (thread.isError || !thread.data) return <p className="error center">Conversation not found.</p>;
+  if (thread.isError || !thread.data)
+    return <p className="error center">Conversation not found.</p>;
   const other = thread.data.conversation?.other;
 
   return (
@@ -195,7 +198,11 @@ function Thread({ id }: { id: string }) {
 
       <div className="chat-messages" ref={listRef} onScroll={onScroll}>
         {cursor && (
-          <button className="link-btn center" onClick={() => void showOlder()} disabled={loadingOlder}>
+          <button
+            className="link-btn center"
+            onClick={() => void showOlder()}
+            disabled={loadingOlder}
+          >
             {loadingOlder ? "Loading…" : "Load earlier messages"}
           </button>
         )}
@@ -204,15 +211,25 @@ function Thread({ id }: { id: string }) {
           const mine = m.senderId === user?.id;
           const pending = m.id.startsWith(PENDING_PREFIX);
           return (
-            <div key={m.id} className={`bubble-row${mine ? " mine" : ""}${pending ? " pending" : ""}`}>
+            <div
+              key={m.id}
+              className={`bubble-row${mine ? " mine" : ""}${pending ? " pending" : ""}`}
+            >
               <div className="bubble">
                 <span>{m.text}</span>
-                <time className="bubble-time" dateTime={m.createdAt} title={new Date(m.createdAt).toLocaleString()}>
+                <time
+                  className="bubble-time"
+                  dateTime={m.createdAt}
+                  title={new Date(m.createdAt).toLocaleString()}
+                >
                   {pending ? "Sending…" : timeAgo(m.createdAt)}
                 </time>
-                {mine && m.id === lastMineId && !pending && thread.data?.conversation?.seenByOther && (
-                  <span className="bubble-seen">Seen</span>
-                )}
+                {mine &&
+                  m.id === lastMineId &&
+                  !pending &&
+                  thread.data?.conversation?.seenByOther && (
+                    <span className="bubble-seen">Seen</span>
+                  )}
               </div>
             </div>
           );
@@ -284,7 +301,9 @@ export default function MessagesPage() {
   // "Message @someone" from a profile: reuse the existing conversation when there is one.
   useEffect(() => {
     if (!to || !conversations.data) return;
-    const existing = conversations.data.find((c) => c.other.username.toLowerCase() === to.toLowerCase());
+    const existing = conversations.data.find(
+      (c) => c.other.username.toLowerCase() === to.toLowerCase(),
+    );
     if (existing) navigate(`/messages/${existing.id}`, { replace: true });
   }, [to, conversations.data, navigate]);
 
@@ -316,7 +335,9 @@ export default function MessagesPage() {
                 <span className="muted small">{timeAgo(c.lastMessageAt)}</span>
               </span>
               <span className="convo-last muted">
-                {c.lastMessage ? (c.lastMessage.senderId === user?.id ? "You: " : "") + c.lastMessage.text : "No messages"}
+                {c.lastMessage
+                  ? (c.lastMessage.senderId === user?.id ? "You: " : "") + c.lastMessage.text
+                  : "No messages"}
               </span>
             </span>
             {c.unread > 0 && <span className="pill">{c.unread}</span>}

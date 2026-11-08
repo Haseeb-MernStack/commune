@@ -120,7 +120,10 @@ export function createRealtimeServer(config: Config, membership?: Membership) {
       } catch {
         return send(res, 400, { error: "Invalid body" });
       }
-      const input = (typeof body === "object" && body !== null ? body : {}) as Record<string, unknown>;
+      const input = (typeof body === "object" && body !== null ? body : {}) as Record<
+        string,
+        unknown
+      >;
 
       if (path === "/internal/active") {
         const ids = input.userIds;
@@ -155,7 +158,8 @@ export function createRealtimeServer(config: Config, membership?: Membership) {
       if (typeof input.event !== "string" || !PUSHABLE_EVENTS.has(input.event)) {
         return send(res, 400, { error: "Unknown event" });
       }
-      for (const id of new Set(to as string[])) io.to(userRoom(id)).emit(input.event, input.payload ?? {});
+      for (const id of new Set(to as string[]))
+        io.to(userRoom(id)).emit(input.event, input.payload ?? {});
       return send(res, 204);
     }
 
@@ -186,7 +190,10 @@ export function createRealtimeServer(config: Config, membership?: Membership) {
 
     // The connection is only as valid as the token. When it expires the client is dropped and
     // reconnects with a fresh one, so a stolen or revoked session cannot stay connected.
-    const expiryTimer = setTimeout(() => socket.disconnect(true), Math.max(0, data.expiresAt - Date.now()) + 1000);
+    const expiryTimer = setTimeout(
+      () => socket.disconnect(true),
+      Math.max(0, data.expiresAt - Date.now()) + 1000,
+    );
     expiryTimer.unref();
 
     const bucket = new TokenBucket(20, 5);
@@ -194,7 +201,8 @@ export function createRealtimeServer(config: Config, membership?: Membership) {
     socket.on("conversation:join", async (payload: unknown, ack?: Ack) => {
       const reply = typeof ack === "function" ? ack : () => undefined;
       const id = (payload as { conversationId?: unknown } | null)?.conversationId;
-      if (typeof id !== "string" || !OBJECT_ID.test(id)) return reply({ ok: false, error: "invalid" });
+      if (typeof id !== "string" || !OBJECT_ID.test(id))
+        return reply({ ok: false, error: "invalid" });
       if (!bucket.take()) return reply({ ok: false, error: "rate_limited" });
       if (data.conversations.size >= MAX_ROOMS_PER_SOCKET && !data.conversations.has(id)) {
         return reply({ ok: false, error: "too_many" });

@@ -25,7 +25,9 @@ export function prefetchRoute(path: string) {
 
 /** On a slow connection or with data saver on, do not spend the person's data. */
 function connectionIsLight(): boolean {
-  const c = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+  const c = (
+    navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }
+  ).connection;
   return Boolean(c?.saveData) || c?.effectiveType === "slow-2g" || c?.effectiveType === "2g";
 }
 
@@ -37,7 +39,9 @@ export function prefetchLikelyRoutes() {
       window.setTimeout(() => prefetchRoute(p), i * 400),
     );
   };
-  const idle = (window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
+  const idle = (
+    window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }
+  ).requestIdleCallback;
   if (idle) idle(run, { timeout: 4000 });
   else window.setTimeout(run, 2500);
 }

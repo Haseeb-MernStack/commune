@@ -23,7 +23,11 @@ let configuredFor = "";
 function configure() {
   const key = `${env.VAPID_PUBLIC_KEY}|${env.VAPID_PRIVATE_KEY}|${env.VAPID_SUBJECT ?? ""}`;
   if (key === configuredFor) return;
-  webpush.setVapidDetails(env.VAPID_SUBJECT ?? env.CLIENT_ORIGIN, env.VAPID_PUBLIC_KEY!, env.VAPID_PRIVATE_KEY!);
+  webpush.setVapidDetails(
+    env.VAPID_SUBJECT ?? env.CLIENT_ORIGIN,
+    env.VAPID_PUBLIC_KEY!,
+    env.VAPID_PRIVATE_KEY!,
+  );
   configuredFor = key;
 }
 
@@ -43,7 +47,9 @@ export async function pushToUser(
   try {
     configure();
     if (kind !== "test") {
-      const user = (await User.findById(userId).select("pushMessages pushSocial banned").lean()) as {
+      const user = (await User.findById(userId)
+        .select("pushMessages pushSocial banned")
+        .lean()) as {
         pushMessages?: boolean;
         pushSocial?: boolean;
         banned?: boolean;

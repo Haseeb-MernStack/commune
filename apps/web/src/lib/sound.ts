@@ -74,7 +74,8 @@ type AudioContextCtor = typeof AudioContext;
 const Ctor: AudioContextCtor | undefined =
   typeof window === "undefined"
     ? undefined
-    : window.AudioContext ?? (window as unknown as { webkitAudioContext?: AudioContextCtor }).webkitAudioContext;
+    : (window.AudioContext ??
+      (window as unknown as { webkitAudioContext?: AudioContextCtor }).webkitAudioContext);
 
 let ctx: AudioContext | null = null;
 const buffers = new Map<SoundKind, AudioBuffer>();
@@ -91,7 +92,9 @@ function load1(kind: SoundKind): Promise<AudioBuffer | null> {
       if (!res.ok) return null;
       const data = await res.arrayBuffer();
       // The callback form works on older Safari as well.
-      const buf = await new Promise<AudioBuffer>((resolve, reject) => ctx!.decodeAudioData(data, resolve, reject));
+      const buf = await new Promise<AudioBuffer>((resolve, reject) =>
+        ctx!.decodeAudioData(data, resolve, reject),
+      );
       buffers.set(kind, buf);
       return buf;
     } catch {
@@ -124,7 +127,8 @@ export function armSoundUnlock() {
   const events = ["pointerdown", "keydown", "touchend"] as const;
   const handler = () => {
     unlockAudio();
-    if (ctx && ctx.state === "running") events.forEach((e) => window.removeEventListener(e, handler));
+    if (ctx && ctx.state === "running")
+      events.forEach((e) => window.removeEventListener(e, handler));
   };
   events.forEach((e) => window.addEventListener(e, handler, { passive: true }));
 }
@@ -160,5 +164,8 @@ export function playSound(kind: SoundKind, opts: { force?: boolean } = {}): bool
 
 /** True when the person is already looking at this conversation, so a chime would just be noise. */
 export function isViewingConversation(conversationId: string): boolean {
-  return document.visibilityState === "visible" && window.location.pathname === `/messages/${conversationId}`;
+  return (
+    document.visibilityState === "visible" &&
+    window.location.pathname === `/messages/${conversationId}`
+  );
 }

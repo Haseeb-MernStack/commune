@@ -9,8 +9,5 @@
     }
   },
   "bypass_actors": [],
-  "rules": [
-    { "type": "deletion" },
-    { "type": "non_fast_forward" }
-  ]
+  "rules": [{ "type": "deletion" }, { "type": "non_fast_forward" }]
 }

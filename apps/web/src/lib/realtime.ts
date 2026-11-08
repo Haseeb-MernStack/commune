@@ -1,6 +1,11 @@
 import { useSyncExternalStore } from "react";
 import { io, type Socket } from "socket.io-client";
-import type { MessageNewEvent, MessageReadEvent, PresenceEvent, TypingEvent } from "@commune/shared";
+import type {
+  MessageNewEvent,
+  MessageReadEvent,
+  PresenceEvent,
+  TypingEvent,
+} from "@commune/shared";
 import { getAccessToken, tryRefresh } from "./api";
 
 /**
@@ -34,7 +39,11 @@ function subscribe(listener: () => void) {
   return () => listeners.delete(listener);
 }
 export function useRealtime<T>(select: (s: State) => T): T {
-  return useSyncExternalStore(subscribe, () => select(state), () => select(state));
+  return useSyncExternalStore(
+    subscribe,
+    () => select(state),
+    () => select(state),
+  );
 }
 /** For code that is not a component (for example a query's refetch interval). */
 export const isRealtimeConnected = () => state.connected;
@@ -60,10 +69,14 @@ function sendVisibility() {
 }
 
 function joinNow(id: string) {
-  socket?.emit("conversation:join", { conversationId: id }, (res: { ok: boolean; online?: boolean }) => {
-    // The answer says whether the other person is online right now; presence events do the rest.
-    void res;
-  });
+  socket?.emit(
+    "conversation:join",
+    { conversationId: id },
+    (res: { ok: boolean; online?: boolean }) => {
+      // The answer says whether the other person is online right now; presence events do the rest.
+      void res;
+    },
+  );
 }
 
 async function renewAndReconnect() {
@@ -120,7 +133,10 @@ export function startRealtime(handlers: RealtimeHandlers): void {
       // If the "stopped typing" event is lost, hide the indicator by itself.
       typingTimers.set(
         e.conversationId,
-        window.setTimeout(() => setState({ typing: { ...state.typing, [e.conversationId]: false } }), TYPING_SHOWN_MS),
+        window.setTimeout(
+          () => setState({ typing: { ...state.typing, [e.conversationId]: false } }),
+          TYPING_SHOWN_MS,
+        ),
       );
     }
   });
@@ -165,7 +181,10 @@ export function noteTyping(id: string): void {
     lastTypingSent.set(id, now);
   }
   window.clearTimeout(stopTimers.get(id));
-  stopTimers.set(id, window.setTimeout(() => stopTyping(id), 4000));
+  stopTimers.set(
+    id,
+    window.setTimeout(() => stopTyping(id), 4000),
+  );
 }
 
 export function stopTyping(id: string): void {

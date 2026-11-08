@@ -179,10 +179,7 @@ export interface CommunityLike {
   createdAt: Date;
 }
 
-export function toCommunityDTO(
-  c: CommunityLike,
-  myRole: "owner" | "member" | null,
-): CommunityDTO {
+export function toCommunityDTO(c: CommunityLike, myRole: "owner" | "member" | null): CommunityDTO {
   return {
     id: c._id.toString(),
     slug: c.slug,

@@ -58,7 +58,10 @@ describe("POST /api/communities", () => {
 
   it("requires a login and valid input", async () => {
     expect((await request(app).post("/api/communities").send(body)).status).toBe(401);
-    const bad = await request(app).post("/api/communities").set(auth).send({ slug: "x", name: "y" });
+    const bad = await request(app)
+      .post("/api/communities")
+      .set(auth)
+      .send({ slug: "x", name: "y" });
     expect(bad.status).toBe(400);
   });
 
@@ -79,7 +82,9 @@ describe("POST /api/communities", () => {
 
   it("answers 409 for a taken address and 403 past the per-user limit", async () => {
     vi.spyOn(Community, "countDocuments").mockResolvedValue(0 as never);
-    vi.spyOn(Community, "create").mockRejectedValue(Object.assign(new Error("dup"), { code: 11000 }));
+    vi.spyOn(Community, "create").mockRejectedValue(
+      Object.assign(new Error("dup"), { code: 11000 }),
+    );
     expect((await request(app).post("/api/communities").set(auth).send(body)).status).toBe(409);
 
     vi.spyOn(Community, "countDocuments").mockResolvedValue(5 as never);
@@ -126,8 +131,12 @@ describe("joining and leaving", () => {
   });
 
   it("treats a repeated join as success without counting again", async () => {
-    vi.spyOn(Community, "findOne").mockReturnValue({ lean: () => Promise.resolve(community()) } as never);
-    vi.spyOn(Membership, "create").mockRejectedValue(Object.assign(new Error("dup"), { code: 11000 }));
+    vi.spyOn(Community, "findOne").mockReturnValue({
+      lean: () => Promise.resolve(community()),
+    } as never);
+    vi.spyOn(Membership, "create").mockRejectedValue(
+      Object.assign(new Error("dup"), { code: 11000 }),
+    );
     const update = vi.spyOn(Community, "updateOne").mockResolvedValue({} as never);
     const res = await request(app).post("/api/communities/typescript/join").set(auth);
     expect(res.status).toBe(204);
@@ -135,7 +144,9 @@ describe("joining and leaving", () => {
   });
 
   it("stops owners from leaving", async () => {
-    vi.spyOn(Community, "findOne").mockReturnValue({ lean: () => Promise.resolve(community()) } as never);
+    vi.spyOn(Community, "findOne").mockReturnValue({
+      lean: () => Promise.resolve(community()),
+    } as never);
     vi.spyOn(Membership, "findOne").mockReturnValue(chain({ role: "owner" }) as never);
     const res = await request(app).delete("/api/communities/typescript/join").set(auth);
     expect(res.status).toBe(400);
