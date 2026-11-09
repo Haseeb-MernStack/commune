@@ -25,11 +25,6 @@ jobs:
         image: mongo:7
         ports:
           - 27017:27017
-        options: >-
-          --health-cmd "mongosh --quiet --eval db.adminCommand('ping')"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 6
     steps:
       - uses: actions/checkout@v4
         with:
@@ -38,6 +33,13 @@ jobs:
         with:
           node-version: 20
           cache: npm
+      - name: Wait for MongoDB
+        run: |
+          for i in $(seq 1 30); do
+            (echo > /dev/tcp/127.0.0.1/27017) 2>/dev/null && exit 0
+            sleep 2
+          done
+          echo "MongoDB did not start" && exit 1
       - run: npm install
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test
