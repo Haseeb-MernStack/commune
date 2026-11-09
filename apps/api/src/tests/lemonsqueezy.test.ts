@@ -133,9 +133,9 @@ describe("POST /api/webhooks/lemonsqueezy", () => {
     expect(res.status).toBe(200);
     expect(create).toHaveBeenCalledWith(
       expect.objectContaining({
-        user: BUYER,
-        post: POST_ID,
-        creator: CREATOR,
+        user: new mongoose.Types.ObjectId(BUYER),
+        post: new mongoose.Types.ObjectId(POST_ID),
+        creator: new mongoose.Types.ObjectId(CREATOR),
         amountCents: 1000,
         feeCents: 200,
         creatorShareCents: 800,

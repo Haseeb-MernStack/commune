@@ -48,6 +48,9 @@ export function cloudinarySignature(params: Record<string, string>, secret: stri
     .sort()
     .map((key) => `${key}=${params[key]}`)
     .join("&");
+  // SHA-1 is what Cloudinary's upload API requires here; it is a request signature checked by
+  // Cloudinary, not password hashing or anything protecting stored data.
+  // codeql[js/weak-cryptographic-algorithm]
   return crypto
     .createHash("sha1")
     .update(toSign + secret)
@@ -142,6 +145,11 @@ export function createUploadTicket(): UploadTicket {
 /** Checks that the file really exists in storage and returns the reference the app stores. */
 export async function confirmDirectUpload(id: string, format: string): Promise<string> {
   if (!cloud) throw badRequest("Direct uploads are not enabled");
+  // `id` and `format` come from the browser and end up in a URL we fetch, so only accept the
+  // exact shapes we hand out ourselves (32 hex characters, a known image format).
+  if (typeof id !== "string" || !/^[a-f0-9]{32}$/.test(id)) throw badRequest("Invalid upload id");
+  if (!["png", "jpg", "jpeg", "gif", "webp"].includes(format))
+    throw badRequest("Invalid image format");
   const ext = format === "jpeg" ? "jpg" : format;
   let ok = false;
   try {

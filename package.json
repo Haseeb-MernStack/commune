@@ -18,10 +18,12 @@
     "test": "npm run test -w @commune/api && npm run test -w @commune/realtime",
     "format": "prettier --write .",
     "lint": "eslint .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "e2e": "playwright test"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.65.0",
     "concurrently": "^9.0.0",
     "eslint": "^10.14.0",
     "eslint-plugin-react-hooks": "^7.1.1",

@@ -56,6 +56,8 @@ export default [
       ".github/scripts/**",
       "apps/web/scripts/**",
       "apps/web/*.config.{ts,js,mjs}",
+      "e2e/**",
+      "playwright.config.ts",
       "*.mjs",
     ],
     languageOptions: { globals: globals.node },

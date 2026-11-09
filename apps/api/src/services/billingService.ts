@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { env, isProd } from "../config/env.js";
 import { Subscription } from "../models/Subscription.js";
 import { User } from "../models/User.js";
@@ -22,12 +23,16 @@ export async function applySubscriptionEvent(event: SubscriptionEvent): Promise<
   // Whose subscription is this? Our checkout tags it with the user id. If that is missing (a
   // subscription made outside our checkout), fall back to the account we already linked to it,
   // then to the buyer's email address (the webhook is signed, so the email can be trusted).
-  let userId = event.userId ?? existing?.user?.toString() ?? null;
+  let rawUserId = event.userId ?? existing?.user?.toString() ?? null;
+  // The id comes from the webhook body: only ever use it as a real ObjectId, never as a query
+  // object or operator.
+  if (rawUserId && !mongoose.isValidObjectId(rawUserId)) rawUserId = null;
+  let userId = rawUserId;
   if (!userId && event.email) {
     const byEmail = await User.findOne({ email: event.email.toLowerCase() }).select("_id").lean();
     userId = byEmail?._id.toString() ?? null;
   }
-  if (!userId) {
+  if (!userId || !mongoose.isValidObjectId(userId)) {
     logger.error(
       { subscriptionId: event.subscriptionId },
       "Subscription event for an unknown user",
@@ -35,6 +40,7 @@ export async function applySubscriptionEvent(event: SubscriptionEvent): Promise<
     return;
   }
 
+  const userObjectId = new mongoose.Types.ObjectId(userId);
   const snapshot = {
     status: event.status,
     cancelled: event.cancelled,
@@ -45,7 +51,7 @@ export async function applySubscriptionEvent(event: SubscriptionEvent): Promise<
     { providerSubscriptionId: event.subscriptionId },
     {
       $set: {
-        user: userId,
+        user: userObjectId,
         provider: "lemonsqueezy",
         providerCustomerId: event.customerId,
         providerUpdatedAt: event.updatedAt,
@@ -55,7 +61,7 @@ export async function applySubscriptionEvent(event: SubscriptionEvent): Promise<
     },
     { upsert: true },
   );
-  await User.updateOne({ _id: userId }, { $set: { plusUntil: plusUntilFor(snapshot) } });
+  await User.updateOne({ _id: userObjectId }, { $set: { plusUntil: plusUntilFor(snapshot) } });
 }
 
 /** Local-development stand-in for a purchase: 30 days of Plus, no payment. Never in production. */

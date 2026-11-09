@@ -1,0 +1,55 @@
+name: E2E
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+# Reports only for now (continue-on-error). When it has been green on main for a while, delete that line and
+# add "Browser tests" to the required checks.
+jobs:
+  e2e:
+    name: Browser tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    continue-on-error: true
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Wait for MongoDB
+        run: |
+          for i in $(seq 1 30); do
+            (echo > /dev/tcp/127.0.0.1/27017) 2>/dev/null && exit 0
+            sleep 2
+          done
+          echo "MongoDB did not start" && exit 1
+      - run: npm install
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+        env:
+          CI: true
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
