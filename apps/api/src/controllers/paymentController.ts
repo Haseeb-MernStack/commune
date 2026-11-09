@@ -113,13 +113,15 @@ export async function lemonSqueezyWebhook(req: Request, res: Response) {
   }
   if (event.kind === "refunded") {
     // Revoke access and take the sale out of the creator's earnings.
-    await Purchase.deleteOne({ provider: "lemonsqueezy", providerOrderId: event.orderId });
+    await Purchase.deleteOne({ provider: "lemonsqueezy", providerOrderId: String(event.orderId) });
   } else if (event.kind === "subscription") {
     await applySubscriptionEvent(event);
   } else if (event.kind === "paid") {
     const valid = mongoose.isValidObjectId(event.postId) && mongoose.isValidObjectId(event.userId);
     const post = valid
-      ? await Post.findById(event.postId).select("author priceCents").lean()
+      ? await Post.findById(new mongoose.Types.ObjectId(event.postId))
+          .select("author priceCents")
+          .lean()
       : null;
     if (!post || post.priceCents == null) {
       // Paid for a post that no longer exists. Log loudly: this needs a manual refund.

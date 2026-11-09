@@ -21,6 +21,7 @@ import { signAccessToken } from "../utils/tokens.js";
 
 const app = createApp();
 const USER = new mongoose.Types.ObjectId().toString();
+const USER_ID = new mongoose.Types.ObjectId(USER);
 const auth = { Authorization: `Bearer ${signAccessToken(USER)}` };
 const chain = (value: unknown) => ({ select: () => ({ lean: () => Promise.resolve(value) }) });
 
@@ -78,10 +79,16 @@ describe("subscription webhooks", () => {
     expect(res.status).toBe(200);
     expect(upsert).toHaveBeenCalledWith(
       { providerSubscriptionId: "sub_77" },
-      { $set: expect.objectContaining({ user: USER, provider: "lemonsqueezy", status: "active" }) },
+      {
+        $set: expect.objectContaining({
+          user: USER_ID,
+          provider: "lemonsqueezy",
+          status: "active",
+        }),
+      },
       { upsert: true },
     );
-    expect(user).toHaveBeenCalledWith({ _id: USER }, expect.anything());
+    expect(user).toHaveBeenCalledWith({ _id: USER_ID }, expect.anything());
     expect(plusUntilOf(user).getTime()).toBe(Date.parse("2030-02-01T00:00:00Z") + RENEWAL_GRACE_MS);
   });
 
@@ -271,10 +278,10 @@ describe("finding the account behind a subscription", () => {
     expect(findByEmail).toHaveBeenCalledWith({ email: "sam@example.com" });
     expect(upsert).toHaveBeenCalledWith(
       { providerSubscriptionId: "sub_77" },
-      { $set: expect.objectContaining({ user: USER }) },
+      { $set: expect.objectContaining({ user: USER_ID }) },
       { upsert: true },
     );
-    expect(user).toHaveBeenCalledWith({ _id: USER }, expect.anything());
+    expect(user).toHaveBeenCalledWith({ _id: USER_ID }, expect.anything());
   });
 
   it("keeps using the account already linked to the subscription", async () => {
@@ -285,7 +292,7 @@ describe("finding the account behind a subscription", () => {
     await send(subscriptionEvent("subscription_updated", {}, null));
     expect(upsert).toHaveBeenCalledWith(
       { providerSubscriptionId: "sub_77" },
-      { $set: expect.objectContaining({ user: USER }) },
+      { $set: expect.objectContaining({ user: USER_ID }) },
       { upsert: true },
     );
   });

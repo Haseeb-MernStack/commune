@@ -24,6 +24,7 @@
 ![Zod](https://img.shields.io/badge/Zod-validation-3E67B1)
 ![PWA](https://img.shields.io/badge/PWA-installable-5A0FC8?logo=pwa&logoColor=white)
 ![Vercel](https://img.shields.io/badge/Deploy-Vercel-000000?logo=vercel&logoColor=white)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/Haseeb-MernStack/commune/badge)](https://scorecard.dev/viewer/?uri=github.com/Haseeb-MernStack/commune)
 
 </div>
 
