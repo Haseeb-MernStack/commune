@@ -1,0 +1,74 @@
+name: Uptime check
+
+# Every 15 minutes, checks that the website, the API and (optionally) the realtime service
+# answer. When something is down it opens a GitHub issue labelled "incident", which GitHub emails
+# to you; when everything is back it closes that issue by itself.
+# Settings and limits: docs/MONITORING.md
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: uptime
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Is the site up?
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      # Change these under Settings → Secrets and variables → Actions → Variables.
+      SITE_URL: ${{ vars.SITE_URL || 'https://commune-mu.vercel.app' }}
+      API_URL: ${{ vars.API_URL || 'https://commune-8im5.vercel.app' }}
+      REALTIME_URL: ${{ vars.REALTIME_URL }}
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Probe the services
+        id: probe
+        run: |
+          failed=""
+          check() {
+            name="$1"; url="$2"; code=000
+            # Three tries, so a cold start or one slow response is not reported as an outage.
+            for attempt in 1 2 3; do
+              code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$url" || true)
+              if [ "$code" = "200" ]; then echo "OK   $name"; return; fi
+              [ "$attempt" -lt 3 ] && sleep 10
+            done
+            echo "::warning::$name is down (HTTP $code)"
+            failed="${failed}- ${name}: HTTP ${code} at ${url}"$'\n'
+          }
+          check "Website and API through the web app" "${SITE_URL%/}/api/health/ready"
+          check "API (direct)" "${API_URL%/}/api/health/ready"
+          if [ -n "$REALTIME_URL" ]; then check "Realtime service" "${REALTIME_URL%/}/health"; fi
+          {
+            echo "failed<<EOF"
+            printf '%s' "$failed"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Open or close the incident issue
+        env:
+          FAILED: ${{ steps.probe.outputs.failed }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh label create incident --color D93F0B --description "The site is down" --force >/dev/null
+          open=$(gh issue list --label incident --state open --json number --jq '.[0].number // empty')
+          if [ -n "$FAILED" ]; then
+            if [ -z "$open" ]; then
+              gh issue create --label incident --title "Site is down" --body "$(printf 'The uptime check failed:\n\n%s\nRun: %s\n\nThis issue closes by itself when the checks pass again.' "$FAILED" "$RUN_URL")"
+            else
+              echo "Incident #$open is already open."
+            fi
+          elif [ -n "$open" ]; then
+            gh issue comment "$open" --body "Everything answers again ($RUN_URL). Closing."
+            gh issue close "$open"
+          fi
