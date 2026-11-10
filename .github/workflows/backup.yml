@@ -34,6 +34,10 @@ jobs:
           elif [ "${#BACKUP_PASSPHRASE}" -lt 24 ]; then
             echo "::error::BACKUP_PASSPHRASE must be at least 24 characters, because the backup is stored as an artifact."
             exit 1
+          elif ! printf '%s' "$MONGODB_URI" | grep -Eq '^mongodb(\+srv)?://[^:@/]+:[^@]+@[^/@]+/[^/?]+'; then
+            # The value itself is never printed, only what is wrong with its shape.
+            echo "::error::BACKUP_MONGODB_URI is not a valid connection string. It must look like mongodb+srv://USER:PASSWORD@HOST/DATABASE with no quotes, spaces or <> brackets, and special characters in the password written as %40 for @, %3A for :, %2F for / and %23 for #. See docs/BACKUPS.md."
+            exit 1
           else
             echo "enabled=true" >> "$GITHUB_OUTPUT"
           fi

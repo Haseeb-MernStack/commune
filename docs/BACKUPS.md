@@ -15,8 +15,13 @@ automatic backups**, so this repository ships its own.
 
 1. **Atlas → Database Access:** create a user named `backup` with the built-in role **Read any
    database** (or `read` on your database only). It can never change data.
-2. Copy that user's connection string. It must include your database name, as in
-   `mongodb+srv://backup:<password>@<cluster>/commune`.
+2. Copy that user's connection string and fill it in completely. It must include your database
+   name, as in `mongodb+srv://backup:MyPassword123@cluster0.abcde.mongodb.net/commune`.
+   - Replace `<password>` with the real password, **without** the `<` `>` brackets.
+   - Paste it with no quotes and no spaces before or after.
+   - If the password contains special characters, write them encoded: `@` as `%40`, `:` as
+     `%3A`, `/` as `%2F`, `#` as `%23`. (Or choose a password with only letters and digits.)
+   - Secrets cannot be read back in GitHub, so if you are unsure, save the secret again.
 3. Make a long random passphrase, **at least 24 characters**. In PowerShell:
    ```powershell
    -join ((48..57)+(65..90)+(97..122) | Get-Random -Count 40 | ForEach-Object {[char]$_})
