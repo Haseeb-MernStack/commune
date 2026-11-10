@@ -1,0 +1,14 @@
+# Shows the "Sponsor" button on the repository.
+# Keep only the lines you actually use. A platform you have not signed up for is reported as
+# an error by GitHub, so delete or comment out any you do not have.
+# Format: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
+
+# GitHub Sponsors (needs a Sponsors profile: https://github.com/sponsors/accounts)
+github: [Haseeb-MernStack]
+
+# Other platforms (remove the # and put your own name):
+# ko_fi: your-name
+# buy_me_a_coffee: your-name
+# patreon: your-name
+# open_collective: your-project
+# custom: ["https://your-site.example/donate"]
