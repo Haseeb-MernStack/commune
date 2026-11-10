@@ -2,8 +2,10 @@ import { createApp } from "./app.js";
 import { connectDb, disconnectDb } from "./config/db.js";
 import { env } from "./config/env.js";
 import { logger } from "./config/logger.js";
+import { installProcessHandlers } from "./config/processHandlers.js";
 
 async function main() {
+  installProcessHandlers();
   await connectDb();
   const server = createApp().listen(env.PORT, () => {
     logger.info(`API listening on http://localhost:${env.PORT}`);
