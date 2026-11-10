@@ -12,8 +12,27 @@ Three layers, all built in. None needs a paid service.
 Neither reveals versions, settings or paths. Point an uptime monitor at the **ready** URL:
 `https://commune-mu.vercel.app/api/health/ready`.
 
-Free options: UptimeRobot, Better Stack, or Vercel's own alerts. Set it to check every 5 minutes
-and email you on failure.
+### Automatic uptime check (built in)
+
+`.github/workflows/uptime.yml` checks every 15 minutes: the website (through the rewrite to the
+API), the API directly and, if you set it, the realtime service. Each check is tried three times,
+so a cold start is not reported as an outage. When something is down it opens a GitHub issue
+titled **Site is down** with the label `incident`, and GitHub emails you. When everything answers
+again the issue closes by itself.
+
+Change the addresses, or add the realtime service, under **Settings → Secrets and variables →
+Actions → Variables**:
+
+| Variable | Default |
+| --- | --- |
+| `SITE_URL` | `https://commune-mu.vercel.app` |
+| `API_URL` | `https://commune-8im5.vercel.app` |
+| `REALTIME_URL` | not checked until you set it (`https://<your-service>.onrender.com`) |
+
+Make sure **Watch** on the repository sends you email (Watch → Custom → Issues), so the alert
+reaches you. Limits: GitHub may delay scheduled runs by several minutes, and it turns scheduled
+workflows off after 60 days without any repository activity. If you want checks every minute or
+a phone alert, add UptimeRobot or Better Stack (both have free plans) on the same ready URL.
 
 ## 2. Error tracking
 
