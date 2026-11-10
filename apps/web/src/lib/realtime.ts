@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { io, type Socket } from "socket.io-client";
+import type { Socket } from "socket.io-client";
 import type {
   MessageNewEvent,
   MessageReadEvent,
@@ -15,7 +15,18 @@ import { getAccessToken, tryRefresh } from "./api";
  * (new messages, "seen", typing, who is online, notifications). If it is not configured or drops,
  * the app keeps working by polling, and everything is refetched when the connection returns.
  */
-const URL = import.meta.env.VITE_REALTIME_URL?.trim().replace(/\/+$/, "");
+const configured = import.meta.env.VITE_REALTIME_URL?.trim().replace(/\/+$/, "");
+
+/** Vercel cannot host WebSockets, so a realtime URL equal to this site's own address is a setup mistake. */
+function pointsAtThisSite(url: string): boolean {
+  try {
+    return new globalThis.URL(url).origin === window.location.origin;
+  } catch {
+    return true; // not a valid URL: treat as not configured
+  }
+}
+
+const URL = configured && !pointsAtThisSite(configured) ? configured : undefined;
 export const realtimeEnabled = Boolean(URL);
 
 const TYPING_SHOWN_MS = 4000;
@@ -92,8 +103,26 @@ async function renewAndReconnect() {
   if (await tryRefresh()) socket.connect();
 }
 
+// Bumped on every start and stop, so a connection that finishes loading after a stop (a quick
+// sign-out, say) is dropped instead of being opened.
+let startToken = 0;
+
 export function startRealtime(handlers: RealtimeHandlers): void {
   if (!URL || socket) return;
+  const token = ++startToken;
+  // The socket library is only downloaded when a signed-in user needs it, so guests and the
+  // first paint never pay for it.
+  void import("socket.io-client")
+    .then(({ io }) => {
+      if (token !== startToken || socket) return;
+      connect(io, handlers);
+    })
+    // If the chunk cannot load (offline), the app simply keeps polling.
+    .catch(() => undefined);
+}
+
+function connect(io: typeof import("socket.io-client").io, handlers: RealtimeHandlers): void {
+  if (!URL) return;
   const s = io(URL, {
     // A function, so every (re)connect uses the newest access token.
     auth: (cb) => cb({ token: getAccessToken() }),
@@ -146,6 +175,7 @@ export function startRealtime(handlers: RealtimeHandlers): void {
 }
 
 export function stopRealtime(): void {
+  startToken += 1;
   document.removeEventListener("visibilitychange", sendVisibility);
   socket?.removeAllListeners();
   socket?.disconnect();
