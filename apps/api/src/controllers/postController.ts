@@ -120,8 +120,12 @@ export async function listPosts(req: Request, res: Response) {
 }
 
 export async function getPost(req: Request, res: Response) {
-  const post = await loadPost(param(req, "id"));
-  const liked = await likedSet(req.userId!, [post._id]);
+  const id = param(req, "id");
+  // The post and the viewer's like are independent lookups: ask for both at once.
+  const [post, liked] = await Promise.all([
+    loadPost(id),
+    likedSet(req.userId!, [new mongoose.Types.ObjectId(id)]),
+  ]);
   res.json(await withViewer(req.userId!, post, liked));
 }
 

@@ -161,13 +161,17 @@ export async function getMessages(req: Request, res: Response) {
   const { convo, otherId } = await loadConversation(req.params.id, me);
   const { cursor, limit } = res.locals.query as { cursor?: string; limit: number };
 
-  const rows = (await Message.find({
-    conversation: str(convo._id),
-    ...(cursor ? { createdAt: { $lt: new Date(cursor) } } : {}),
-  })
-    .sort({ createdAt: -1 })
-    .limit(limit + 1)
-    .lean()) as unknown as LeanMessage[];
+  // The page of messages and the other person's profile do not depend on each other.
+  const [rows, other] = await Promise.all([
+    Message.find({
+      conversation: str(convo._id),
+      ...(cursor ? { createdAt: { $lt: new Date(cursor) } } : {}),
+    })
+      .sort({ createdAt: -1 })
+      .limit(limit + 1)
+      .lean() as unknown as Promise<LeanMessage[]>,
+    User.findById(otherId).select(USER_FIELDS).lean() as unknown as Promise<LeanUser | null>,
+  ]);
 
   const hasMore = rows.length > limit;
   const page = rows.slice(0, limit); // newest first
@@ -175,13 +179,12 @@ export async function getMessages(req: Request, res: Response) {
 
   // Opening the latest page counts as reading the conversation.
   if (!cursor && Number(convo.unread?.[me] ?? 0) > 0) {
-    await Conversation.updateOne({ _id: str(convo._id) }, { $set: { [`unread.${me}`]: 0 } });
-    await emitToUsers([otherId], "message:read", { conversationId: str(convo._id), readerId: me });
+    await Promise.all([
+      Conversation.updateOne({ _id: str(convo._id) }, { $set: { [`unread.${me}`]: 0 } }),
+      emitToUsers([otherId], "message:read", { conversationId: str(convo._id), readerId: me }),
+    ]);
   }
 
-  const other = (await User.findById(otherId)
-    .select(USER_FIELDS)
-    .lean()) as unknown as LeanUser | null;
   const result: MessagePage & { conversation?: ConversationDTO } = {
     items: page.reverse().map(toMessageDTO), // oldest first for display
     nextCursor,

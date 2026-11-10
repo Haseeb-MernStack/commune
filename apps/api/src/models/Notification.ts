@@ -14,5 +14,8 @@ const notificationSchema = new Schema({
 notificationSchema.index({ user: 1, createdAt: -1 });
 notificationSchema.index({ user: 1, read: 1 });
 notificationSchema.index({ post: 1 });
+// Old notifications are removed automatically after 180 days, so the collection (and the
+// database bill) stops growing forever.
+notificationSchema.index({ createdAt: 1 }, { expireAfterSeconds: 180 * 24 * 60 * 60 });
 
 export const Notification = model("Notification", notificationSchema);
