@@ -1,0 +1,66 @@
+name: Database backup
+
+# A daily, encrypted copy of the production database, kept as a workflow artifact for 30 days.
+# It does nothing until you add the two secrets below, so it is safe to merge as it is.
+# Setup and restore steps: docs/BACKUPS.md
+
+on:
+  schedule:
+    - cron: "17 2 * * *" # every day at 02:17 UTC
+  workflow_dispatch: # lets you run it by hand from the Actions tab
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    name: Back up MongoDB
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      MONGODB_URI: ${{ secrets.BACKUP_MONGODB_URI }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+    steps:
+      - name: Check the secrets are set
+        id: check
+        run: |
+          if [ -z "$MONGODB_URI" ] || [ -z "$BACKUP_PASSPHRASE" ]; then
+            echo "::notice::Backups are off. Add BACKUP_MONGODB_URI and BACKUP_PASSPHRASE (see docs/BACKUPS.md)."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          elif [ "${#BACKUP_PASSPHRASE}" -lt 24 ]; then
+            echo "::error::BACKUP_PASSPHRASE must be at least 24 characters, because the backup is stored as an artifact."
+            exit 1
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Dump the database
+        if: steps.check.outputs.enabled == 'true'
+        run: |
+          mkdir -p backup
+          docker run --rm -e MONGODB_URI -v "$PWD/backup:/backup" mongo:7 sh -c \
+            'mongodump --uri="$MONGODB_URI" --archive=/backup/commune.archive --gzip \
+              --excludeCollection=errorevents --excludeCollection=newscaches'
+          test "$(stat -c %s backup/commune.archive)" -gt 1024 || { echo "::error::The dump is suspiciously small"; exit 1; }
+
+      - name: Encrypt it
+        if: steps.check.outputs.enabled == 'true'
+        run: |
+          printf '%s' "$BACKUP_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback \
+            --passphrase-fd 0 --symmetric --cipher-algo AES256 \
+            --output "backup/commune-$(date -u +%F).archive.gpg" backup/commune.archive
+          rm backup/commune.archive
+          ls -l backup
+
+      - name: Keep it for 30 days
+        if: steps.check.outputs.enabled == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: commune-backup-${{ github.run_id }}
+          path: backup/*.gpg
+          retention-days: 30
+          if-no-files-found: error
