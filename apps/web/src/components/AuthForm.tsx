@@ -12,6 +12,7 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
   const [fields, setFields] = useState({ username: "", email: "", password: "" });
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   if (user) return <Navigate to="/" replace />;
 
@@ -69,30 +70,71 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
       {mode === "register" && (
         <label>
           Username
-          <input value={fields.username} onChange={set("username")} autoComplete="username" />
+          <input
+            value={fields.username}
+            onChange={set("username")}
+            autoComplete="username"
+            autoCapitalize="none"
+            spellCheck={false}
+            aria-describedby="username-hint"
+          />
+          <small id="username-hint" className="muted field-hint">
+            3 to 24 letters, numbers or underscores.
+          </small>
         </label>
       )}
       <label>
         Email
-        <input type="email" value={fields.email} onChange={set("email")} autoComplete="email" />
+        <input
+          type="email"
+          value={fields.email}
+          onChange={set("email")}
+          autoComplete="email"
+          autoCapitalize="none"
+          spellCheck={false}
+        />
       </label>
       <label>
         Password
-        <input
-          type="password"
-          value={fields.password}
-          onChange={set("password")}
-          autoComplete={mode === "login" ? "current-password" : "new-password"}
-        />
+        <span className="password-field">
+          <input
+            type={showPassword ? "text" : "password"}
+            value={fields.password}
+            onChange={set("password")}
+            autoComplete={mode === "login" ? "current-password" : "new-password"}
+            aria-describedby={mode === "register" ? "password-hint" : undefined}
+          />
+          <button
+            type="button"
+            className="password-toggle"
+            onClick={() => setShowPassword((v) => !v)}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+          >
+            {showPassword ? "Hide" : "Show"}
+          </button>
+        </span>
+        {mode === "register" && (
+          <small id="password-hint" className="muted field-hint">
+            At least 8 characters.
+          </small>
+        )}
       </label>
-      {notice && mode === "login" && <p className="notice">{notice}</p>}
-      {error && <p className="error">{error}</p>}
+      {notice && mode === "login" && (
+        <p className="notice" role="status">
+          {notice}
+        </p>
+      )}
+      {error && (
+        <p className="error" role="alert">
+          {error}
+        </p>
+      )}
       {mode === "login" && (
         <p className="muted right">
           <Link to="/forgot-password">Forgot your password?</Link>
         </p>
       )}
-      <button className="btn block" disabled={busy}>
+      <button type="submit" className="btn block" disabled={busy} aria-busy={busy}>
         {busy ? "Please wait…" : mode === "login" ? "Log in" : "Create account"}
       </button>
       <p className="muted center">

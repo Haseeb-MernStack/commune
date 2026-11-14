@@ -38,7 +38,14 @@ export default function PostCard({ post }: { post: PostDTO }) {
             @{post.author.username}
           </Link>
           <PlusBadge plus={post.author.plus} />
-          <span className="muted">· {timeAgo(post.createdAt)}</span>
+          <Link
+            to={`/posts/${post.id}`}
+            className="post-time muted"
+            title={new Date(post.createdAt).toLocaleString()}
+          >
+            <span aria-hidden="true">· </span>
+            <time dateTime={post.createdAt}>{timeAgo(post.createdAt)}</time>
+          </Link>
           {post.community && (
             <Link
               to={`/c/${post.community.slug}`}
@@ -78,7 +85,11 @@ export default function PostCard({ post }: { post: PostDTO }) {
                 ? "Opening checkout…"
                 : `Unlock for ${formatPrice(post.priceCents)}`}
             </button>
-            {checkout.isError && <p className="error">{checkout.error.message}</p>}
+            {checkout.isError && (
+              <p className="error" role="alert">
+                {checkout.error.message}
+              </p>
+            )}
           </div>
         )}
         {post.premiumContent && (
@@ -90,14 +101,22 @@ export default function PostCard({ post }: { post: PostDTO }) {
         <div className="post-actions">
           <button
             className={`btn btn-ghost ${post.likedByMe ? "liked" : ""}`}
-            onClick={() => like.mutate(post.id)}
-            disabled={like.isPending}
+            onClick={() => {
+              if (!like.isPending) like.mutate(post.id);
+            }}
             aria-pressed={post.likedByMe}
+            aria-label={`${post.likedByMe ? "Unlike" : "Like"}, ${post.likeCount} ${
+              post.likeCount === 1 ? "like" : "likes"
+            }`}
           >
             <Icon name="heart" size={19} filled={post.likedByMe} />
             <span>{post.likeCount}</span>
           </button>
-          <Link className="btn btn-ghost" to={`/posts/${post.id}`}>
+          <Link
+            className="btn btn-ghost"
+            to={`/posts/${post.id}`}
+            aria-label={`${post.commentCount} ${post.commentCount === 1 ? "comment" : "comments"}, open post`}
+          >
             <Icon name="comment" size={19} />
             <span>{post.commentCount}</span>
           </Link>
@@ -113,6 +132,7 @@ export default function PostCard({ post }: { post: PostDTO }) {
           {(mine || isAdmin) && (
             <button
               className="btn btn-ghost danger"
+              disabled={del.isPending}
               onClick={() =>
                 window.confirm(mine ? "Delete this post?" : "Remove this post as an admin?") &&
                 del.mutate(post.id)
@@ -122,6 +142,13 @@ export default function PostCard({ post }: { post: PostDTO }) {
             </button>
           )}
         </div>
+        {(like.isError || del.isError) && (
+          <p className="error" role="alert">
+            {del.isError
+              ? "Could not delete this post. Try again."
+              : "Could not update your like. Try again."}
+          </p>
+        )}
         {reporting && <ReportForm postId={post.id} onClose={() => setReporting(false)} />}
       </div>
     </article>

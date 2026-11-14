@@ -161,11 +161,14 @@ export async function getMessages(req: Request, res: Response) {
   const { convo, otherId } = await loadConversation(req.params.id, me);
   const { cursor, limit } = res.locals.query as { cursor?: string; limit: number };
 
+  const before = cursor ? new Date(cursor) : null;
+  if (before && Number.isNaN(before.getTime())) throw badRequest("Invalid cursor");
+
   // The page of messages and the other person's profile do not depend on each other.
   const [rows, other] = await Promise.all([
     Message.find({
       conversation: str(convo._id),
-      ...(cursor ? { createdAt: { $lt: new Date(cursor) } } : {}),
+      ...(before ? { createdAt: { $lt: before } } : {}),
     })
       .sort({ createdAt: -1 })
       .limit(limit + 1)
