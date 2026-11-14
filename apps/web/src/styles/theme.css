@@ -1215,3 +1215,50 @@ h3,
 .sound-volume input[type="range"]:disabled {
   opacity: 0.45;
 }
+
+/* ---- Sign-in form: password reveal and field hints ---- */
+.password-field {
+  position: relative;
+  display: block;
+}
+
+.password-field input {
+  padding-right: 4.5rem;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  min-height: 32px;
+  cursor: pointer;
+}
+
+.password-toggle:hover {
+  color: var(--text);
+}
+
+.field-hint {
+  font-weight: 400;
+  font-size: 0.8rem;
+}
+
+/* ---- Post time is a link to the post ---- */
+.post-time {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.post-time:hover time,
+.post-time:focus-visible time {
+  text-decoration: underline;
+}

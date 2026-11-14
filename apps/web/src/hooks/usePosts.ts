@@ -57,13 +57,57 @@ export function useCreatePost() {
   });
 }
 
+type FeedData = InfiniteData<Page<PostDTO>>;
+
+/** Applies `change` to one post everywhere it is cached: every feed and the single-post view. */
+function patchPost(qc: QueryClient, id: string, change: (post: PostDTO) => PostDTO) {
+  qc.setQueriesData<FeedData>({ queryKey: ["feed"] }, (data) =>
+    data
+      ? {
+          ...data,
+          pages: data.pages.map((page) => ({
+            ...page,
+            items: page.items.map((post) => (post.id === id ? change(post) : post)),
+          })),
+        }
+      : data,
+  );
+  qc.setQueryData<PostDTO>(["post", id], (post) => (post ? change(post) : post));
+}
+
+/**
+ * Likes or unlikes at once, then confirms with the server. If the request fails, the post goes
+ * back to how it was, so the heart never shows something that did not happen.
+ */
 export function useToggleLike() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => api<PostDTO>(`/posts/${id}/like`, { method: "POST" }),
-    onSuccess: (post) => {
-      qc.setQueryData(["post", post.id], post);
-      void qc.invalidateQueries({ queryKey: ["feed"] });
+    onMutate: async (id) => {
+      await Promise.all([
+        qc.cancelQueries({ queryKey: ["feed"] }),
+        qc.cancelQueries({ queryKey: ["post", id] }),
+      ]);
+      const feeds = qc.getQueriesData<FeedData>({ queryKey: ["feed"] });
+      const single = qc.getQueryData<PostDTO>(["post", id]);
+      patchPost(qc, id, (post) => ({
+        ...post,
+        likedByMe: !post.likedByMe,
+        likeCount: Math.max(0, post.likeCount + (post.likedByMe ? -1 : 1)),
+      }));
+      return { feeds, single };
+    },
+    onError: (_error, id, context) => {
+      for (const [key, data] of context?.feeds ?? []) qc.setQueryData(key, data);
+      if (context?.single) qc.setQueryData(["post", id], context.single);
+    },
+    onSuccess: (fresh) => {
+      // The server's numbers win, without reloading every page of every feed.
+      patchPost(qc, fresh.id, (post) => ({
+        ...post,
+        likedByMe: fresh.likedByMe,
+        likeCount: fresh.likeCount,
+      }));
     },
   });
 }

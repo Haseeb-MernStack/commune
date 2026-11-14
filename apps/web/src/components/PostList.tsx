@@ -22,7 +22,11 @@ export default function PostList({
   return (
     <>
       {query.isLoading && <PostListSkeleton />}
-      {query.isError && <p className="error center">{query.error.message}</p>}
+      {query.isError && (
+        <p className="error center" role="alert">
+          {query.error.message}
+        </p>
+      )}
       {query.isSuccess && posts.length === 0 && <p className="muted center">{emptyMessage}</p>}
       {posts.map((post) => (
         <PostCard key={post.id} post={post} />
