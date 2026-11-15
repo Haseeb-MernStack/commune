@@ -1,5 +1,14 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import type { AuthResponse, LoginInput, PublicUser, RegisterInput } from "@commune/shared";
 import { releasePushOnLogout } from "../lib/push";
 import { api, bootSession, readSessionHint, setAccessToken, writeSessionHint } from "../lib/api";
@@ -46,10 +55,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return hint === null || (hint === "1" && readCachedUser() === null);
   });
 
-  const setUser = useCallback((next: PublicUser | null) => {
-    cacheUser(next);
-    setUserState(next);
-  }, []);
+  const queryClient = useQueryClient();
+  // Who the cached data belongs to. Everything in the query cache (feeds, messages, unlocked paid
+  // posts, billing) is private to that person, so it must never outlive their session.
+  const cacheOwner = useRef<string | null>(user?.id ?? null);
+
+  const setUser = useCallback(
+    (next: PublicUser | null) => {
+      const nextId = next?.id ?? null;
+      if (cacheOwner.current !== null && cacheOwner.current !== nextId) {
+        // Signed out, session ended, or a different person signed in on this browser tab.
+        queryClient.clear();
+      }
+      cacheOwner.current = nextId;
+      cacheUser(next);
+      setUserState(next);
+    },
+    [queryClient],
+  );
 
   useEffect(() => {
     let alive = true;

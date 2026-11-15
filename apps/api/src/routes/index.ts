@@ -20,6 +20,7 @@ import {
   loginSchema,
   paginationSchema,
   registerSchema,
+  deleteAccountSchema,
   reportQuerySchema,
   resetPasswordSchema,
   resolveReportSchema,
@@ -46,6 +47,7 @@ import * as reports from "../controllers/reportController.js";
 import * as publicApi from "../controllers/publicController.js";
 import * as search from "../controllers/searchController.js";
 import * as uploads from "../controllers/uploadController.js";
+import * as data from "../controllers/dataController.js";
 import * as users from "../controllers/userController.js";
 import { requireActive, requireAdmin, requireAuth, requirePlus } from "../middleware/auth.js";
 import {
@@ -55,6 +57,7 @@ import {
   readLimiter,
   testPushLimiter,
   checkoutLimiter,
+  dataLimiter,
   contactLimiter,
   messageLimiter,
   newChatLimiter,
@@ -170,6 +173,15 @@ router.patch(
   validate(updateProfileSchema),
   requireActive,
   asyncHandler(users.updateMe),
+);
+router.get("/users/me/export", requireAuth, dataLimiter, asyncHandler(data.exportMyData));
+router.delete(
+  "/users/me",
+  requireAuth,
+  authLimiter,
+  validate(deleteAccountSchema),
+  requireActive,
+  asyncHandler(data.deleteMyAccount),
 );
 router.get("/users/me/earnings", requireAuth, asyncHandler(payments.earnings));
 router.get("/users/:username", requireAuth, asyncHandler(users.getProfile));
