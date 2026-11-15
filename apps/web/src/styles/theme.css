@@ -1262,3 +1262,40 @@ h3,
 .post-time:focus-visible time {
   text-decoration: underline;
 }
+
+/* ---- Account data ---- */
+.account-data {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 16px;
+}
+
+.account-data .row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.account-data p {
+  margin: 0;
+}
+
+.account-sep {
+  width: 100%;
+  margin: 4px 0;
+  border: 0;
+  border-top: 1px solid var(--border, rgba(127, 127, 127, 0.25));
+}
+
+.account-delete {
+  display: grid;
+  gap: 12px;
+}
+
+.account-notes {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+}

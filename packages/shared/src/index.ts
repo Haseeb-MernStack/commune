@@ -142,6 +142,12 @@ export const banUserSchema = z.object({
   removePosts: z.boolean().default(false),
 });
 
+/** Deleting an account: type the username to confirm, and the password if the account has one. */
+export const deleteAccountSchema = z.object({
+  confirm: z.string().trim().min(1, "Type your username to confirm").max(40),
+  password: z.string().max(200).optional(),
+});
+
 export const reportQuerySchema = paginationSchema.omit({ feed: true }).extend({
   status: z.enum(REPORT_STATUSES).default("open"),
 });
@@ -220,6 +226,7 @@ export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type CreateReportInput = z.infer<typeof createReportSchema>;
 export type ResolveReportInput = z.infer<typeof resolveReportSchema>;
 export type BanUserInput = z.infer<typeof banUserSchema>;
+export type DeleteAccountInput = z.infer<typeof deleteAccountSchema>;
 export type ReportReason = (typeof REPORT_REASONS)[number];
 export type ReportStatus = (typeof REPORT_STATUSES)[number];
 export type Role = "user" | "admin";

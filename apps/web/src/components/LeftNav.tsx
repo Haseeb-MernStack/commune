@@ -57,6 +57,7 @@ export default function LeftNav() {
           user.plus ? "Insights" : "Commune Plus",
         )}
         {user.role === "admin" && link("/admin", "shield", "Admin")}
+        {link("/settings", "gear", "Settings")}
         {link("/contact", "contact", "Contact")}
       </nav>
       <Link to="/" className="btn side-post" aria-label="Write a post">

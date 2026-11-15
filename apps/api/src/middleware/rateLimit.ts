@@ -164,3 +164,13 @@ export const contactLimiter = rateLimit({
   skip,
   message: { error: "Too many messages, try again later." },
 });
+
+/** Downloading a full copy of an account is heavy, so it is limited per person. */
+export const dataLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 5,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "Too many data requests, try again later." },
+});

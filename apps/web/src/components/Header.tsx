@@ -170,6 +170,7 @@ export default function Header() {
                 )}
                 {user.plus && item("/plus", "card", "Billing")}
                 {user.role === "admin" && item("/admin", "shield", "Admin")}
+                {item("/settings", "gear", "Settings")}
                 {item("/contact", "contact", "Contact")}
               </nav>
               <button className="btn btn-outline block" onClick={() => void logout()}>
