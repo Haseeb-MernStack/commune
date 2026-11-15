@@ -206,7 +206,7 @@ describe("DELETE /api/users/me", () => {
     expect(change.$set.banned).toBe(true);
     expect(change.$set.bio).toBe("");
     expect(change.$unset).toEqual({ googleId: 1 });
-    expect(res.headers["set-cookie"]?.join(";")).toMatch(/commune_rt=;/);
+    expect([res.headers["set-cookie"] ?? ""].flat().join(";")).toMatch(/commune_rt=;/);
   });
 
   it("lets a Google-only account delete itself without a password", async () => {
