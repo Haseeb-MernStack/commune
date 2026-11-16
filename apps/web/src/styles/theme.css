@@ -314,34 +314,24 @@ h3,
   backdrop-filter: blur(12px);
 }
 
-/* ---------- Timeline: posts read as one continuous column ---------- */
+/* ---------- Timeline: every post is its own card ---------- */
 .container>.post {
   margin: 0;
   padding: 16px;
   gap: 12px;
-  border-width: 0 1px 1px;
-  border-radius: 0;
-  background: var(--surface);
-  transition: background 0.15s ease;
-}
-
-.container>.post+.post {
-  margin-top: -12px;
-}
-
-.container> :not(.post)+.post {
-  border-top-width: 1px;
-  border-radius: var(--radius) var(--radius) 0 0;
-}
-
-.container>.post:last-child,
-.container>.post:has(+ :not(.post)) {
-  border-radius: 0 0 var(--radius) var(--radius);
-}
-
-.container> :not(.post)+.post:last-child,
-.container> :not(.post)+.post:has(+ :not(.post)) {
+  border: 1px solid var(--border);
   border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgba(15, 20, 40, 0.04);
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.container>.post:hover {
+  box-shadow: 0 4px 16px rgba(15, 20, 40, 0.08);
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
 }
 
 .post-meta {
@@ -956,16 +946,11 @@ h3,
   }
 }
 
-/* ---------- Phones: posts run edge to edge, like an app ---------- */
+/* ---------- Phones: separate cards with a small gap ---------- */
 @media (max-width: 600px) {
   .container>.post {
-    margin-inline: -12px;
-    border-inline-width: 0;
-    border-radius: 0 !important;
-  }
-
-  .container> :not(.post)+.post {
-    border-top-width: 1px;
+    padding: 14px;
+    border-radius: 12px;
   }
 
   .feed-tabs {
