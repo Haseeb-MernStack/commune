@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { usePushPrompt } from "../hooks/usePushPrompt";
 import { applyUpdate, promptInstall, useOnline, usePwa } from "../lib/pwa";
 
 const DISMISS_KEY = "commune-install-dismissed";
@@ -15,6 +16,7 @@ function wasDismissed(): boolean {
 export default function PwaBanner() {
   const { updateReady, canInstall } = usePwa();
   const online = useOnline();
+  const push = usePushPrompt();
   const [installHidden, setInstallHidden] = useState(wasDismissed);
 
   const dismissInstall = () => {
@@ -27,7 +29,7 @@ export default function PwaBanner() {
   };
 
   const showInstall = canInstall && !installHidden;
-  if (online && !updateReady && !showInstall) return null;
+  if (online && !updateReady && !showInstall && !push.show) return null;
 
   return (
     <div className="pwa-bars" role="region" aria-label="App status">
@@ -42,6 +44,20 @@ export default function PwaBanner() {
           <button className="btn" onClick={applyUpdate}>
             Reload
           </button>
+        </div>
+      )}
+      {push.show && (
+        <div className="pwa-bar" role="status">
+          <span>Get a notification when someone messages you, even when Commune is closed.</span>
+          <span className="row">
+            <button className="btn" disabled={push.pending} onClick={push.turnOn}>
+              {push.pending ? "Turning on…" : "Turn on"}
+            </button>
+            <button className="btn btn-ghost" onClick={push.dismiss} aria-label="Dismiss">
+              Not now
+            </button>
+          </span>
+          {push.error && <span className="error small">{push.error}</span>}
         </div>
       )}
       {showInstall && (

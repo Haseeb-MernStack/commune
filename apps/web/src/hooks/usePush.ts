@@ -3,8 +3,9 @@ import type { PushPreferences, PushStatus } from "@commune/shared";
 import { api } from "../lib/api";
 import { currentSubscription, disablePush, enablePush, pushSupported } from "../lib/push";
 
-export function usePushStatus() {
+export function usePushStatus(enabled = true) {
   return useQuery({
+    enabled,
     queryKey: ["push-status"],
     queryFn: () => api<PushStatus>("/push/status"),
     staleTime: 60_000,
