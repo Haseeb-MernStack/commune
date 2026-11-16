@@ -5,6 +5,7 @@ import { useUnreadCount } from "../hooks/useSocial";
 import { useUnreadMessages } from "../hooks/useMessages";
 import Avatar from "./Avatar";
 import Brand from "./BrandMark";
+import GitHubLink from "./GitHubLink";
 import Icon, { type IconName } from "./Icon";
 import PlusBadge from "./PlusBadge";
 
@@ -59,6 +60,7 @@ export default function LeftNav() {
         {user.role === "admin" && link("/admin", "shield", "Admin")}
         {link("/settings", "gear", "Settings")}
         {link("/contact", "contact", "Contact")}
+        <GitHubLink className="side-link" size={22} label="Star on GitHub" />
       </nav>
       <Link to="/" className="btn side-post" aria-label="Write a post">
         <Icon name="pencil" size={20} />

@@ -6,6 +6,7 @@ import { useUnreadCount } from "../hooks/useSocial";
 import { useUnreadMessages } from "../hooks/useMessages";
 import Avatar from "./Avatar";
 import Brand from "./BrandMark";
+import GitHubLink from "./GitHubLink";
 import Icon, { type IconName } from "./Icon";
 import PlusBadge from "./PlusBadge";
 import SearchBox from "./SearchBox";
@@ -89,6 +90,7 @@ export default function Header() {
               </Link>
             </>
           )}
+          <GitHubLink />
           {user && (
             <>
               <Link to={`/u/${user.username}`} className="nav-link nav-profile">
@@ -104,6 +106,7 @@ export default function Header() {
 
         {/* Mobile / tablet controls */}
         <div className="nav-mobile">
+          <GitHubLink />
           {user && (
             <Link to="/search" className="icon-btn" aria-label="Search">
               <Icon name="search" size={22} />
