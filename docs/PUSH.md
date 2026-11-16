@@ -17,6 +17,16 @@ and new followers. Built on the standard Web Push protocol (no Firebase account 
 Message saved ─► API ─► push service (Google / Mozilla / Apple) ─► phone ─► service worker ─► notification
 ```
 
+## What people see
+
+- **Banner on first visits:** about 15 seconds after signing in, a bar offers "Turn on" once (until
+  they press "Not now"). It only appears where push works and the keys are set.
+- **While Commune is open:** a chime and a small banner for a new message (tap to open it), and
+  the unread count in the tab title, for example "(3) Messages · Commune".
+- **Installed app:** the same count appears on the app icon (Chrome, Edge and Safari on supported
+  systems).
+- **Closed:** the push notification described below.
+
 ## Smart behaviour
 
 - **No duplicates:** if the person has Commune open and visible, no push is sent (the realtime

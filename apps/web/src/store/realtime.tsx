@@ -1,9 +1,10 @@
 import { useEffect, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import type { MessageDTO } from "@commune/shared";
+import type { ConversationDTO, MessageDTO } from "@commune/shared";
 import type { ThreadPage } from "../hooks/useMessages";
 import { realtimeEnabled, startRealtime, stopRealtime } from "../lib/realtime";
 import { isViewingConversation, playSound } from "../lib/sound";
+import { showToast } from "../lib/toast";
 import { useAuth } from "./auth";
 
 /** Adds a message to a loaded conversation unless it is already there (own sends arrive twice). */
@@ -39,7 +40,21 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         if (message.senderId !== userId) {
           void qc.invalidateQueries({ queryKey: ["unread-messages"] });
           // A chime for someone else's message, unless you are already reading that conversation.
-          if (!isViewingConversation(message.conversationId)) playSound("message");
+          if (!isViewingConversation(message.conversationId)) {
+            playSound("message");
+            // A banner too, so it is seen on any page. Only while the tab is on screen: when it
+            // is hidden, the push notification and the tab title take over.
+            if (document.visibilityState === "visible") {
+              const from = qc
+                .getQueryData<ConversationDTO[]>(["conversations"])
+                ?.find((c) => c.id === message.conversationId)?.other.username;
+              showToast({
+                title: from ? `@${from}` : "New message",
+                body: message.text.slice(0, 120),
+                to: `/messages/${message.conversationId}`,
+              });
+            }
+          }
         }
       },
       onRead: ({ conversationId }) => {
@@ -51,9 +66,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         void qc.invalidateQueries({ queryKey: ["conversations"] });
       },
       onNotification: () => {
-        if (!(
-          document.visibilityState === "visible" && window.location.pathname === "/notifications"
-        )) {
+        if (
+          !(document.visibilityState === "visible" && window.location.pathname === "/notifications")
+        ) {
           playSound("notification");
         }
         void qc.invalidateQueries({ queryKey: ["notifications"] });

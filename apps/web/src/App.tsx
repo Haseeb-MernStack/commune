@@ -5,7 +5,10 @@ import { useAuth } from "./store/auth";
 import Header, { AUTH_PATHS } from "./components/Header";
 import FeedPage from "./pages/FeedPage";
 import VerifyBanner from "./components/VerifyBanner";
+import BadgeSync from "./components/BadgeSync";
 import PwaBanner from "./components/PwaBanner";
+import Toasts from "./components/Toasts";
+import { setBaseTitle } from "./lib/badge";
 import ExplorePage from "./pages/ExplorePage";
 import LeftNav from "./components/LeftNav";
 import RightRail from "./components/RightRail";
@@ -70,7 +73,7 @@ function RouteMeta() {
             : pathname.startsWith("/posts/")
               ? "Post"
               : "Commune");
-    document.title = pathname === "/" ? name : `${name} · Commune`;
+    setBaseTitle(pathname === "/" ? name : `${name} · Commune`);
 
     let link = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     if (!link) {
@@ -284,6 +287,8 @@ export default function App() {
       <RouteMeta />
       <Header />
       <VerifyBanner />
+      <BadgeSync />
+      <Toasts />
       <PwaBanner />
       <div className={`shell${user ? " has-left" : ""}${wide ? " wide" : ""}`}>
         {user && <LeftNav />}
