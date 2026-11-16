@@ -1284,3 +1284,66 @@ h3,
   display: grid;
   gap: 4px;
 }
+
+/* ---------- Responsive safety: nothing may spill out of its column or card ---------- */
+.shell > * {
+  min-width: 0;
+}
+
+.right-rail {
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+
+.news-panel,
+.news-card {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.news-item,
+.news-title,
+.news-card,
+.news-card * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.news-panel .muted.small {
+  overflow-wrap: anywhere;
+}
+
+/* With the left menu in view the right column starts at the very top, so it can use the full height. */
+@media (min-width: 1100px) {
+  .shell.has-left .right-rail,
+  .shell:not(.has-left) .right-rail {
+    max-height: calc(100dvh - 8px);
+  }
+}
+
+/* Short laptop screens (for example 1080p at 125% scaling): tighter menu so everything fits. */
+@media (min-width: 1100px) and (max-height: 820px) {
+  .left-nav {
+    gap: 4px;
+    padding-top: 8px;
+  }
+
+  .side-link {
+    padding-block: 8px;
+  }
+
+  .side-brand {
+    padding-bottom: 8px;
+  }
+
+  .news-panel {
+    min-height: 0;
+  }
+}
+
+/* Large monitors: keep the three columns centred and a little roomier. */
+@media (min-width: 1600px) {
+  .shell {
+    column-gap: 32px;
+  }
+}
