@@ -31,6 +31,9 @@ const schema = z.object({
   // Transactional email through Resend (https://resend.com). Without a key, emails are only
   // printed to the API log in development and are not sent in production.
   RESEND_API_KEY: z.string().optional(),
+  // Most emails the whole site may send in 24 hours. Resend's free plan allows 100 a day, so
+  // raise this only when your plan does. When it is reached, new emails wait until tomorrow.
+  EMAIL_DAILY_LIMIT: z.coerce.number().int().min(1).default(100),
   EMAIL_FROM: z
     .string()
     .default("")

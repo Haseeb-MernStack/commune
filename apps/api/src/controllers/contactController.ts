@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import { env } from "../config/env.js";
 import { logger } from "../config/logger.js";
 import { ContactMessage } from "../models/ContactMessage.js";
+import { reserveMail } from "../services/mailQuota.js";
 import { sendMail } from "../services/mailService.js";
 
 const escapeHtml = (s: string) =>
@@ -17,6 +18,9 @@ export async function send(req: Request, res: Response) {
 
   // Honeypot filled in: pretend it worked so bots learn nothing.
   if (website) return void res.status(201).json({ ok: true });
+
+  // Counted in the database (per visitor, per day) before anything is stored or emailed.
+  await reserveMail({ kind: "contact", ip: req.ip });
 
   await ContactMessage.create({ name, email, message });
 

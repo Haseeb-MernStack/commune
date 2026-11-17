@@ -4,7 +4,7 @@ import { User } from "../models/User.js";
 import { forbidden, notFound } from "../utils/errors.js";
 
 export async function forgotPassword(req: Request, res: Response) {
-  await accountService.requestPasswordReset((req.body as { email: string }).email);
+  await accountService.requestPasswordReset((req.body as { email: string }).email, req.ip);
   // Same answer for every address so the endpoint can't be used to find registered emails.
   res.status(202).json({ message: "If that email has an account, a reset link is on its way." });
 }
@@ -24,6 +24,6 @@ export async function resendVerification(req: Request, res: Response) {
   const user = await User.findById(req.userId).select("email username emailVerified banned").lean();
   if (!user) throw notFound("User not found");
   if (user.banned) throw forbidden("This account has been suspended");
-  if (!user.emailVerified) await accountService.sendVerificationEmail(user);
+  if (!user.emailVerified) await accountService.sendVerificationEmail(user, req.ip);
   res.status(204).end();
 }

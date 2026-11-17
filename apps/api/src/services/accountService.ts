@@ -5,6 +5,8 @@ import { AuthToken } from "../models/AuthToken.js";
 import { RefreshToken } from "../models/RefreshToken.js";
 import { User } from "../models/User.js";
 import { badRequest } from "../utils/errors.js";
+import { QuotaError } from "./quota.js";
+import { reserveMail } from "./mailQuota.js";
 import { generateRefreshToken, hashToken } from "../utils/tokens.js";
 import { resetPasswordMail, verifyEmailMail } from "./emailTemplates.js";
 import { sendMail } from "./mailService.js";
@@ -44,16 +46,20 @@ interface Recipient {
   username: string;
 }
 
-export async function sendVerificationEmail(user: Recipient) {
+export async function sendVerificationEmail(user: Recipient, ip?: string) {
+  // Checked first, so a refused request does not replace a link the person already has.
+  await reserveMail({ kind: "verify_email", to: user.email, ip });
   const token = await createToken(user._id, "verify_email");
   const link = `${env.CLIENT_ORIGIN}/verify-email?token=${token}`;
   await sendMail(verifyEmailMail(user.email, user.username, link));
 }
 
 /** For flows where the caller must not wait on, or learn about, email delivery. */
-export function sendVerificationEmailInBackground(user: Recipient) {
-  sendVerificationEmail(user).catch((err: unknown) =>
-    logger.error({ err }, "Could not send verification email"),
+export function sendVerificationEmailInBackground(user: Recipient, ip?: string) {
+  sendVerificationEmail(user, ip).catch((err: unknown) =>
+    err instanceof QuotaError
+      ? logger.warn({ ip }, "Verification email skipped: email limit reached")
+      : logger.error({ err }, "Could not send verification email"),
   );
 }
 
@@ -63,9 +69,16 @@ export async function verifyEmail(raw: string) {
 }
 
 /** Always resolves, whether or not the email belongs to an account (no account discovery). */
-export async function requestPasswordReset(email: string) {
+export async function requestPasswordReset(email: string, ip?: string) {
   const user = await User.findOne({ email }).select("email username banned").lean();
   if (!user || user.banned) return;
+  try {
+    await reserveMail({ kind: "reset_password", to: user.email, ip });
+  } catch (err) {
+    // Same answer as success, so the limit cannot be used to discover which emails have accounts.
+    if (err instanceof QuotaError) return void logger.warn({ ip }, "Reset email skipped: limit");
+    throw err;
+  }
   const token = await createToken(user._id, "reset_password");
   const link = `${env.CLIENT_ORIGIN}/reset-password?token=${token}`;
   sendMail(resetPasswordMail(user.email, user.username, link)).catch((err: unknown) =>

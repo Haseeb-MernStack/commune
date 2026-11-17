@@ -1,6 +1,6 @@
 import os from "node:os";
 import path from "node:path";
-import { beforeEach } from "vitest";
+import { beforeEach, vi } from "vitest";
 
 process.env.NODE_ENV = "test";
 process.env.MONGODB_URI = "mongodb://localhost:27017/commune-test";
@@ -21,6 +21,7 @@ process.env.PLATFORM_FEE_PERCENT = "20";
 process.env.PLUS_FEE_PERCENT = "10";
 process.env.LEMONSQUEEZY_PLUS_VARIANT_ID = "";
 process.env.REQUIRE_VERIFIED_EMAIL = "false";
+process.env.EMAIL_DAILY_LIMIT = "100";
 process.env.REALTIME_URL = "";
 process.env.REALTIME_SECRET = "";
 process.env.VAPID_PUBLIC_KEY = "";
@@ -35,4 +36,10 @@ process.env.UPLOAD_DIR = path.join(os.tmpdir(), "commune-test-uploads");
 beforeEach(async () => {
   const { mockUser } = await import("./helpers.js");
   mockUser({ role: "user", banned: false });
+  // Usage limits are counted in MongoDB; with no database, nothing is ever over the limit.
+  // quota.test.ts replaces these with a working in-memory version.
+  const { QuotaLog } = await import("../models/QuotaLog.js");
+  vi.spyOn(QuotaLog, "insertMany").mockResolvedValue([] as never);
+  vi.spyOn(QuotaLog, "countDocuments").mockResolvedValue(0 as never);
+  vi.spyOn(QuotaLog, "deleteMany").mockResolvedValue({} as never);
 });

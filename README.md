@@ -210,7 +210,7 @@ Optional features:
 | Variable | Enables |
 | --- | --- |
 | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Image storage in production |
-| `RESEND_API_KEY`, `EMAIL_FROM` | Verification and reset emails |
+| `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_DAILY_LIMIT` | Verification and reset emails, and the most the site may send a day |
 | `LEMONSQUEEZY_API_KEY`, `LEMONSQUEEZY_STORE_ID`, `LEMONSQUEEZY_VARIANT_ID`, `LEMONSQUEEZY_WEBHOOK_SECRET` | Paid posts |
 | `LEMONSQUEEZY_PLUS_VARIANT_ID`, `PLUS_PRICE_LABEL`, `PLUS_FEE_PERCENT` | Commune Plus |
 | `LEMONSQUEEZY_ACCEPT_TEST_MODE` | `true` only while testing payments; leave `false` on the real site |
