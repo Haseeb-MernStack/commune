@@ -92,6 +92,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [setUser]);
 
+  // Signing out in one tab signs out every tab, so a forgotten tab never stays logged in.
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "commune_session" && e.newValue === "0" && cacheOwner.current !== null) {
+        setAccessToken(null);
+        setUser(null);
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, [setUser]);
+
+  // A page restored from the back/forward cache is a frozen copy: ask the server who is signed in.
+  useEffect(() => {
+    const onShow = (e: PageTransitionEvent) => {
+      if (!e.persisted) return;
+      if (cacheOwner.current === null && readSessionHint() !== "1") return;
+      void bootSession().then((res) => {
+        if (res) {
+          writeSessionHint("1");
+          setUser(res.user);
+        } else {
+          setAccessToken(null);
+          writeSessionHint("0");
+          setUser(null);
+        }
+      });
+    };
+    window.addEventListener("pageshow", onShow);
+    return () => window.removeEventListener("pageshow", onShow);
+  }, [setUser]);
+
   const apply = useCallback(
     (res: AuthResponse) => {
       setAccessToken(res.accessToken);

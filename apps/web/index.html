@@ -4,6 +4,23 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
+    <!--
+      Must stay the first script: moves a reset or confirmation token out of the address bar
+      before analytics or ads can read the URL. See src/lib/linkToken.ts.
+    -->
+    <script>
+      (function () {
+        try {
+          var p = location.pathname;
+          if (p === "/reset-password" || p === "/verify-email") {
+            var t = new URLSearchParams(location.search).get("token");
+            if (t) sessionStorage.setItem("commune_link_token", t);
+            history.replaceState(null, "", p);
+          }
+        } catch (e) {}
+      })();
+    </script>
+
     <title>Commune: an open source community platform</title>
     <meta
       name="description"

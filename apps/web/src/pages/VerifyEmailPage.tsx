@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import type { PublicUser } from "@commune/shared";
 import { verifyEmailSchema } from "@commune/shared";
 import { api } from "../lib/api";
+import { clearLinkToken, readLinkToken } from "../lib/linkToken";
 import { useAuth } from "../store/auth";
 
 type Status = "working" | "done" | "failed";
@@ -18,7 +19,10 @@ export default function VerifyEmailPage() {
   useEffect(() => {
     if (started.current) return;
     started.current = true;
-    const parsed = verifyEmailSchema.safeParse({ token: params.get("token") ?? "" });
+    const parsed = verifyEmailSchema.safeParse({
+      token: readLinkToken(params.get("token") ?? ""),
+    });
+    clearLinkToken();
     if (!parsed.success) {
       setStatus("failed");
       setMessage("This confirmation link is invalid.");
