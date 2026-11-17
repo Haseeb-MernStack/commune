@@ -1,3 +1,4 @@
+import { avatarAllowance, consumeAvatarChange } from "../services/avatarService.js";
 import type { Request, Response } from "express";
 import { usernameSchema } from "@commune/shared";
 import { Follow } from "../models/Follow.js";
@@ -34,6 +35,12 @@ export async function me(req: Request, res: Response) {
   res.json(toPublicUser(user));
 }
 
+/** GET /users/me/avatar-allowance: how many photo changes are left today. */
+export async function avatarStatus(req: Request, res: Response) {
+  res.set("Cache-Control", "no-store");
+  res.json(await avatarAllowance(req.userId!));
+}
+
 /** Updates the fields that were sent: bio and/or avatarUrl (null removes the avatar). */
 export async function updateMe(req: Request, res: Response) {
   const existing = await User.findById(req.userId).select("avatarUrl").lean();
@@ -42,6 +49,19 @@ export async function updateMe(req: Request, res: Response) {
   const update: Record<string, unknown> = {};
   if (req.body.bio !== undefined) update.bio = req.body.bio;
   if (req.body.avatarUrl !== undefined) update.avatarUrl = req.body.avatarUrl;
+
+  // Changing or removing the photo is limited per account (the same photo again is not a change).
+  const photoChanges =
+    req.body.avatarUrl !== undefined && req.body.avatarUrl !== existing.avatarUrl;
+  if (photoChanges) {
+    try {
+      await consumeAvatarChange(req.userId!);
+    } catch (err) {
+      // The new file was already uploaded; do not leave it behind.
+      await deleteUploadIfUnused(req.body.avatarUrl);
+      throw err;
+    }
+  }
 
   const user = await User.findByIdAndUpdate(req.userId, update, {
     new: true,

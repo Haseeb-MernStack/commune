@@ -1,16 +1,15 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { ProfileSkeleton } from "../components/Skeleton";
-import type { ChangeEvent, FormEvent } from "react";
+import type { FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import Avatar from "../components/Avatar";
+import AvatarEditor from "../components/AvatarEditor";
 import Icon from "../components/Icon";
 import PlusBadge from "../components/PlusBadge";
 import EarningsCard from "../components/EarningsCard";
 import PostList from "../components/PostList";
 import { useProfile, useToggleFollow, useUpdateProfile, useUserPosts } from "../hooks/useSocial";
 import { useBanUser, useUnbanUser } from "../hooks/useModeration";
-import { useUploadImage } from "../hooks/useUpload";
-import { validateImage } from "../lib/images";
 import { useAuth } from "../store/auth";
 
 export default function ProfilePage() {
@@ -20,20 +19,16 @@ export default function ProfilePage() {
   const posts = useUserPosts(username);
   const follow = useToggleFollow(username);
   const update = useUpdateProfile();
-  const upload = useUploadImage("avatar");
   const ban = useBanUser(username);
   const unban = useUnbanUser(username);
   const [editing, setEditing] = useState(false);
   const [bio, setBio] = useState("");
-  const [photoError, setPhotoError] = useState<string | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
 
   if (profile.isLoading) return <ProfileSkeleton />;
   if (profile.isError || !profile.data) return <p className="error center">User not found.</p>;
 
   const p = profile.data;
   const isMe = me?.id === p.id;
-  const photoBusy = upload.isPending || update.isPending;
   const isAdmin = me?.role === "admin";
 
   const suspend = () => {
@@ -53,29 +48,16 @@ export default function ProfilePage() {
     update.mutate({ bio }, { onSuccess: () => setEditing(false) });
   };
 
-  const pickPhoto = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-    const problem = validateImage(file);
-    if (problem) {
-      setPhotoError(problem);
-      return;
-    }
-    setPhotoError(null);
-    upload.mutate(file, {
-      onSuccess: ({ url }) =>
-        update.mutate({ avatarUrl: url }, { onError: (err) => setPhotoError(err.message) }),
-      onError: (err) => setPhotoError(err.message),
-    });
-  };
-
   return (
     <>
       <section className="card profile">
         <div className="profile-top">
           <div className="profile-id">
-            <Avatar username={p.username} url={p.avatarUrl} size={72} />
+            {isMe ? (
+              <AvatarEditor username={p.username} url={p.avatarUrl} size={72} />
+            ) : (
+              <Avatar username={p.username} url={p.avatarUrl} size={72} />
+            )}
             <div>
               <h1 className="profile-name">
                 @{p.username} <PlusBadge plus={p.plus} />
@@ -109,41 +91,6 @@ export default function ProfilePage() {
         </div>
 
         {isMe && <EarningsCard />}
-
-        {isMe && editing && (
-          <div className="row">
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/png,image/jpeg,image/gif,image/webp"
-              hidden
-              onChange={pickPhoto}
-            />
-            <button
-              type="button"
-              className="btn btn-outline"
-              onClick={() => fileRef.current?.click()}
-              disabled={photoBusy}
-            >
-              {photoBusy
-                ? upload.progress
-                  ? `Uploading ${upload.progress}%`
-                  : "Saving photo…"
-                : "Change photo"}
-            </button>
-            {p.avatarUrl && (
-              <button
-                type="button"
-                className="btn btn-ghost"
-                onClick={() => update.mutate({ avatarUrl: null })}
-                disabled={photoBusy}
-              >
-                Remove photo
-              </button>
-            )}
-          </div>
-        )}
-        {photoError && <p className="error">{photoError}</p>}
 
         {editing ? (
           <form onSubmit={save} className="profile-edit">

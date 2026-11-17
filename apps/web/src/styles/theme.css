@@ -1415,3 +1415,72 @@ h3,
     top: 12px;
   }
 }
+
+/* ---------- Profile photo editor ---------- */
+.avatar-edit {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+}
+
+.avatar-edit-frame {
+  position: relative;
+  flex: none;
+}
+
+.avatar-edit-frame .avatar {
+  display: block;
+  object-fit: cover;
+}
+
+.avatar-edit-btn {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-contrast, #fff);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.25);
+  transition: transform 0.12s ease;
+}
+
+.avatar-edit-btn:hover:not(:disabled) {
+  transform: scale(1.08);
+}
+
+.avatar-edit-btn[aria-disabled="true"] {
+  background: var(--muted);
+  cursor: not-allowed;
+}
+
+.avatar-edit-busy {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 34%;
+  background: rgb(0 0 0 / 0.5);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.avatar-edit-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  max-width: 220px;
+  min-height: 1.2em;
+}
+
+.avatar-edit-note .link-btn {
+  color: var(--muted);
+}
