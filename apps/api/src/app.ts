@@ -62,7 +62,7 @@ export function createApp() {
         return;
       }
       res.set("Cache-Control", "public, max-age=2592000, immutable");
-      res.redirect(302, cloudImageUrl(file));
+      res.redirect(302, cloudImageUrl(file, Number(req.query.s) || undefined));
     });
   } else {
     app.use(

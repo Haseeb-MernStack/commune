@@ -61,10 +61,23 @@ export function cloudinarySignature(params: Record<string, string>, secret: stri
  * Public delivery URL for a stored file name like "<id>.png". f_auto and q_auto let Cloudinary
  * pick the best format and quality for each browser.
  */
-export function cloudImageUrl(fileName: string): string {
+export function cloudImageUrl(fileName: string, square?: number): string {
   if (!cloud) throw new Error("Cloud storage is not configured");
   const id = fileName.replace(/\.[a-z]+$/, "");
-  return `https://res.cloudinary.com/${cloud.name}/image/upload/f_auto,q_auto/${FOLDER}/${id}`;
+  return `https://res.cloudinary.com/${cloud.name}/image/upload/${imageTransform(square)}/${FOLDER}/${id}`;
+}
+
+/** Sizes a profile photo may be requested at (?s=): small ones load fast in lists and comments. */
+export const AVATAR_SIZES = [64, 128, 256, 512];
+
+/**
+ * Cloudinary transformation: automatic format and quality, and for a profile photo a square crop
+ * centred on the face at the requested size.
+ */
+export function imageTransform(square?: number): string {
+  return square && AVATAR_SIZES.includes(square)
+    ? `c_fill,g_face,w_${square},h_${square},f_auto,q_auto`
+    : "f_auto,q_auto";
 }
 
 async function saveStored(name: string, buffer: Buffer): Promise<void> {

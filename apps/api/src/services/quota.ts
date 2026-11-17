@@ -21,6 +21,24 @@ export class QuotaError extends AppError {
   }
 }
 
+/** How much of a window is used, and when the oldest use falls out of it. Does not count a use. */
+export async function quotaUsage(
+  bucket: string,
+  subject: string,
+  windowMs: number,
+): Promise<{ used: number; oldest: Date | null }> {
+  const key = subject.toLowerCase().slice(0, 200);
+  const since = new Date(Date.now() - windowMs);
+  const [used, first] = await Promise.all([
+    QuotaLog.countDocuments({ bucket, subject: key, createdAt: { $gte: since } }),
+    QuotaLog.findOne({ bucket, subject: key, createdAt: { $gte: since } })
+      .sort({ createdAt: 1 })
+      .select("createdAt")
+      .lean(),
+  ]);
+  return { used, oldest: first ? new Date(first.createdAt) : null };
+}
+
 const waitText = (ms: number) => (ms >= DAY ? "a day" : ms >= HOUR ? "an hour" : "a few minutes");
 
 /**

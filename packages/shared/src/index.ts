@@ -378,6 +378,15 @@ export interface NotificationDTO {
   createdAt: string;
 }
 
+/** How many more times the signed-in person may change their profile photo. */
+export interface AvatarAllowance {
+  limit: number;
+  used: number;
+  remaining: number;
+  /** When the next change becomes possible, or null while some are left. */
+  resetsAt: string | null;
+}
+
 export interface UploadResponse {
   url: string;
 }
