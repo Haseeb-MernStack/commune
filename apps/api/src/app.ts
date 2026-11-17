@@ -8,7 +8,7 @@ import { env } from "./config/env.js";
 import { logger } from "./config/logger.js";
 import { asyncHandler } from "./utils/errors.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.js";
-import { noStore, originGuard } from "./middleware/security.js";
+import { blockAiBots, noStore, originGuard } from "./middleware/security.js";
 import { globalLimiter } from "./middleware/rateLimit.js";
 import { lemonSqueezyWebhook, rawBody } from "./controllers/paymentController.js";
 import { router } from "./routes/index.js";
@@ -49,6 +49,7 @@ export function createApp() {
     }),
   );
   app.use(cors({ origin: env.CLIENT_ORIGIN, credentials: true }));
+  app.use(blockAiBots);
   app.use(globalLimiter);
 
   // Uploaded images. File names are random, so they can be cached for a long time.
