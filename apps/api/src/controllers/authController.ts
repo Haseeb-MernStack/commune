@@ -3,7 +3,7 @@ import * as authService from "../services/authService.js";
 import { REFRESH_COOKIE } from "../services/authService.js";
 
 export async function register(req: Request, res: Response) {
-  res.status(201).json(await authService.register(req.body, res));
+  res.status(201).json(await authService.register(req.body, res, req.ip));
 }
 
 export async function login(req: Request, res: Response) {

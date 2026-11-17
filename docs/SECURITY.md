@@ -3,6 +3,11 @@
 How Commune protects its users and what you must configure yourself. To report a vulnerability,
 see [SECURITY.md](../SECURITY.md).
 
+## Usage limits
+
+Emails, uploads and checkouts are limited per address, per account and for the whole site; see
+[Usage limits](LIMITS.md).
+
 ## Built in
 
 | Area | What is done |

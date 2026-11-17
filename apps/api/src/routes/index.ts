@@ -70,8 +70,20 @@ import {
   viewLimiter,
 } from "../middleware/rateLimit.js";
 import { parseImageUpload } from "../middleware/upload.js";
+import { userQuota } from "../middleware/quota.js";
+import { DAY, HOUR } from "../services/quota.js";
 import { validate } from "../middleware/validate.js";
 import { asyncHandler } from "../utils/errors.js";
+
+// Per-account allowances for things that cost money or storage, counted in the database.
+const UPLOAD_QUOTA = [
+  { limit: 20, windowMs: HOUR },
+  { limit: 60, windowMs: DAY },
+];
+const CHECKOUT_QUOTA = [
+  { limit: 10, windowMs: HOUR },
+  { limit: 30, windowMs: DAY },
+];
 
 export const router = Router();
 
@@ -150,12 +162,20 @@ router.post(
   "/uploads",
   requireAuth,
   uploadLimiter,
+  userQuota("upload", UPLOAD_QUOTA, "Daily upload limit reached. Try again tomorrow."),
   parseImageUpload,
   requireActive,
   asyncHandler(uploads.upload),
 );
 
-router.post("/uploads/sign", requireAuth, uploadLimiter, requireActive, asyncHandler(uploads.sign));
+router.post(
+  "/uploads/sign",
+  requireAuth,
+  uploadLimiter,
+  userQuota("upload", UPLOAD_QUOTA, "Daily upload limit reached. Try again tomorrow."),
+  requireActive,
+  asyncHandler(uploads.sign),
+);
 router.post(
   "/uploads/complete",
   requireAuth,
@@ -209,10 +229,17 @@ router.post(
   "/billing/checkout",
   requireAuth,
   checkoutLimiter,
+  userQuota("checkout", CHECKOUT_QUOTA),
   requireActive,
   asyncHandler(billing.checkout),
 );
-router.post("/billing/portal", requireAuth, checkoutLimiter, asyncHandler(billing.portal));
+router.post(
+  "/billing/portal",
+  requireAuth,
+  checkoutLimiter,
+  userQuota("portal", CHECKOUT_QUOTA),
+  asyncHandler(billing.portal),
+);
 router.get("/insights", requireAuth, requirePlus, asyncHandler(insights.get));
 
 // Search
@@ -282,6 +309,7 @@ router.post(
   "/posts/:id/checkout",
   requireAuth,
   checkoutLimiter,
+  userQuota("checkout", CHECKOUT_QUOTA),
   requireActive,
   asyncHandler(payments.checkout),
 );

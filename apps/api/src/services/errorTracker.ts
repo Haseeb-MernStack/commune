@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { env } from "../config/env.js";
 import { logger } from "../config/logger.js";
 import { ErrorEvent } from "../models/ErrorEvent.js";
+import { reserveMail } from "./mailQuota.js";
 import { sendMail } from "./mailService.js";
 
 export interface ErrorReport {
@@ -91,6 +92,7 @@ export async function recordError(report: ErrorReport): Promise<void> {
 
     const to = env.ALERT_EMAIL ?? env.CONTACT_EMAIL;
     if (to && canAlert()) {
+      await reserveMail({ kind: "alert" });
       await sendMail({
         to,
         subject: `Commune error: ${clean.message}`.slice(0, 120),

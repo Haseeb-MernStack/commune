@@ -45,7 +45,7 @@ async function issueSession(res: Response, user: Parameters<typeof toPublicUser>
   return body;
 }
 
-export async function register(input: RegisterInput, res: Response) {
+export async function register(input: RegisterInput, res: Response, ip?: string) {
   const existing = await User.findOne({ email: input.email })
     .or([{ username: input.username }])
     .collation({ locale: "en", strength: 2 })
@@ -58,7 +58,7 @@ export async function register(input: RegisterInput, res: Response) {
     email: input.email,
     passwordHash,
   });
-  sendVerificationEmailInBackground(user);
+  sendVerificationEmailInBackground(user, ip);
   return issueSession(res, user);
 }
 
