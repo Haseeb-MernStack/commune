@@ -3,10 +3,12 @@ import type { FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { resetPasswordSchema } from "@commune/shared";
 import { api } from "../lib/api";
+import { clearLinkToken, readLinkToken } from "../lib/linkToken";
 
 export default function ResetPasswordPage() {
   const [params] = useSearchParams();
-  const token = params.get("token") ?? "";
+  // Read once: the address no longer holds the token, so a re-render must not lose it.
+  const [token] = useState(() => readLinkToken(params.get("token") ?? ""));
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -28,6 +30,7 @@ export default function ResetPasswordPage() {
     setBusy(true);
     try {
       await api("/auth/reset-password", { method: "POST", body: parsed.data });
+      clearLinkToken();
       navigate("/login", { replace: true, state: { notice: "Password updated. Log in with it." } });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
