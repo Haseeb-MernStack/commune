@@ -2,6 +2,7 @@ import { avatarAllowance, consumeAvatarChange } from "../services/avatarService.
 import type { Request, Response } from "express";
 import { usernameSchema } from "@commune/shared";
 import { Follow } from "../models/Follow.js";
+import { Post } from "../models/Post.js";
 import { User } from "../models/User.js";
 import { notify } from "../services/notificationService.js";
 import { deleteUploadIfUnused } from "../services/uploadService.js";
@@ -21,12 +22,13 @@ export async function findByUsername(raw: string | undefined) {
 }
 
 async function buildProfile(user: Awaited<ReturnType<typeof findByUsername>>, viewerId: string) {
-  const [followerCount, followingCount, follows] = await Promise.all([
+  const [followerCount, followingCount, postCount, follows] = await Promise.all([
     Follow.countDocuments({ following: user._id }),
     Follow.countDocuments({ follower: user._id }),
+    Post.countDocuments({ author: user._id }),
     Follow.exists({ follower: viewerId, following: user._id }),
   ]);
-  return toProfileDTO(user, { followerCount, followingCount }, Boolean(follows));
+  return toProfileDTO(user, { followerCount, followingCount, postCount }, Boolean(follows));
 }
 
 export async function me(req: Request, res: Response) {

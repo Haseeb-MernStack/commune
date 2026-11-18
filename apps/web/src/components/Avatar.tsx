@@ -38,10 +38,17 @@ export default function Avatar({
   return (
     <span
       className="avatar avatar-fallback"
-      style={{ ...style, background: hue.bg, color: hue.fg }}
-      aria-hidden="true"
+      style={{
+        ...style,
+        background: `linear-gradient(145deg, ${hue.bg}, color-mix(in srgb, ${hue.bg} 62%, #14183a))`,
+        color: hue.fg,
+      }}
+      role="img"
+      aria-label={`${username}, no profile photo`}
     >
-      {username.charAt(0).toUpperCase()}
+      <span className="avatar-initial" aria-hidden="true">
+        {username.charAt(0).toUpperCase()}
+      </span>
     </span>
   );
 }

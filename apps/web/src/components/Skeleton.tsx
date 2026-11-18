@@ -150,17 +150,20 @@ export function ProfileSkeleton() {
   return (
     <Busy label="Loading profile">
       <div className="card sk-profile" aria-hidden="true">
-        <div className="sk-row">
-          <Sk circle w={84} h={84} />
-          <div className="sk-stack" style={{ flex: 1 }}>
-            <Sk className="sk-line tall" w="45%" />
-            <Sk className="sk-line" w="30%" />
-            <Sk className="sk-line" w="80%" />
+        <Sk className="sk-cover" w="100%" h={132} />
+        <div className="sk-profile-body">
+          <div className="sk-profile-head">
+            <Sk circle w={96} h={96} />
+            <Sk className="sk-pill" w={110} />
           </div>
+          <Sk className="sk-line tall" w="42%" />
+          <Sk className="sk-line" w="28%" />
+          <Sk className="sk-line" w="75%" />
         </div>
-        <div className="sk-actions">
-          <Sk className="sk-pill" w={90} />
-          <Sk className="sk-pill" w={90} />
+        <div className="sk-stats">
+          <Sk className="sk-line" w="60%" />
+          <Sk className="sk-line" w="60%" />
+          <Sk className="sk-line" w="60%" />
         </div>
       </div>
       <PostSkeleton index={0} />

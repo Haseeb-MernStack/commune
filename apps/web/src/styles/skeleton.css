@@ -85,9 +85,41 @@
 }
 
 .sk-profile {
+    display: block;
+    padding: 0;
+    overflow: hidden;
+}
+
+.sk-cover {
+    display: block;
+    border-radius: 0;
+}
+
+.sk-profile-body {
     display: grid;
-    gap: 14px;
-    padding: 20px 16px;
+    gap: 10px;
+    padding: 0 22px 16px;
+}
+
+.sk-profile-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-top: -48px;
+}
+
+.sk-profile-head .sk-circle {
+    border: 4px solid var(--surface);
+    box-sizing: content-box;
+}
+
+.sk-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    justify-items: center;
+    gap: 8px;
+    padding: 16px 8px;
+    border-top: 1px solid var(--border);
 }
 
 .sk-profile .sk-row {

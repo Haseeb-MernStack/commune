@@ -100,7 +100,7 @@ export function toPublicUser(u: UserLike): PublicUser {
 
 export function toProfileDTO(
   u: UserLike,
-  counts: { followerCount: number; followingCount: number },
+  counts: { followerCount: number; followingCount: number; postCount: number },
   followedByMe: boolean,
 ): ProfileDTO {
   return { ...toPublicUser(u), ...counts, followedByMe, banned: Boolean(u.banned) };
