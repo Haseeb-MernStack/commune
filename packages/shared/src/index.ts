@@ -361,6 +361,7 @@ export interface Page<T> {
 }
 
 export interface ProfileDTO extends PublicUser {
+  postCount: number;
   followerCount: number;
   followingCount: number;
   followedByMe: boolean;

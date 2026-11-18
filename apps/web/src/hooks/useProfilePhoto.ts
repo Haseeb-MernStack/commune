@@ -57,12 +57,8 @@ export function useProfilePhoto(allowance: AvatarAllowance | undefined) {
 
   const choose = (file: File) => {
     setError(null);
-    if (noneLeft) {
-      setError(
-        `You've used all ${allowance.limit} photo changes for today. Try again in ${waitText(allowance.resetsAt)}.`,
-      );
-      return;
-    }
+    // The yellow warning under the profile already says so; nothing is uploaded.
+    if (noneLeft) return;
     const problem = validateImage(file);
     if (problem) {
       setError(problem);
@@ -89,12 +85,8 @@ export function useProfilePhoto(allowance: AvatarAllowance | undefined) {
 
   const remove = () => {
     setError(null);
-    if (noneLeft) {
-      setError(
-        `You've used all ${allowance.limit} photo changes for today. Try again in ${waitText(allowance.resetsAt)}.`,
-      );
-      return;
-    }
+    // The yellow warning under the profile already says so; nothing is uploaded.
+    if (noneLeft) return;
     update.mutate(
       { avatarUrl: null },
       { onSuccess: refreshAllowance, onError: (e) => fail(e.message) },

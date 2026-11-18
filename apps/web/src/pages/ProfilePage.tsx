@@ -1,16 +1,20 @@
 import { useState } from "react";
-import { ProfileSkeleton } from "../components/Skeleton";
-import type { FormEvent } from "react";
+import type { CSSProperties, FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import Avatar from "../components/Avatar";
-import AvatarEditor from "../components/AvatarEditor";
+import AvatarEditor, { PhotoNotice } from "../components/AvatarEditor";
+import EarningsCard from "../components/EarningsCard";
 import Icon from "../components/Icon";
 import PlusBadge from "../components/PlusBadge";
-import EarningsCard from "../components/EarningsCard";
 import PostList from "../components/PostList";
-import { useProfile, useToggleFollow, useUpdateProfile, useUserPosts } from "../hooks/useSocial";
+import { ProfileSkeleton } from "../components/Skeleton";
 import { useBanUser, useUnbanUser } from "../hooks/useModeration";
+import { useAvatarAllowance, useProfilePhoto } from "../hooks/useProfilePhoto";
+import { useProfile, useToggleFollow, useUpdateProfile, useUserPosts } from "../hooks/useSocial";
+import { hueFor } from "../lib/hue";
 import { useAuth } from "../store/auth";
+
+const compact = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 });
 
 export default function ProfilePage() {
   const { username = "" } = useParams();
@@ -21,6 +25,8 @@ export default function ProfilePage() {
   const update = useUpdateProfile();
   const ban = useBanUser(username);
   const unban = useUnbanUser(username);
+  const allowance = useAvatarAllowance(Boolean(me && profile.data && me.id === profile.data.id));
+  const photo = useProfilePhoto(allowance.data);
   const [editing, setEditing] = useState(false);
   const [bio, setBio] = useState("");
 
@@ -30,6 +36,7 @@ export default function ProfilePage() {
   const p = profile.data;
   const isMe = me?.id === p.id;
   const isAdmin = me?.role === "admin";
+  const hue = hueFor(p.username);
 
   const suspend = () => {
     if (!window.confirm(`Suspend @${p.username}? They will be logged out and unable to post.`))
@@ -48,112 +55,140 @@ export default function ProfilePage() {
     update.mutate({ bio }, { onSuccess: () => setEditing(false) });
   };
 
+  const joined = new Date(p.createdAt).toLocaleDateString("en", { month: "long", year: "numeric" });
+
   return (
     <>
-      <section className="card profile">
-        <div className="profile-top">
-          <div className="profile-id">
-            {isMe ? (
-              <AvatarEditor username={p.username} url={p.avatarUrl} size={72} />
-            ) : (
-              <Avatar username={p.username} url={p.avatarUrl} size={72} />
-            )}
-            <div>
-              <h1 className="profile-name">
-                @{p.username} <PlusBadge plus={p.plus} />
-              </h1>
-              <p className="muted">Joined {new Date(p.createdAt).toLocaleDateString()}</p>
+      <section className="card profile" style={{ "--hue": hue.bg } as CSSProperties}>
+        <div className="profile-cover" aria-hidden="true" />
+
+        <div className="profile-body">
+          <div className="profile-head">
+            <div className="profile-avatar">
+              {isMe ? (
+                <AvatarEditor username={p.username} url={p.avatarUrl} size={96} photo={photo} />
+              ) : (
+                <Avatar username={p.username} url={p.avatarUrl} size={96} />
+              )}
+            </div>
+
+            <div className="profile-actions">
+              {isMe ? (
+                !editing && (
+                  <button className="btn btn-outline" onClick={startEditing}>
+                    Edit profile
+                  </button>
+                )
+              ) : (
+                <>
+                  <button
+                    className={`btn ${p.followedByMe ? "btn-outline" : ""}`}
+                    onClick={() => follow.mutate()}
+                    disabled={follow.isPending}
+                  >
+                    {p.followedByMe ? "Following" : "Follow"}
+                  </button>
+                  <Link
+                    className="btn btn-outline"
+                    to={`/messages?to=${encodeURIComponent(p.username)}`}
+                  >
+                    <Icon name="mail" size={18} /> Message
+                  </Link>
+                </>
+              )}
             </div>
           </div>
-          {isMe ? (
-            !editing && (
-              <button className="btn btn-outline" onClick={startEditing}>
-                Edit profile
-              </button>
-            )
-          ) : (
+
+          <div className="profile-identity">
+            <h1 className="profile-name">
+              @{p.username} <PlusBadge plus={p.plus} />
+            </h1>
+            <p className="profile-joined">Joined {joined}</p>
+          </div>
+
+          {editing ? (
+            <form onSubmit={save} className="profile-edit">
+              <textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                maxLength={160}
+                rows={3}
+                placeholder="Tell the community about yourself"
+              />
+              <div className="composer-footer">
+                <span className="muted">{bio.length}/160</span>
+                <span className="row">
+                  <button type="button" className="btn btn-ghost" onClick={() => setEditing(false)}>
+                    Done
+                  </button>
+                  <button className="btn" disabled={update.isPending}>
+                    {update.isPending ? "Saving…" : "Save bio"}
+                  </button>
+                </span>
+              </div>
+              {update.isError && <p className="error">{update.error.message}</p>}
+            </form>
+          ) : p.bio ? (
+            <p className="profile-bio">{p.bio}</p>
+          ) : isMe ? (
+            <button type="button" className="profile-bio-empty" onClick={startEditing}>
+              Add a bio so people know who you are
+            </button>
+          ) : null}
+
+          {isMe && (
+            <PhotoNotice allowance={allowance.data} photo={photo} hasPhoto={!!p.avatarUrl} />
+          )}
+
+          {follow.isError && <p className="error">{follow.error.message}</p>}
+          {p.banned && <p className="suspended">This account is suspended.</p>}
+          {isAdmin && !isMe && p.role !== "admin" && (
             <div className="row">
-              <Link
-                className="btn btn-outline"
-                to={`/messages?to=${encodeURIComponent(p.username)}`}
-              >
-                <Icon name="mail" size={18} /> Message
-              </Link>
-              <button
-                className={`btn ${p.followedByMe ? "btn-outline" : ""}`}
-                onClick={() => follow.mutate()}
-                disabled={follow.isPending}
-              >
-                {p.followedByMe ? "Following" : "Follow"}
-              </button>
+              {p.banned ? (
+                <button
+                  className="btn btn-outline"
+                  onClick={() => unban.mutate()}
+                  disabled={unban.isPending}
+                >
+                  Lift suspension
+                </button>
+              ) : (
+                <button className="btn btn-danger" onClick={suspend} disabled={ban.isPending}>
+                  Suspend user
+                </button>
+              )}
             </div>
+          )}
+          {(ban.isError || unban.isError) && (
+            <p className="error">{(ban.error ?? unban.error)?.message}</p>
           )}
         </div>
 
-        {isMe && <EarningsCard />}
+        <dl className="profile-stats">
+          <div>
+            <dt>Posts</dt>
+            <dd>{compact.format(p.postCount ?? 0)}</dd>
+          </div>
+          <div>
+            <dt>Followers</dt>
+            <dd>{compact.format(p.followerCount)}</dd>
+          </div>
+          <div>
+            <dt>Following</dt>
+            <dd>{compact.format(p.followingCount)}</dd>
+          </div>
+        </dl>
 
-        {editing ? (
-          <form onSubmit={save} className="profile-edit">
-            <textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              maxLength={160}
-              rows={3}
-              placeholder="Tell the community about yourself"
-            />
-            <div className="composer-footer">
-              <span className="muted">{bio.length}/160</span>
-              <span className="row">
-                <button type="button" className="btn btn-ghost" onClick={() => setEditing(false)}>
-                  Done
-                </button>
-                <button className="btn" disabled={update.isPending}>
-                  {update.isPending ? "Saving…" : "Save bio"}
-                </button>
-              </span>
-            </div>
-            {update.isError && <p className="error">{update.error.message}</p>}
-          </form>
-        ) : (
-          <p className="profile-bio">
-            {p.bio || (isMe ? "Add a bio so people know who you are." : "")}
-          </p>
-        )}
-
-        {follow.isError && <p className="error">{follow.error.message}</p>}
-
-        {p.banned && <p className="suspended">This account is suspended.</p>}
-        {isAdmin && !isMe && p.role !== "admin" && (
-          <div className="row">
-            {p.banned ? (
-              <button
-                className="btn btn-outline"
-                onClick={() => unban.mutate()}
-                disabled={unban.isPending}
-              >
-                Lift suspension
-              </button>
-            ) : (
-              <button className="btn btn-danger" onClick={suspend} disabled={ban.isPending}>
-                Suspend user
-              </button>
-            )}
+        {isMe && (
+          <div className="profile-earnings">
+            <EarningsCard />
           </div>
         )}
-        {(ban.isError || unban.isError) && (
-          <p className="error">{(ban.error ?? unban.error)?.message}</p>
-        )}
-
-        <div className="profile-stats">
-          <span>
-            <strong>{p.followerCount}</strong> <span className="muted">followers</span>
-          </span>
-          <span>
-            <strong>{p.followingCount}</strong> <span className="muted">following</span>
-          </span>
-        </div>
       </section>
 
+      <h2 className="profile-section">
+        <Icon name="image" size={18} /> Posts
+      </h2>
       <PostList query={posts} emptyMessage="No posts yet." />
     </>
   );

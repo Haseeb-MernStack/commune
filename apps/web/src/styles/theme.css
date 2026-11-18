@@ -1417,12 +1417,6 @@ h3,
 }
 
 /* ---------- Profile photo editor ---------- */
-.avatar-edit {
-  display: grid;
-  justify-items: start;
-  gap: 6px;
-}
-
 .avatar-edit-frame {
   position: relative;
   flex: none;
@@ -1472,15 +1466,251 @@ h3,
   font-weight: 700;
 }
 
-.avatar-edit-note {
+
+/* ---------- Profile ---------- */
+.card.profile {
+  --cover-h: 132px;
+  --avatar: 96px;
+  display: block;
+  padding: 0;
+  overflow: hidden;
+}
+
+.profile-cover {
+  height: var(--cover-h);
+  background:
+    radial-gradient(120% 140% at 12% 0%, rgb(255 255 255 / 0.28), transparent 55%),
+    radial-gradient(90% 120% at 100% 100%, rgb(0 0 0 / 0.28), transparent 60%),
+    linear-gradient(135deg, var(--hue), color-mix(in srgb, var(--hue) 45%, #14183a));
+}
+
+.profile-body {
+  display: grid;
+  gap: 12px;
+  padding: 0 22px 18px;
+}
+
+.profile-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  /* The photo overlaps the cover by half its height. */
+  margin-top: calc(var(--avatar) / -2);
+}
+
+.profile-avatar {
+  flex: none;
+  padding: 4px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.18);
+}
+
+.profile-avatar .avatar,
+.profile-avatar .avatar-edit-busy {
+  border-radius: 50%;
+}
+
+.profile-avatar .avatar-edit-btn {
+  right: -2px;
+  bottom: -2px;
+}
+
+.profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-bottom: 6px;
+}
+
+.profile-actions .btn {
+  border-radius: 999px;
+  padding-inline: 20px;
+}
+
+.profile-identity {
+  display: grid;
+  gap: 2px;
+}
+
+.profile-name {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px 10px;
-  max-width: 220px;
-  min-height: 1.2em;
+  gap: 8px;
+  margin: 0;
+  font-size: 1.55rem;
+  line-height: 1.2;
 }
 
-.avatar-edit-note .link-btn {
+.profile-joined {
+  margin: 0;
   color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.profile-bio {
+  margin: 0;
+  max-width: 60ch;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.profile-bio-empty {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+}
+
+.profile-bio-empty:hover {
+  color: var(--text);
+}
+
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 0;
+  border-top: 1px solid var(--border);
+}
+
+.profile-stats > div {
+  display: grid;
+  gap: 2px;
+  padding: 14px 8px;
+  text-align: center;
+}
+
+.profile-stats > div + div {
+  border-left: 1px solid var(--border);
+}
+
+.profile-stats dd {
+  margin: 0;
+  order: -1;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.profile-stats dt {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.profile-earnings {
+  padding: 0 22px 18px;
+}
+
+.profile-earnings .earnings {
+  margin: 0;
+  padding: 14px 16px;
+  gap: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  border: 0;
+}
+
+.profile-earnings .earnings strong {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+.profile-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 18px 4px 10px;
+  font-size: 1rem;
+  color: var(--muted);
+}
+
+/* Photo note and the yellow "limit reached" warning */
+.photo-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+}
+
+.photo-notice:empty {
+  display: none;
+}
+
+.photo-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 9px 12px;
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--gold) 20%, transparent);
+  color: var(--text);
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.photo-warning svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--gold);
+}
+
+.photo-notice .link-btn {
+  color: var(--muted);
+}
+
+/* Default picture (no photo): the initial is centred in every context, including the editor. */
+.avatar-fallback {
+  display: inline-grid;
+  place-items: center;
+  overflow: hidden;
+  line-height: 1;
+  user-select: none;
+}
+
+.avatar-edit-frame .avatar-fallback {
+  display: grid;
+}
+
+.avatar-initial {
+  display: block;
+  line-height: 1;
+  /* Capital letters sit a hair high in most fonts; this centres them optically. */
+  transform: translateY(0.04em);
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.18);
+}
+
+@media (max-width: 600px) {
+  .card.profile {
+    --cover-h: 104px;
+    --avatar: 84px;
+  }
+
+  .profile-body {
+    padding-inline: 16px;
+  }
+
+  .profile-earnings {
+    padding-inline: 16px;
+  }
+
+  .profile-name {
+    font-size: 1.35rem;
+  }
+
+  .profile-actions {
+    flex: 1;
+  }
 }
