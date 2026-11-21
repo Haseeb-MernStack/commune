@@ -1798,7 +1798,8 @@ main:focus {
 .post-edited {
   font-size: 0.85em;
   white-space: nowrap;
-  
+}
+
 /* ---- Legal pages and cookie notice ---- */
 .legal {
   max-width: 760px;
