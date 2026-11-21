@@ -137,6 +137,12 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
       <button type="submit" className="btn block" disabled={busy} aria-busy={busy}>
         {busy ? "Please wait…" : mode === "login" ? "Log in" : "Create account"}
       </button>
+      {mode === "register" && (
+        <p className="muted small center">
+          By creating an account you agree to the <Link to="/terms">Terms</Link> and the{" "}
+          <Link to="/privacy">Privacy Policy</Link>.
+        </p>
+      )}
       <p className="muted center">
         {mode === "login" ? (
           <>
