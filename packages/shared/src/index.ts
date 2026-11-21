@@ -219,6 +219,12 @@ export type CreateCommunityInput = z.infer<typeof createCommunitySchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
+/** Editing a post changes its text only: the image, the price and any paid content stay as they were. */
+export const updatePostSchema = z.object({
+  content: z.string().trim().max(PLUS_POST_LENGTH),
+});
+
+export type UpdatePostInput = z.infer<typeof updatePostSchema>;
 export type CreatePostInput = z.infer<typeof createPostSchema>;
 export type CreateCommentInput = z.infer<typeof createCommentSchema>;
 export type PaginationInput = z.infer<typeof paginationSchema>;
@@ -268,6 +274,8 @@ export interface PostDTO {
   /** The paid content. Always null while `locked`, and for free posts. */
   premiumContent: string | null;
   createdAt: string;
+  /** When the author last changed the text, or null if it was never edited. */
+  editedAt: string | null;
 }
 
 export interface UserSummaryDTO {

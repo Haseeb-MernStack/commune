@@ -1,9 +1,9 @@
 import { useState } from "react";
 import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
-import type { PostDTO } from "@commune/shared";
+import { FREE_POST_LENGTH, PLUS_POST_LENGTH, type PostDTO } from "@commune/shared";
 import { useAuth } from "../store/auth";
-import { useDeletePost, useToggleLike } from "../hooks/usePosts";
+import { useDeletePost, useToggleLike, useUpdatePost } from "../hooks/usePosts";
 import { formatPrice, useCheckout } from "../hooks/usePayments";
 import { assetUrl } from "../lib/api";
 import Avatar from "./Avatar";
@@ -25,9 +25,25 @@ export default function PostCard({ post }: { post: PostDTO }) {
   const like = useToggleLike();
   const del = useDeletePost();
   const checkout = useCheckout();
+  const update = useUpdatePost();
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(post.content);
   const [reporting, setReporting] = useState(false);
   const mine = user?.id === post.author.id;
   const isAdmin = user?.role === "admin";
+  const max = user?.plus ? PLUS_POST_LENGTH : Math.max(FREE_POST_LENGTH, post.content.length);
+
+  const startEdit = () => {
+    setDraft(post.content);
+    update.reset();
+    setEditing(true);
+  };
+  const save = () => {
+    const next = draft.trim();
+    if (update.isPending) return;
+    if (next === post.content) return setEditing(false);
+    update.mutate({ id: post.id, content: next }, { onSuccess: () => setEditing(false) });
+  };
 
   return (
     <article className="card post post-head">
@@ -46,6 +62,14 @@ export default function PostCard({ post }: { post: PostDTO }) {
             <span aria-hidden="true">· </span>
             <time dateTime={post.createdAt}>{timeAgo(post.createdAt)}</time>
           </Link>
+          {post.editedAt && (
+            <span
+              className="post-edited muted"
+              title={`Edited ${new Date(post.editedAt).toLocaleString()}`}
+            >
+              · edited
+            </span>
+          )}
           {post.community && (
             <Link
               to={`/c/${post.community.slug}`}
@@ -59,7 +83,50 @@ export default function PostCard({ post }: { post: PostDTO }) {
             <span className="price-badge">{formatPrice(post.priceCents)}</span>
           )}
         </div>
-        {post.content && <p className="post-body">{post.content}</p>}
+        {editing ? (
+          <div className="post-edit">
+            <textarea
+              className="input"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") setEditing(false);
+                if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) save();
+              }}
+              maxLength={max}
+              rows={Math.min(10, Math.max(3, draft.split("\n").length + 1))}
+              aria-label="Edit your post"
+              autoFocus
+            />
+            <div className="post-edit-bar">
+              <span
+                className={`muted small${draft.length >= max ? " at-limit" : ""}`}
+                aria-live="polite"
+              >
+                {draft.length}/{max}
+              </span>
+              <span className="row">
+                <button className="btn btn-outline" onClick={() => setEditing(false)}>
+                  Cancel
+                </button>
+                <button
+                  className="btn"
+                  onClick={save}
+                  disabled={update.isPending || (!draft.trim() && !post.imageUrl)}
+                >
+                  {update.isPending ? "Saving…" : "Save"}
+                </button>
+              </span>
+            </div>
+            {update.isError && (
+              <p className="error" role="alert">
+                {update.error.message}
+              </p>
+            )}
+          </div>
+        ) : (
+          post.content && <p className="post-body">{post.content}</p>
+        )}
         {post.imageUrl && (
           <a href={assetUrl(post.imageUrl)} target="_blank" rel="noopener noreferrer">
             <img
@@ -127,6 +194,11 @@ export default function PostCard({ post }: { post: PostDTO }) {
               aria-expanded={reporting}
             >
               <Icon name="flag" size={18} /> Report
+            </button>
+          )}
+          {mine && !editing && (
+            <button className="btn btn-ghost" onClick={startEdit}>
+              <Icon name="pencil" size={18} /> Edit
             </button>
           )}
           {(mine || isAdmin) && (

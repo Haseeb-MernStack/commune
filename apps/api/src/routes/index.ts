@@ -14,6 +14,7 @@ import {
   createCommentSchema,
   createCommunitySchema,
   createPostSchema,
+  updatePostSchema,
   createReportSchema,
   forgotPasswordSchema,
   googleLoginSchema,
@@ -80,6 +81,10 @@ import { asyncHandler } from "../utils/errors.js";
 const UPLOAD_QUOTA = [
   { limit: 20, windowMs: HOUR },
   { limit: 60, windowMs: DAY },
+];
+const POST_EDIT_QUOTA = [
+  { limit: 30, windowMs: HOUR },
+  { limit: 100, windowMs: DAY },
 ];
 const CHECKOUT_QUOTA = [
   { limit: 10, windowMs: HOUR },
@@ -318,6 +323,14 @@ router.post(
   asyncHandler(posts.createPost),
 );
 router.get("/posts/:id", requireAuth, asyncHandler(posts.getPost));
+router.patch(
+  "/posts/:id",
+  requireAuth,
+  validate(updatePostSchema),
+  userQuota("post_edit", POST_EDIT_QUOTA),
+  requireActive,
+  asyncHandler(posts.updatePost),
+);
 router.delete("/posts/:id", requireAuth, requireActive, asyncHandler(posts.deletePost));
 router.post("/posts/:id/like", requireAuth, requireActive, asyncHandler(posts.toggleLike));
 router.post(

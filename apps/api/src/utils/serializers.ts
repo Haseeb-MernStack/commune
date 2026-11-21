@@ -42,6 +42,7 @@ export interface PopulatedPost {
   author: PopulatedAuthor;
   likeCount: number;
   commentCount: number;
+  editedAt?: Date | null;
   createdAt: Date;
 }
 
@@ -126,6 +127,7 @@ export function toPostDTO(p: PopulatedPost, likedByMe: boolean, unlocked: boolea
     locked,
     premiumContent: paid && !locked ? (p.premiumContent ?? "") : null,
     createdAt: p.createdAt.toISOString(),
+    editedAt: p.editedAt ? p.editedAt.toISOString() : null,
   };
 }
 

@@ -1757,6 +1757,35 @@ main:focus {
   }
 }
 
+/* ---- Editing a post ---- */
+.post-edit {
+  margin: 8px 0 10px;
+}
+.post-edit textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 84px;
+  font: inherit;
+  line-height: 1.5;
+}
+.post-edit-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+}
+.post-edit-bar .row {
+  display: flex;
+  gap: 8px;
+}
+.at-limit {
+  color: var(--danger, #c0392b);
+}
+.post-edited {
+  font-size: 0.85em;
+  white-space: nowrap;
+  
 /* ---- Legal pages and cookie notice ---- */
 .legal {
   max-width: 760px;
