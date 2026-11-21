@@ -6,6 +6,7 @@ import { useAuth } from "../store/auth";
 import { useDeletePost, useToggleLike, useUpdatePost } from "../hooks/usePosts";
 import { formatPrice, useCheckout } from "../hooks/usePayments";
 import { assetUrl } from "../lib/api";
+import { showToast } from "../lib/toast";
 import Avatar from "./Avatar";
 import Icon from "./Icon";
 import PlusBadge from "./PlusBadge";
@@ -43,6 +44,23 @@ export default function PostCard({ post }: { post: PostDTO }) {
     if (update.isPending) return;
     if (next === post.content) return setEditing(false);
     update.mutate({ id: post.id, content: next }, { onSuccess: () => setEditing(false) });
+  };
+
+  const copyLink = async () => {
+    const to = `/posts/${post.id}`;
+    try {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error("Clipboard is not available");
+      }
+      await navigator.clipboard.writeText(`${window.location.origin}${to}`);
+      showToast({ title: "Link copied", body: "Share this post with anyone.", to });
+    } catch {
+      showToast({
+        title: "Could not copy the link",
+        body: "Copy this page's address from the address bar instead.",
+        to,
+      });
+    }
   };
 
   return (
@@ -187,6 +205,9 @@ export default function PostCard({ post }: { post: PostDTO }) {
             <Icon name="comment" size={19} />
             <span>{post.commentCount}</span>
           </Link>
+          <button className="btn btn-ghost" onClick={copyLink} aria-label="Copy link to post">
+            <Icon name="link" size={18} /> Copy link
+          </button>
           {!mine && (
             <button
               className="btn btn-ghost"
