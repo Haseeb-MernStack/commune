@@ -48,7 +48,7 @@ Emails, uploads and checkouts are limited per address, per account and for the w
 Add the `headers` block from the pull request description to `apps/web/vercel.json`. The
 `Content-Security-Policy-Report-Only` header only reports problems in the browser console. After
 a week of clean browsing (sign-in with Google, ads, uploads, payments), rename it to
-`Content-Security-Policy` to enforce it.
+`Content-Security-Policy` to enforce it. Violations are collected on the Admin page; see [CSP.md](CSP.md) for how to read them and what to check first.
 
 ## Known limits
 

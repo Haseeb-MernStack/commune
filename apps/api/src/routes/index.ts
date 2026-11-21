@@ -1,4 +1,4 @@
-import { Router } from "express";
+import express, { Router } from "express";
 import {
   banUserSchema,
   completeUploadSchema,
@@ -111,6 +111,15 @@ router.post(
   clientErrorLimiter,
   validate(clientErrorSchema),
   asyncHandler(monitor.reportClientError),
+);
+
+// Content-Security-Policy violation reports. Browsers send them as application/csp-report or
+// application/reports+json, which the global JSON parser skips, so this route reads them itself.
+router.post(
+  "/csp-report",
+  clientErrorLimiter,
+  express.json({ limit: "10kb", type: ["application/csp-report", "application/reports+json"] }),
+  asyncHandler(monitor.reportCsp),
 );
 
 // Auth

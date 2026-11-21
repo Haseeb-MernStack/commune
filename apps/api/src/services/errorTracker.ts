@@ -6,7 +6,8 @@ import { reserveMail } from "./mailQuota.js";
 import { sendMail } from "./mailService.js";
 
 export interface ErrorReport {
-  source: "api" | "web";
+  /** "csp" is a Content-Security-Policy violation reported by a browser. */
+  source: "api" | "web" | "csp";
   message: string;
   stack?: string;
   route?: string;
@@ -91,7 +92,9 @@ export async function recordError(report: ErrorReport): Promise<void> {
     cachedCount.value += 1;
 
     const to = env.ALERT_EMAIL ?? env.CONTACT_EMAIL;
-    if (to && canAlert()) {
+    // Policy violations are reviewed in the Admin page, never emailed: a browser extension can
+    // trigger dozens of them.
+    if (to && clean.source !== "csp" && canAlert()) {
       await reserveMail({ kind: "alert" });
       await sendMail({
         to,

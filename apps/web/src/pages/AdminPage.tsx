@@ -111,7 +111,8 @@ function ErrorsPanel() {
           <div className="report-head">
             <strong>{e.message}</strong>
             <span className="muted">
-              {e.source === "web" ? "Browser" : "API"} · {e.count}× · last {timeAgo(e.lastSeen)}
+              {e.source === "web" ? "Browser" : e.source === "csp" ? "Security policy" : "API"} ·{" "}
+              {e.count}× · last {timeAgo(e.lastSeen)}
             </span>
           </div>
           <p className="muted">{e.route}</p>
