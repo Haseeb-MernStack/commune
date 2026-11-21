@@ -150,6 +150,60 @@
       function gtag() {
         dataLayer.push(arguments);
       }
+      // Regions with strict cookie laws start with analytics and ad cookies off until the visitor
+      // agrees; a saved choice is applied straight away. See components/CookieNotice.tsx.
+      gtag("consent", "default", {
+        analytics_storage: "denied",
+        ad_storage: "denied",
+        ad_user_data: "denied",
+        ad_personalization: "denied",
+        region: [
+          "AT",
+          "BE",
+          "BG",
+          "HR",
+          "CY",
+          "CZ",
+          "DK",
+          "EE",
+          "FI",
+          "FR",
+          "DE",
+          "GR",
+          "HU",
+          "IE",
+          "IT",
+          "LV",
+          "LT",
+          "LU",
+          "MT",
+          "NL",
+          "PL",
+          "PT",
+          "RO",
+          "SK",
+          "SI",
+          "ES",
+          "SE",
+          "IS",
+          "LI",
+          "NO",
+          "GB",
+          "CH",
+        ],
+      });
+      try {
+        var saved = localStorage.getItem("commune-consent");
+        if (saved) {
+          var v = saved === "all" ? "granted" : "denied";
+          gtag("consent", "update", {
+            analytics_storage: v,
+            ad_storage: v,
+            ad_user_data: v,
+            ad_personalization: v,
+          });
+        }
+      } catch (e) {}
       gtag("js", new Date());
 
       gtag("config", "G-T3YEFKZP7Q");

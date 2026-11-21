@@ -19,6 +19,8 @@ export default function RightRail() {
         <Link to="/explore">Explore</Link>
         <Link to="/plus">Plus</Link>
         <Link to="/contact">Contact</Link>
+        <Link to="/privacy">Privacy</Link>
+        <Link to="/terms">Terms</Link>
         <a href={REPO_URL} target="_blank" rel="noopener noreferrer">
           GitHub
         </a>
