@@ -45,6 +45,7 @@ import * as notifications from "../controllers/notificationController.js";
 import * as posts from "../controllers/postController.js";
 import * as reports from "../controllers/reportController.js";
 import * as publicApi from "../controllers/publicController.js";
+import * as share from "../controllers/shareController.js";
 import * as search from "../controllers/searchController.js";
 import * as uploads from "../controllers/uploadController.js";
 import * as data from "../controllers/dataController.js";
@@ -156,6 +157,10 @@ router.get(
   validate(paginationSchema, "query"),
   asyncHandler(publicApi.listPosts),
 );
+
+// Link previews for chat apps and social sites (the web host sends bots here).
+router.get("/share/post/:id", publicLimiter, asyncHandler(share.postPreview));
+router.get("/share/user/:username", publicLimiter, asyncHandler(share.userPreview));
 
 // Uploads (auth and rate limit run before the file is parsed)
 router.post(
