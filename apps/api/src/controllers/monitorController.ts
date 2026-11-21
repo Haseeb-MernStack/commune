@@ -36,6 +36,51 @@ export async function reportClientError(req: Request, res: Response) {
   res.status(204).end();
 }
 
+/** Keeps only the scheme and host of a URL, so reports never carry paths, tokens or queries. */
+function originOnly(value: unknown): string {
+  if (typeof value !== "string" || !value) return "unknown";
+  if (["inline", "eval", "data", "blob", "self", "wasm-eval"].includes(value)) return value;
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:" ? url.origin : url.protocol;
+  } catch {
+    return "unknown";
+  }
+}
+
+/**
+ * Turns a browser's Content-Security-Policy report into one short line. Handles both formats:
+ * the older `{ "csp-report": {...} }` and the newer Reporting API list of `{ body: {...} }`.
+ */
+export function describeViolation(payload: unknown): { message: string; route: string } | null {
+  const first = Array.isArray(payload) ? payload[0] : payload;
+  const raw = (first as { "csp-report"?: unknown; body?: unknown } | null) ?? null;
+  const report = (raw?.["csp-report"] ?? raw?.body) as Record<string, unknown> | undefined;
+  if (!report || typeof report !== "object") return null;
+
+  const directive = String(report["effective-directive"] ?? report.effectiveDirective ?? "").slice(
+    0,
+    40,
+  );
+  const blocked = originOnly(report["blocked-uri"] ?? report.blockedURL ?? report.blockedUri);
+  if (!directive) return null;
+  const mode = report.disposition === "enforce" ? "blocked" : "would block";
+  let route = "";
+  try {
+    route = new URL(String(report["document-uri"] ?? report.documentURL ?? "")).pathname;
+  } catch {
+    route = "";
+  }
+  return { message: `${directive} ${mode} ${blocked}`, route };
+}
+
+/** Receives Content-Security-Policy reports. Public (browsers send them), rate limited. */
+export async function reportCsp(req: Request, res: Response) {
+  const found = describeViolation(req.body);
+  if (found) await recordError({ source: "csp", message: found.message, route: found.route });
+  res.status(204).end();
+}
+
 function toDTO(e: {
   _id: unknown;
   source: string;

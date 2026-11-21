@@ -6,7 +6,7 @@ import { Schema, model } from "mongoose";
  */
 const errorEventSchema = new Schema({
   fingerprint: { type: String, required: true, unique: true },
-  source: { type: String, enum: ["api", "web"], required: true },
+  source: { type: String, enum: ["api", "web", "csp"], required: true },
   message: { type: String, required: true, maxlength: 300 },
   route: { type: String, default: "", maxlength: 200 },
   status: { type: Number, default: null },
