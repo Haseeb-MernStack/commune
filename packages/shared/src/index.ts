@@ -445,7 +445,7 @@ export type ClientErrorInput = z.infer<typeof clientErrorSchema>;
 
 export interface ErrorEventDTO {
   id: string;
-  source: "api" | "web";
+  source: "api" | "web" | "csp";
   message: string;
   route: string;
   status: number | null;

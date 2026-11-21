@@ -1785,4 +1785,84 @@ main:focus {
 .post-edited {
   font-size: 0.85em;
   white-space: nowrap;
+  
+/* ---- Legal pages and cookie notice ---- */
+.legal {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 28px clamp(18px, 4vw, 36px);
+}
+.legal h1 {
+  margin: 0 0 4px;
+  font-size: clamp(1.6rem, 4vw, 2rem);
+  letter-spacing: -0.02em;
+}
+.legal-intro {
+  margin: 16px 0 8px;
+  font-size: 1.02rem;
+  line-height: 1.6;
+}
+.legal-section {
+  margin-top: 26px;
+}
+.legal-section h2 {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+}
+.legal-section p,
+.legal-section li {
+  line-height: 1.65;
+  color: var(--text);
+}
+.legal-section ul {
+  padding-left: 1.2rem;
+  margin: 8px 0;
+}
+.legal a {
+  color: var(--brand, var(--text));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.legal-foot {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.consent-bar {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  flex-wrap: wrap;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  box-shadow: 0 8px 30px rgb(0 0 0 / 0.22);
+}
+.consent-bar p {
+  margin: 0;
+  flex: 1 1 260px;
+  line-height: 1.5;
+}
+.consent-bar a {
+  color: inherit;
+  text-decoration: underline;
+}
+.consent-bar .row {
+  display: flex;
+  gap: 8px;
+}
+body:has(.bottom-nav) .consent-bar {
+  bottom: calc(var(--bottom-h) + 12px + env(safe-area-inset-bottom));
 }

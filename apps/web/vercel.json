@@ -34,7 +34,7 @@
         },
         {
           "key": "Content-Security-Policy-Report-Only",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagservices.com https://adservice.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://accounts.google.com; img-src 'self' data: blob: https://res.cloudinary.com https://*.googlesyndication.com https://*.google.com https://*.doubleclick.net https://www.google-analytics.com https://www.googletagmanager.com; font-src 'self' data:; connect-src 'self' https://api.cloudinary.com https://accounts.google.com https://*.google.com https://*.googlesyndication.com https://*.doubleclick.net https://ep1.adtrafficquality.google https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; frame-src https://accounts.google.com https://*.googlesyndication.com https://*.doubleclick.net; worker-src 'self'; manifest-src 'self'"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagservices.com https://adservice.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://accounts.google.com; img-src 'self' data: blob: https://res.cloudinary.com https://*.googlesyndication.com https://*.google.com https://*.doubleclick.net https://www.google-analytics.com https://www.googletagmanager.com; font-src 'self' data:; connect-src 'self' https://api.cloudinary.com https://accounts.google.com https://*.google.com https://*.googlesyndication.com https://*.doubleclick.net https://ep1.adtrafficquality.google https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.onrender.com wss://*.onrender.com; frame-src https://accounts.google.com https://*.googlesyndication.com https://*.doubleclick.net; worker-src 'self'; manifest-src 'self'; script-src-attr 'none'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; report-uri /api/csp-report"
         },
         {
           "key": "X-Robots-Tag",
@@ -76,6 +76,28 @@
         }
       ],
       "destination": "/ai-blocked.html"
+    },
+    {
+      "source": "/posts/:id",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(facebookexternalhit|Facebot|Twitterbot|WhatsApp|Slackbot|TelegramBot|LinkedInBot|Discordbot|SkypeUriPreview|Pinterestbot|redditbot|Mastodon).*"
+        }
+      ],
+      "destination": "https://commune-8im5.vercel.app/api/share/post/:id"
+    },
+    {
+      "source": "/u/:username",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(facebookexternalhit|Facebot|Twitterbot|WhatsApp|Slackbot|TelegramBot|LinkedInBot|Discordbot|SkypeUriPreview|Pinterestbot|redditbot|Mastodon).*"
+        }
+      ],
+      "destination": "https://commune-8im5.vercel.app/api/share/user/:username"
     },
     {
       "source": "/api/:path*",

@@ -175,6 +175,8 @@ export default function Header() {
                 {user.role === "admin" && item("/admin", "shield", "Admin")}
                 {item("/settings", "gear", "Settings")}
                 {item("/contact", "contact", "Contact")}
+                {item("/privacy", "shield", "Privacy")}
+                {item("/terms", "news", "Terms")}
               </nav>
               <button className="btn btn-outline block" onClick={() => void logout()}>
                 <Icon name="logout" size={18} /> Log out
@@ -187,6 +189,8 @@ export default function Header() {
                 {item("/explore", "compass", "Explore")}
                 {item("/news", "news", "News")}
                 {item("/contact", "contact", "Contact")}
+                {item("/privacy", "shield", "Privacy")}
+                {item("/terms", "news", "Terms")}
               </nav>
               <Link to="/register" className="btn block">
                 Create account

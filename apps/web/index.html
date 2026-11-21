@@ -52,7 +52,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="format-detection" content="telephone=no" />
 
-    <!-- Link previews. Add og:image (an absolute https URL to a 1200x630 image) once you have one. -->
+    <!-- Link previews. Posts and profiles get their own tags from the API (see apps/api shareController). -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Commune" />
     <meta property="og:title" content="Commune" />
@@ -60,7 +60,11 @@
       property="og:description"
       content="An open source community platform. Share posts, follow people and join the conversation."
     />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image" content="https://commune-mu.vercel.app/og-default.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://commune-mu.vercel.app/og-default.jpg" />
     <link rel="canonical" href="https://commune-mu.vercel.app/" />
     <meta property="og:url" content="https://commune-mu.vercel.app/" />
 
@@ -150,6 +154,60 @@
       function gtag() {
         dataLayer.push(arguments);
       }
+      // Regions with strict cookie laws start with analytics and ad cookies off until the visitor
+      // agrees; a saved choice is applied straight away. See components/CookieNotice.tsx.
+      gtag("consent", "default", {
+        analytics_storage: "denied",
+        ad_storage: "denied",
+        ad_user_data: "denied",
+        ad_personalization: "denied",
+        region: [
+          "AT",
+          "BE",
+          "BG",
+          "HR",
+          "CY",
+          "CZ",
+          "DK",
+          "EE",
+          "FI",
+          "FR",
+          "DE",
+          "GR",
+          "HU",
+          "IE",
+          "IT",
+          "LV",
+          "LT",
+          "LU",
+          "MT",
+          "NL",
+          "PL",
+          "PT",
+          "RO",
+          "SK",
+          "SI",
+          "ES",
+          "SE",
+          "IS",
+          "LI",
+          "NO",
+          "GB",
+          "CH",
+        ],
+      });
+      try {
+        var saved = localStorage.getItem("commune-consent");
+        if (saved) {
+          var v = saved === "all" ? "granted" : "denied";
+          gtag("consent", "update", {
+            analytics_storage: v,
+            ad_storage: v,
+            ad_user_data: v,
+            ad_personalization: v,
+          });
+        }
+      } catch (e) {}
       gtag("js", new Date());
 
       gtag("config", "G-T3YEFKZP7Q");

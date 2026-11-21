@@ -5,6 +5,7 @@ import { useAuth } from "./store/auth";
 import Header, { AUTH_PATHS } from "./components/Header";
 import FeedPage from "./pages/FeedPage";
 import VerifyBanner from "./components/VerifyBanner";
+import CookieNotice from "./components/CookieNotice";
 import BadgeSync from "./components/BadgeSync";
 import PwaBanner from "./components/PwaBanner";
 import Toasts from "./components/Toasts";
@@ -34,6 +35,8 @@ const InsightsPage = lazy(() => import("./pages/InsightsPage"));
 const MessagesPage = lazy(() => import("./pages/MessagesPage"));
 const NewsPage = lazy(() => import("./pages/NewsPage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
+const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
+const TermsPage = lazy(() => import("./pages/TermsPage"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPassword"));
 
@@ -42,6 +45,8 @@ const TITLES: Record<string, string> = {
   "/explore": "Explore",
   "/news": "Latest news",
   "/contact": "Contact",
+  "/privacy": "Privacy Policy",
+  "/terms": "Terms of Service",
   "/plus": "Commune Plus",
   "/insights": "Insights",
   "/messages": "Messages",
@@ -196,6 +201,8 @@ function AppRoutes() {
         />
         <Route path="/news" element={<NewsPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
         <Route
           path="/messages"
           element={
@@ -268,6 +275,7 @@ export default function App() {
         {skip}
         <RouteMeta />
         <PwaBanner />
+        <CookieNotice />
         <div className="auth-split">
           <AuthArt />
           <main id="main" tabIndex={-1} className="auth-main">
@@ -290,6 +298,7 @@ export default function App() {
       <BadgeSync />
       <Toasts />
       <PwaBanner />
+      <CookieNotice />
       <div className={`shell${user ? " has-left" : ""}${wide ? " wide" : ""}`}>
         {user && <LeftNav />}
         <main id="main" tabIndex={-1} className="container">

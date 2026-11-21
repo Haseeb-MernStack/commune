@@ -1,4 +1,4 @@
-import { Router } from "express";
+import express, { Router } from "express";
 import {
   banUserSchema,
   completeUploadSchema,
@@ -46,6 +46,7 @@ import * as notifications from "../controllers/notificationController.js";
 import * as posts from "../controllers/postController.js";
 import * as reports from "../controllers/reportController.js";
 import * as publicApi from "../controllers/publicController.js";
+import * as share from "../controllers/shareController.js";
 import * as search from "../controllers/searchController.js";
 import * as uploads from "../controllers/uploadController.js";
 import * as data from "../controllers/dataController.js";
@@ -118,6 +119,15 @@ router.post(
   asyncHandler(monitor.reportClientError),
 );
 
+// Content-Security-Policy violation reports. Browsers send them as application/csp-report or
+// application/reports+json, which the global JSON parser skips, so this route reads them itself.
+router.post(
+  "/csp-report",
+  clientErrorLimiter,
+  express.json({ limit: "10kb", type: ["application/csp-report", "application/reports+json"] }),
+  asyncHandler(monitor.reportCsp),
+);
+
 // Auth
 router.post("/auth/register", authLimiter, validate(registerSchema), asyncHandler(auth.register));
 router.post("/auth/login", authLimiter, validate(loginSchema), asyncHandler(auth.login));
@@ -161,6 +171,10 @@ router.get(
   validate(paginationSchema, "query"),
   asyncHandler(publicApi.listPosts),
 );
+
+// Link previews for chat apps and social sites (the web host sends bots here).
+router.get("/share/post/:id", publicLimiter, asyncHandler(share.postPreview));
+router.get("/share/user/:username", publicLimiter, asyncHandler(share.userPreview));
 
 // Uploads (auth and rate limit run before the file is parsed)
 router.post(
