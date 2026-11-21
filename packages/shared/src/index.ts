@@ -1,4 +1,5 @@
 import { z } from "zod";
+export * from "./links.js";
 
 export const usernameSchema = z
   .string()
