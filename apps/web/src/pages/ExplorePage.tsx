@@ -1,3 +1,4 @@
+import RichText from "../components/RichText";
 import { Fragment } from "react";
 import { Link } from "react-router-dom";
 import Avatar from "../components/Avatar";
@@ -67,7 +68,11 @@ export default function ExplorePage() {
                 <PlusBadge plus={post.author.plus} />
                 <span className="muted">· {timeAgo(post.createdAt)}</span>
               </div>
-              {post.content && <p className="post-body">{post.content}</p>}
+              {post.content && (
+                <p className="post-body">
+                  <RichText text={post.content} />
+                </p>
+              )}
               {post.imageUrl && (
                 <img
                   className="post-image"

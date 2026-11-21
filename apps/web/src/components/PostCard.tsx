@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { FREE_POST_LENGTH, PLUS_POST_LENGTH, type PostDTO } from "@commune/shared";
 import { useAuth } from "../store/auth";
+import RichText from "./RichText";
 import { useDeletePost, useToggleLike, useUpdatePost } from "../hooks/usePosts";
 import { formatPrice, useCheckout } from "../hooks/usePayments";
 import { assetUrl } from "../lib/api";
@@ -125,7 +126,11 @@ export default function PostCard({ post }: { post: PostDTO }) {
             )}
           </div>
         ) : (
-          post.content && <p className="post-body">{post.content}</p>
+          post.content && (
+            <p className="post-body">
+              <RichText text={post.content} />
+            </p>
+          )
         )}
         {post.imageUrl && (
           <a href={assetUrl(post.imageUrl)} target="_blank" rel="noopener noreferrer">

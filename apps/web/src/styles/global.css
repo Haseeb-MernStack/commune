@@ -1778,8 +1778,8 @@ main:focus {
 }
 .post-edit textarea:focus {
   outline: none;
-  border-color: var(--brand, var(--text));
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand, var(--text)) 22%, transparent);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
 }
 .post-edit-bar {
   display: flex;
@@ -1833,7 +1833,7 @@ main:focus {
   margin: 8px 0;
 }
 .legal a {
-  color: var(--brand, var(--text));
+  color: var(--accent);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
@@ -1879,4 +1879,21 @@ main:focus {
 }
 body:has(.bottom-nav) .consent-bar {
   bottom: calc(var(--bottom-h) + 12px + env(safe-area-inset-bottom));
+}
+
+/* ---- Links inside posts and comments ---- */
+.rich-link {
+  color: var(--accent);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.rich-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.rich-link:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+  border-radius: 3px;
 }

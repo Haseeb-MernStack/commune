@@ -1,3 +1,4 @@
+import RichText from "../components/RichText";
 import { useState } from "react";
 import { PostListSkeleton } from "../components/Skeleton";
 import type { FormEvent } from "react";
@@ -65,7 +66,9 @@ export default function PostPage() {
               <PlusBadge plus={c.author.plus} />
               <span className="muted">· {timeAgo(c.createdAt)}</span>
             </div>
-            <p className="post-body">{c.content}</p>
+            <p className="post-body">
+              <RichText text={c.content} />
+            </p>
           </div>
         </div>
       ))}
