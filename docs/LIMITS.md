@@ -22,6 +22,7 @@ Limits that protect the money, the inboxes and the storage behind Commune from b
 | Error alert emails to the owner | whole site | 5 an hour |
 | Image uploads (Cloudinary) | account | 20 an hour, 60 a day |
 | Profile photo change or removal | account | 3 in any 24 hours |
+| Editing posts | account | 30 an hour, 100 a day |
 | Checkout and billing portal (Lemon Squeezy) | account | 10 an hour, 30 a day |
 
 ## How it behaves

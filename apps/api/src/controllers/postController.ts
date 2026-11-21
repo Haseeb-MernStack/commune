@@ -160,6 +160,35 @@ export async function createPost(req: Request, res: Response) {
   res.status(201).json(toPostDTO(post, false, true));
 }
 
+/** The author changes the text of their own post. The image, price and paid content are fixed. */
+export async function updatePost(req: Request, res: Response) {
+  const id = param(req, "id");
+  const content = (req.body as { content: string }).content;
+  const post = await Post.findById(id).select("author content imageUrl").lean();
+  if (!post) throw notFound("Post not found");
+  if (post.author.toString() !== req.userId) throw forbidden("You can only edit your own posts");
+  if (!content && !post.imageUrl) throw badRequest("Write something or keep the image");
+
+  // Long posts are a Commune Plus feature, the same rule as when creating one.
+  if (content.length > FREE_POST_LENGTH && content !== post.content) {
+    const author = await User.findById(req.userId).select("plusUntil").lean();
+    if (!isPlusActive(author?.plusUntil)) {
+      throw forbidden(`Posts over ${FREE_POST_LENGTH} characters need Commune Plus`);
+    }
+  }
+
+  // Saving the same text is not an edit, so it never shows an "edited" label.
+  if (content !== post.content) {
+    await Post.updateOne({ _id: id }, { $set: { content, editedAt: new Date() } });
+  }
+  const [updated, liked] = await Promise.all([
+    loadPost(id),
+    likedSet(req.userId!, [new mongoose.Types.ObjectId(id)]),
+  ]);
+  // The author can always read their own paid content.
+  res.json(toPostDTO(updated, liked.has(id), true));
+}
+
 export async function deletePost(req: Request, res: Response) {
   const id = param(req, "id");
   const post = await Post.findById(id).select("author community").lean();

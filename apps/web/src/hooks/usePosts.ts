@@ -112,6 +112,21 @@ export function useToggleLike() {
   });
 }
 
+/** Saves new text for one of your own posts and updates every list that shows it. */
+export function useUpdatePost() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, content }: { id: string; content: string }) =>
+      api<PostDTO>(`/posts/${id}`, { method: "PATCH", body: { content } }),
+    onSuccess: (fresh) =>
+      patchPost(qc, fresh.id, (post) => ({
+        ...post,
+        content: fresh.content,
+        editedAt: fresh.editedAt,
+      })),
+  });
+}
+
 export function useDeletePost() {
   const qc = useQueryClient();
   return useMutation({

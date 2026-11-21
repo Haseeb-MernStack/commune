@@ -10,6 +10,8 @@ const postSchema = new Schema(
     // Paid posts: price in US cents and the content that is hidden until purchase.
     priceCents: { type: Number, default: null, min: 100 },
     premiumContent: { type: String, default: null, maxlength: 5000 },
+    // Set when the author edits the text after posting.
+    editedAt: { type: Date, default: null },
     viewCount: { type: Number, default: 0, min: 0 },
     likeCount: { type: Number, default: 0, min: 0 },
     commentCount: { type: Number, default: 0, min: 0 },
