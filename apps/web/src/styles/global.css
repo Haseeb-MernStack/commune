@@ -1762,11 +1762,24 @@ main:focus {
   margin: 8px 0 10px;
 }
 .post-edit textarea {
+  display: block;
+  box-sizing: border-box;
   width: 100%;
-  resize: vertical;
-  min-height: 84px;
+  min-height: 96px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
   font: inherit;
+  font-size: 16px; /* 16px stops iPhones zooming the page when the box is focused */
   line-height: 1.5;
+  resize: vertical;
+}
+.post-edit textarea:focus {
+  outline: none;
+  border-color: var(--brand, var(--text));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand, var(--text)) 22%, transparent);
 }
 .post-edit-bar {
   display: flex;
