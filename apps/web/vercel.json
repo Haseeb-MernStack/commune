@@ -78,6 +78,28 @@
       "destination": "/ai-blocked.html"
     },
     {
+      "source": "/posts/:id",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(facebookexternalhit|Facebot|Twitterbot|WhatsApp|Slackbot|TelegramBot|LinkedInBot|Discordbot|SkypeUriPreview|Pinterestbot|redditbot|Mastodon).*"
+        }
+      ],
+      "destination": "https://commune-8im5.vercel.app/api/share/post/:id"
+    },
+    {
+      "source": "/u/:username",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(facebookexternalhit|Facebot|Twitterbot|WhatsApp|Slackbot|TelegramBot|LinkedInBot|Discordbot|SkypeUriPreview|Pinterestbot|redditbot|Mastodon).*"
+        }
+      ],
+      "destination": "https://commune-8im5.vercel.app/api/share/user/:username"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://commune-8im5.vercel.app/api/:path*"
     },
