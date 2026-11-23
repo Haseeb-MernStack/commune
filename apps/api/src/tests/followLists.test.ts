@@ -109,7 +109,7 @@ describe("GET /api/users/:username/followers and /following", () => {
   it("never returns private or internal fields", async () => {
     const a = oid();
     setup({
-      rows: [{ _id: oid(), follower: a, following: oid() }],
+      rows: [{ _id: oid(), follower: oid(), following: a }],
       users: [{ _id: a, username: "alice" }],
     });
     const res = await call(app, "get", "/api/users/sam/following", token);
