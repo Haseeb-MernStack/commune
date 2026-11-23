@@ -210,33 +210,48 @@ export default function PostCard({ post }: { post: PostDTO }) {
             <Icon name="comment" size={19} />
             <span>{post.commentCount}</span>
           </Link>
-          <button className="btn btn-ghost" onClick={copyLink} aria-label="Copy link to post">
-            <Icon name="link" size={18} /> Copy link
+          <button
+            className="btn btn-ghost"
+            onClick={copyLink}
+            aria-label="Copy link to post"
+            title="Copy link"
+          >
+            <Icon name="link" size={18} /> <span className="action-label">Copy link</span>
           </button>
           {!mine && (
             <button
-              className="btn btn-ghost"
+              className="btn btn-ghost action-push"
               onClick={() => setReporting((r) => !r)}
               aria-expanded={reporting}
+              aria-label="Report post"
+              title="Report"
             >
-              <Icon name="flag" size={18} /> Report
+              <Icon name="flag" size={18} /> <span className="action-label">Report</span>
             </button>
           )}
           {mine && !editing && (
-            <button className="btn btn-ghost" onClick={startEdit}>
-              <Icon name="pencil" size={18} /> Edit
+            <button
+              className="btn btn-ghost action-push"
+              onClick={startEdit}
+              aria-label="Edit post"
+              title="Edit"
+            >
+              <Icon name="pencil" size={18} /> <span className="action-label">Edit</span>
             </button>
           )}
           {(mine || isAdmin) && (
             <button
               className="btn btn-ghost danger"
               disabled={del.isPending}
+              aria-label={mine ? "Delete post" : "Remove post"}
+              title={mine ? "Delete" : "Remove"}
               onClick={() =>
                 window.confirm(mine ? "Delete this post?" : "Remove this post as an admin?") &&
                 del.mutate(post.id)
               }
             >
-              <Icon name="trash" size={18} /> {mine ? "Delete" : "Remove"}
+              <Icon name="trash" size={18} />{" "}
+              <span className="action-label">{mine ? "Delete" : "Remove"}</span>
             </button>
           )}
         </div>
