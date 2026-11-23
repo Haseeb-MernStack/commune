@@ -1,12 +1,14 @@
 import { avatarAllowance, consumeAvatarChange } from "../services/avatarService.js";
 import type { Request, Response } from "express";
-import { usernameSchema } from "@commune/shared";
+import mongoose from "mongoose";
+import { usernameSchema, type FollowListItemDTO } from "@commune/shared";
 import { Follow } from "../models/Follow.js";
 import { Post } from "../models/Post.js";
 import { User } from "../models/User.js";
 import { notify } from "../services/notificationService.js";
 import { deleteUploadIfUnused } from "../services/uploadService.js";
 import { badRequest, notFound } from "../utils/errors.js";
+import { isPlusActive } from "../utils/plan.js";
 import { toProfileDTO, toPublicUser } from "../utils/serializers.js";
 import { sendPostPage } from "./postController.js";
 
@@ -105,3 +107,75 @@ export async function toggleFollow(req: Request, res: Response) {
   }
   res.json(await buildProfile(user, req.userId!));
 }
+
+/**
+ * A page of the people who follow a user ("followers") or whom they follow ("following"), newest
+ * first. Paged by the follow record's id, so the order is stable while people follow and unfollow.
+ * Banned accounts are left out. Each person also says whether the viewer follows them and whether
+ * they follow the viewer, so the list can show a Follow button and a "Follows you" label.
+ */
+async function followList(req: Request, res: Response, kind: "followers" | "following") {
+  const { cursor, limit } = res.locals.query as { cursor?: string; limit: number };
+  if (cursor !== undefined && !mongoose.isValidObjectId(cursor)) throw badRequest("Invalid cursor");
+
+  const target = await findByUsername(req.params.username);
+  // For "followers" we list the follower of each record; for "following", the one being followed.
+  const shown = kind === "followers" ? "follower" : "following";
+  const anchor = kind === "followers" ? "following" : "follower";
+
+  const rows = await Follow.find({
+    [anchor]: target._id,
+    ...(cursor ? { _id: { $lt: new mongoose.Types.ObjectId(cursor) } } : {}),
+  })
+    .sort({ _id: -1 })
+    .limit(limit + 1)
+    .select(shown)
+    .lean<
+      {
+        _id: mongoose.Types.ObjectId;
+        follower: mongoose.Types.ObjectId;
+        following: mongoose.Types.ObjectId;
+      }[]
+    >();
+
+  const hasMore = rows.length > limit;
+  const page = hasMore ? rows.slice(0, limit) : rows;
+  const ids = page.map((r) => r[shown]);
+
+  const viewer = req.userId!;
+  const [users, iFollow, followMe] = await Promise.all([
+    User.find({ _id: { $in: ids }, banned: { $ne: true } })
+      .select("username bio avatarUrl plusUntil")
+      .lean(),
+    Follow.find({ follower: viewer, following: { $in: ids } })
+      .select("following")
+      .lean(),
+    Follow.find({ follower: { $in: ids }, following: viewer })
+      .select("follower")
+      .lean(),
+  ]);
+
+  const byId = new Map(users.map((u) => [u._id.toString(), u]));
+  const followedByMe = new Set(iFollow.map((f) => f.following.toString()));
+  const followsYou = new Set(followMe.map((f) => f.follower.toString()));
+
+  const items: FollowListItemDTO[] = [];
+  for (const id of ids) {
+    const u = byId.get(id.toString());
+    if (!u) continue;
+    items.push({
+      id: u._id.toString(),
+      username: u.username,
+      bio: u.bio ?? "",
+      avatarUrl: u.avatarUrl ?? null,
+      plus: isPlusActive(u.plusUntil),
+      followedByMe: followedByMe.has(u._id.toString()),
+      followsYou: followsYou.has(u._id.toString()),
+    });
+  }
+
+  res.json({ items, nextCursor: hasMore ? page[page.length - 1]!._id.toString() : null });
+}
+
+export const listFollowers = (req: Request, res: Response) => followList(req, res, "followers");
+export const listFollowing = (req: Request, res: Response) => followList(req, res, "following");

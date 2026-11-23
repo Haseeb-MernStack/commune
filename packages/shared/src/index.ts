@@ -125,6 +125,9 @@ export const paginationSchema = z.object({
   feed: z.enum(["all", "following"]).default("all"),
 });
 
+/** GET /users/:username/followers and /following: a page of people, newest first. */
+export const followListQuerySchema = paginationSchema.omit({ feed: true });
+
 // ---- Moderation ----
 
 export const REPORT_REASONS = ["spam", "harassment", "hate", "violence", "other"] as const;
@@ -285,6 +288,14 @@ export interface UserSummaryDTO {
   bio: string;
   avatarUrl: string | null;
   plus: boolean;
+}
+
+/** A person in a followers or following list, as seen by the signed-in viewer. */
+export interface FollowListItemDTO extends UserSummaryDTO {
+  /** The viewer follows this person. */
+  followedByMe: boolean;
+  /** This person follows the viewer. */
+  followsYou: boolean;
 }
 
 export interface BillingDTO {

@@ -14,6 +14,7 @@ import {
   createCommentSchema,
   createCommunitySchema,
   createPostSchema,
+  followListQuerySchema,
   updatePostSchema,
   createReportSchema,
   forgotPasswordSchema,
@@ -230,6 +231,18 @@ router.get(
   requireAuth,
   validate(paginationSchema, "query"),
   asyncHandler(users.userPosts),
+);
+router.get(
+  "/users/:username/followers",
+  requireAuth,
+  validate(followListQuerySchema, "query"),
+  asyncHandler(users.listFollowers),
+);
+router.get(
+  "/users/:username/following",
+  requireAuth,
+  validate(followListQuerySchema, "query"),
+  asyncHandler(users.listFollowing),
 );
 router.post(
   "/users/:username/follow",

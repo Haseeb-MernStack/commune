@@ -170,11 +170,15 @@ export default function ProfilePage() {
             <dd>{compact.format(p.postCount ?? 0)}</dd>
           </div>
           <div>
-            <dt>Followers</dt>
+            <dt>
+              <Link to={`/u/${p.username}/followers`}>Followers</Link>
+            </dt>
             <dd>{compact.format(p.followerCount)}</dd>
           </div>
           <div>
-            <dt>Following</dt>
+            <dt>
+              <Link to={`/u/${p.username}/following`}>Following</Link>
+            </dt>
             <dd>{compact.format(p.followingCount)}</dd>
           </div>
         </dl>

@@ -23,6 +23,7 @@ const PostPage = lazy(() => import("./pages/PostPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const RegisterPage = lazy(() => import("./pages/RegisterPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const FollowListPage = lazy(() => import("./pages/FollowListPage"));
 const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
 const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
@@ -70,7 +71,11 @@ function RouteMeta() {
     const name =
       TITLES[pathname] ??
       (user
-        ? `@${decodeURIComponent(user)}`
+        ? pathname.endsWith("/followers")
+          ? `Followers of @${decodeURIComponent(user)}`
+          : pathname.endsWith("/following")
+            ? `Followed by @${decodeURIComponent(user)}`
+            : `@${decodeURIComponent(user)}`
         : community
           ? `c/${decodeURIComponent(community)}`
           : pathname.startsWith("/messages")
@@ -123,6 +128,22 @@ function AppRoutes() {
           element={
             <Protected>
               <PostPage />
+            </Protected>
+          }
+        />
+        <Route
+          path="/u/:username/followers"
+          element={
+            <Protected>
+              <FollowListPage kind="followers" />
+            </Protected>
+          }
+        />
+        <Route
+          path="/u/:username/following"
+          element={
+            <Protected>
+              <FollowListPage kind="following" />
             </Protected>
           }
         />
