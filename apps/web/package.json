@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "node scripts/check-deploy.mjs && tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "npm run test -w @commune/api && npm run test -w @commune/realtime && npm run test -w @commune/web"
   },
   "dependencies": {
     "@commune/shared": "*",
@@ -19,9 +20,15 @@
     "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.13",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
-    "vite": "^6.4.4"
+    "jsdom": "^29.1.1",
+    "vite": "^6.4.4",
+    "vitest": "^2.1.9"
   }
 }
