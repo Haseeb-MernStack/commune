@@ -2095,3 +2095,66 @@ body:has(.bottom-nav) .consent-bar {
     min-width: 92px;
   }
 }
+
+/* ---- Privacy settings ---- */
+.privacy-settings {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 16px;
+}
+.privacy-settings p {
+  margin: 0;
+}
+.switch-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.switch-label {
+  font-weight: 600;
+}
+.switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 48px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.switch[aria-checked="true"] {
+  background: var(--accent);
+}
+.switch:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.switch:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.switch-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
+  transition: transform 0.15s;
+}
+.switch[aria-checked="true"] .switch-knob {
+  transform: translateX(20px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .switch,
+  .switch-knob {
+    transition: none;
+  }
+}

@@ -17,6 +17,8 @@ const userSchema = new Schema(
     plusUntil: { type: Date, default: null },
     emailVerified: { type: Boolean, default: false },
     // Which push notifications this person wants (they can still be turned off per device).
+    // Other people cannot open this person's followers and following lists.
+    hideConnections: { type: Boolean, default: false },
     pushMessages: { type: Boolean, default: true },
     pushSocial: { type: Boolean, default: true },
     // Brute-force protection: consecutive wrong passwords, and the end of a temporary lock.

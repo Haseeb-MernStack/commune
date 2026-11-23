@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import AccountData from "../components/AccountData";
+import PrivacySettings from "../components/PrivacySettings";
 
 export default function SettingsPage() {
   return (
@@ -9,6 +10,7 @@ export default function SettingsPage() {
         Sounds and push notifications are on the <Link to="/notifications">Notifications</Link>{" "}
         page.
       </p>
+      <PrivacySettings />
       <AccountData />
     </>
   );

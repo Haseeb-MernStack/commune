@@ -32,15 +32,32 @@ interface Setup {
   users: { _id: mongoose.Types.ObjectId; username: string; bio?: string; banned?: boolean }[];
   iFollow?: mongoose.Types.ObjectId[];
   followMe?: mongoose.Types.ObjectId[];
+  /** The person whose lists are opened keeps them private. */
+  hidden?: boolean;
+  /** The viewer is that person. */
+  owner?: boolean;
+  viewerRole?: "user" | "admin";
 }
 
-function setup({ rows, users, iFollow = [], followMe = [] }: Setup) {
-  const target = { _id: oid(), username: "sam" };
+function setup({
+  rows,
+  users,
+  iFollow = [],
+  followMe = [],
+  hidden = false,
+  owner = false,
+  viewerRole = "user",
+}: Setup) {
+  const target = {
+    _id: owner ? new mongoose.Types.ObjectId(ME) : oid(),
+    username: "sam",
+    hideConnections: hidden,
+  };
   const asUser = (u: Setup["users"][number]) => ({ ...u, avatarUrl: null, plusUntil: null });
   vi.spyOn(User, "findOne").mockReturnValue(chain(target) as never);
   // requireActive and the page lookup both read users; the page lookup is the one with `$in`.
   vi.spyOn(User, "findById").mockImplementation((() =>
-    chain({ role: "user", banned: false })) as never);
+    chain({ role: viewerRole, banned: false })) as never);
   const userFind = vi
     .spyOn(User, "find")
     .mockImplementation(((filter: { banned?: unknown }) =>
@@ -145,5 +162,76 @@ describe("GET /api/users/:username/followers and /following", () => {
     await call(app, "get", "/api/users/sam/followers?limit=5", token);
     const rowQuery = followFind.mock.results[0]!.value as { limit: ReturnType<typeof vi.fn> };
     expect(rowQuery.limit).toHaveBeenCalledWith(6);
+  });
+});
+
+describe("private followers and following lists", () => {
+  const hiddenWith = (extra: Partial<Setup> = {}) =>
+    setup({
+      rows: [{ _id: oid(), follower: oid(), following: oid() }],
+      users: [],
+      hidden: true,
+      ...extra,
+    });
+
+  it("refuses other people, for both lists, without reading any records", async () => {
+    const { followFind } = hiddenWith();
+    for (const list of ["followers", "following"]) {
+      const res = await call(app, "get", `/api/users/sam/${list}`, token);
+      expect(res.status).toBe(403);
+      expect(JSON.stringify(res.body)).not.toMatch(/alice|items/);
+    }
+    expect(followFind).not.toHaveBeenCalled();
+  });
+
+  it("still lets the owner read their own lists", async () => {
+    hiddenWith({ owner: true });
+    expect((await call(app, "get", "/api/users/sam/followers", token)).status).toBe(200);
+  });
+
+  it("lets an admin read them for moderation", async () => {
+    hiddenWith({ viewerRole: "admin" });
+    expect((await call(app, "get", "/api/users/sam/following", token)).status).toBe(200);
+  });
+
+  it("is public again when the setting is off", async () => {
+    setup({ rows: [], users: [], hidden: false });
+    expect((await call(app, "get", "/api/users/sam/followers", token)).status).toBe(200);
+  });
+});
+
+describe("GET and PATCH /api/users/me/privacy", () => {
+  it("requires a login", async () => {
+    expect((await call(app, "get", "/api/users/me/privacy")).status).toBe(401);
+    expect((await call(app, "patch", "/api/users/me/privacy").send({})).status).toBe(401);
+  });
+
+  it("reads the saved choice, defaulting to public", async () => {
+    vi.spyOn(User, "findById").mockImplementation((() =>
+      chain({ hideConnections: undefined })) as never);
+    const res = await call(app, "get", "/api/users/me/privacy", token);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ hideConnections: false });
+  });
+
+  it("only accepts a true or false value", async () => {
+    vi.spyOn(User, "findById").mockImplementation((() =>
+      chain({ role: "user", banned: false })) as never);
+    for (const bad of [{}, { hideConnections: "yes" }, { hideConnections: 1 }]) {
+      const res = await call(app, "patch", "/api/users/me/privacy", token).send(bad);
+      expect(res.status).toBe(400);
+    }
+  });
+
+  it("saves the choice for the signed-in person only", async () => {
+    vi.spyOn(User, "findById").mockImplementation((() =>
+      chain({ role: "user", banned: false })) as never);
+    const update = vi.spyOn(User, "updateOne").mockResolvedValue({} as never);
+    const res = await call(app, "patch", "/api/users/me/privacy", token).send({
+      hideConnections: true,
+    });
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ hideConnections: true });
+    expect(update).toHaveBeenCalledWith({ _id: ME }, { $set: { hideConnections: true } });
   });
 });

@@ -10,11 +10,13 @@ import type {
   NotificationDTO,
   Page,
   PostDTO,
+  PrivacyDTO,
   ProfileDTO,
   PublicUser,
+  UpdatePrivacyInput,
   UpdateProfileInput,
 } from "@commune/shared";
-import { api, withQuery } from "../lib/api";
+import { api, ApiError, withQuery } from "../lib/api";
 import { useAuth } from "../store/auth";
 
 export function useProfile(username: string) {
@@ -40,8 +42,11 @@ export type FollowListKind = "followers" | "following";
 type FollowLists = InfiniteData<Page<FollowListItemDTO>>;
 
 /** A page at a time of the people who follow a user, or whom they follow. */
-export function useFollowList(username: string, kind: FollowListKind) {
+export function useFollowList(username: string, kind: FollowListKind, enabled = true) {
   return useInfiniteQuery({
+    enabled,
+    // A private list answers 403; asking again will not change that.
+    retry: (count, err) => !(err instanceof ApiError && err.status === 403) && count < 2,
     queryKey: ["follows", kind, username.toLowerCase()],
     initialPageParam: undefined as string | undefined,
     queryFn: ({ pageParam }) =>
@@ -136,5 +141,23 @@ export function useMarkAllRead() {
     mutationFn: () => api<void>("/notifications/read", { method: "POST" }),
     // Only the badge is refreshed, so the page keeps showing which items were new.
     onSuccess: () => qc.invalidateQueries({ queryKey: ["unread-count"] }),
+  });
+}
+
+/** The signed-in person's privacy choices (Settings). */
+export function usePrivacy() {
+  return useQuery({ queryKey: ["privacy"], queryFn: () => api<PrivacyDTO>("/users/me/privacy") });
+}
+
+export function useUpdatePrivacy() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UpdatePrivacyInput) =>
+      api<PrivacyDTO>("/users/me/privacy", { method: "PATCH", body: input }),
+    onSuccess: (privacy) => {
+      qc.setQueryData(["privacy"], privacy);
+      // Nothing about your own profile changes for you, but other people's cached view of it might.
+      void qc.invalidateQueries({ queryKey: ["profile"] });
+    },
   });
 }

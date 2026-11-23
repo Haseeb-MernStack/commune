@@ -22,6 +22,7 @@ interface UserLike {
   banned?: boolean | null;
   emailVerified?: boolean | null;
   plusUntil?: Date | null;
+  hideConnections?: boolean | null;
   createdAt: Date;
 }
 
@@ -103,8 +104,15 @@ export function toProfileDTO(
   u: UserLike,
   counts: { followerCount: number; followingCount: number; postCount: number },
   followedByMe: boolean,
+  connectionsHidden = false,
 ): ProfileDTO {
-  return { ...toPublicUser(u), ...counts, followedByMe, banned: Boolean(u.banned) };
+  return {
+    ...toPublicUser(u),
+    ...counts,
+    followedByMe,
+    banned: Boolean(u.banned),
+    connectionsHidden,
+  };
 }
 
 /**

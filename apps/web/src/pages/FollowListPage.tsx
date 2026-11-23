@@ -11,6 +11,7 @@ import {
   useToggleFollow,
   type FollowListKind,
 } from "../hooks/useSocial";
+import { ApiError } from "../lib/api";
 import { useAuth } from "../store/auth";
 
 const compact = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 });
@@ -52,7 +53,9 @@ export default function FollowListPage({ kind }: { kind: FollowListKind }) {
   const { username = "" } = useParams();
   const { user: me } = useAuth();
   const profile = useProfile(username);
-  const list = useFollowList(username, kind);
+  const locked = profile.data?.connectionsHidden === true;
+  const list = useFollowList(username, kind, !locked);
+  const refused = list.error instanceof ApiError && list.error.status === 403;
 
   const people = list.data?.pages.flatMap((p) => p.items) ?? [];
   const { hasNextPage, isFetchingNextPage, isError, fetchNextPage } = list;
@@ -115,8 +118,19 @@ export default function FollowListPage({ kind }: { kind: FollowListKind }) {
         </Link>
       </nav>
 
-      {list.isLoading && <RowsSkeleton count={8} avatar={48} />}
-      {list.isError && (
+      {(locked || refused) && (
+        <div className="follow-state" role="status">
+          <Icon name="lock" size={28} />
+          <p>
+            <strong>@{name}</strong> keeps their followers and following private.
+          </p>
+          <Link className="btn btn-outline" to={`/u/${name}`}>
+            Back to profile
+          </Link>
+        </div>
+      )}
+      {!locked && list.isLoading && <RowsSkeleton count={8} avatar={48} />}
+      {list.isError && !refused && (
         <div className="follow-state" role="alert">
           <p className="error">{list.error.message}</p>
           <button className="btn btn-outline" onClick={() => void list.refetch()}>

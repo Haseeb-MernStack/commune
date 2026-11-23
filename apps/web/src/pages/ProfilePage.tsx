@@ -171,13 +171,21 @@ export default function ProfilePage() {
           </div>
           <div>
             <dt>
-              <Link to={`/u/${p.username}/followers`}>Followers</Link>
+              {p.connectionsHidden ? (
+                "Followers"
+              ) : (
+                <Link to={`/u/${p.username}/followers`}>Followers</Link>
+              )}
             </dt>
             <dd>{compact.format(p.followerCount)}</dd>
           </div>
           <div>
             <dt>
-              <Link to={`/u/${p.username}/following`}>Following</Link>
+              {p.connectionsHidden ? (
+                "Following"
+              ) : (
+                <Link to={`/u/${p.username}/following`}>Following</Link>
+              )}
             </dt>
             <dd>{compact.format(p.followingCount)}</dd>
           </div>
