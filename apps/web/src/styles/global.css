@@ -1897,3 +1897,27 @@ body:has(.bottom-nav) .consent-bar {
   outline-offset: 2px;
   border-radius: 3px;
 }
+
+/* ---- Post actions on small screens ----
+   Like and comment keep their counts. Copy, report, edit and delete show only an icon (the full
+   name is still read by screen readers and shown as a tooltip), and the owner or report actions
+   sit at the far end so the row stays tidy instead of wrapping. */
+@media (max-width: 640px) {
+  .post-actions {
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 0;
+  }
+  .post-actions .btn-ghost {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+    padding-inline: 10px;
+  }
+  .post-actions .action-label {
+    display: none;
+  }
+  .post-actions .action-push {
+    margin-left: auto;
+  }
+}
