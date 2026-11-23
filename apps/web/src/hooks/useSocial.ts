@@ -1,5 +1,12 @@
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type InfiniteData,
+} from "@tanstack/react-query";
 import type {
+  FollowListItemDTO,
   NotificationDTO,
   Page,
   PostDTO,
@@ -29,13 +36,59 @@ export function useUserPosts(username: string) {
   });
 }
 
+export type FollowListKind = "followers" | "following";
+type FollowLists = InfiniteData<Page<FollowListItemDTO>>;
+
+/** A page at a time of the people who follow a user, or whom they follow. */
+export function useFollowList(username: string, kind: FollowListKind) {
+  return useInfiniteQuery({
+    queryKey: ["follows", kind, username.toLowerCase()],
+    initialPageParam: undefined as string | undefined,
+    queryFn: ({ pageParam }) =>
+      api<Page<FollowListItemDTO>>(
+        withQuery(`/users/${encodeURIComponent(username)}/${kind}`, { cursor: pageParam }),
+      ),
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
+  });
+}
+
+/** Flips the Follow / Following button for one person in every loaded list. */
+function flipInLists(qc: ReturnType<typeof useQueryClient>, username: string) {
+  const lower = username.toLowerCase();
+  qc.setQueriesData<FollowLists>(
+    { queryKey: ["follows"] },
+    (data) =>
+      data && {
+        ...data,
+        pages: data.pages.map((page) => ({
+          ...page,
+          items: page.items.map((p) =>
+            p.username.toLowerCase() === lower ? { ...p, followedByMe: !p.followedByMe } : p,
+          ),
+        })),
+      },
+  );
+}
+
 export function useToggleFollow(username: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () =>
       api<ProfileDTO>(`/users/${encodeURIComponent(username)}/follow`, { method: "POST" }),
+    // Lists react at once; if the request fails they go back to what they showed.
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey: ["follows"] });
+      const before = qc.getQueriesData<FollowLists>({ queryKey: ["follows"] });
+      flipInLists(qc, username);
+      return { before };
+    },
+    onError: (_err, _vars, ctx) => {
+      ctx?.before.forEach(([key, data]) => qc.setQueryData(key, data));
+    },
     onSuccess: (profile) => {
       qc.setQueryData(["profile", username.toLowerCase()], profile);
+      // Counts on other profiles (and on yours) changed too.
+      void qc.invalidateQueries({ queryKey: ["profile"] });
       // The "Following" feed changes whenever the follow list changes.
       void qc.invalidateQueries({ queryKey: ["feed", "following"] });
     },
