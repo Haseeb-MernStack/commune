@@ -6,6 +6,7 @@ import { useAuth } from "../store/auth";
 import RichText from "./RichText";
 import { useDeletePost, useToggleLike, useUpdatePost } from "../hooks/usePosts";
 import { formatPrice, useCheckout } from "../hooks/usePayments";
+import { useSetBlock } from "../hooks/useBlocks";
 import { assetUrl } from "../lib/api";
 import { showToast } from "../lib/toast";
 import Avatar from "./Avatar";
@@ -28,6 +29,7 @@ export default function PostCard({ post }: { post: PostDTO }) {
   const del = useDeletePost();
   const checkout = useCheckout();
   const update = useUpdatePost();
+  const setBlock = useSetBlock();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(post.content);
   const [reporting, setReporting] = useState(false);
@@ -219,15 +221,38 @@ export default function PostCard({ post }: { post: PostDTO }) {
             <Icon name="link" size={18} /> <span className="action-label">Copy link</span>
           </button>
           {!mine && (
-            <button
-              className="btn btn-ghost action-push"
-              onClick={() => setReporting((r) => !r)}
-              aria-expanded={reporting}
-              aria-label="Report post"
-              title="Report"
-            >
-              <Icon name="flag" size={18} /> <span className="action-label">Report</span>
-            </button>
+            <>
+              <button
+                className="btn btn-ghost action-push"
+                onClick={() => setReporting((r) => !r)}
+                aria-expanded={reporting}
+                aria-label="Report post"
+                title="Report"
+              >
+                <Icon name="flag" size={18} /> <span className="action-label">Report</span>
+              </button>
+              <button
+                className="btn btn-ghost"
+                disabled={setBlock.isPending}
+                onClick={() => setBlock.mutate({ username: post.author.username, kind: "mute" })}
+                aria-label={`Mute @${post.author.username}`}
+                title="Mute"
+              >
+                <Icon name="mute" size={18} /> <span className="action-label">Mute</span>
+              </button>
+              <button
+                className="btn btn-ghost danger"
+                disabled={setBlock.isPending}
+                onClick={() =>
+                  window.confirm(`Block @${post.author.username}?`) &&
+                  setBlock.mutate({ username: post.author.username, kind: "block" })
+                }
+                aria-label={`Block @${post.author.username}`}
+                title="Block"
+              >
+                <Icon name="block" size={18} /> <span className="action-label">Block</span>
+              </button>
+            </>
           )}
           {mine && !editing && (
             <button

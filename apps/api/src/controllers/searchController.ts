@@ -7,6 +7,7 @@ import { isPlusActive } from "../utils/plan.js";
 import { escapeRegex } from "../utils/regex.js";
 import type { PopulatedPost } from "../utils/serializers.js";
 import { presentPosts } from "./postController.js";
+import { hiddenAuthorIds } from "../services/blockService.js";
 
 interface SearchQuery {
   q: string;
@@ -25,11 +26,13 @@ function paginate<T>(rows: T[], page: number) {
 }
 
 /** People whose username starts with the text (case-insensitive). Suspended accounts are hidden. */
-export async function users(_req: Request, res: Response) {
+export async function users(req: Request, res: Response) {
   const { q, page } = readQuery(res);
+  const hidden = await hiddenAuthorIds(req.userId!);
   const rows = await User.find({
     username: { $regex: `^${escapeRegex(q)}`, $options: "i" },
     banned: { $ne: true },
+    ...(hidden.length > 0 ? { _id: { $nin: hidden } } : {}),
   })
     .sort({ username: 1 })
     .skip((page - 1) * SEARCH_PAGE_SIZE)
@@ -54,7 +57,11 @@ export async function users(_req: Request, res: Response) {
 /** Posts matching the words, best match first. Only free text is searched, never paid content. */
 export async function posts(req: Request, res: Response) {
   const { q, page } = readQuery(res);
-  const rows = (await Post.find({ $text: { $search: q } }, { score: { $meta: "textScore" } })
+  const hidden = await hiddenAuthorIds(req.userId!);
+  const rows = (await Post.find(
+    { $text: { $search: q }, ...(hidden.length > 0 ? { author: { $nin: hidden } } : {}) },
+    { score: { $meta: "textScore" } },
+  )
     .sort({ score: { $meta: "textScore" } })
     .skip((page - 1) * SEARCH_PAGE_SIZE)
     .limit(SEARCH_PAGE_SIZE + 1)

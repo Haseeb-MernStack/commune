@@ -16,7 +16,7 @@ export function mockUser(user: { role: "user" | "admin"; banned: boolean } | nul
 /** Sends a request, optionally with a Bearer token. */
 export function call(
   app: Express,
-  method: "get" | "post" | "patch" | "delete",
+  method: "get" | "post" | "put" | "patch" | "delete",
   path: string,
   token?: string,
 ) {

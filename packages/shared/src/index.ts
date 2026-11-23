@@ -161,6 +161,22 @@ export const reportQuerySchema = paginationSchema.omit({ feed: true }).extend({
   status: z.enum(REPORT_STATUSES).default("open"),
 });
 
+// ---- Blocking and muting ----
+
+export const BLOCK_KINDS = ["mute", "block"] as const;
+export type BlockKind = (typeof BLOCK_KINDS)[number];
+
+export const setBlockSchema = z.object({ kind: z.enum(BLOCK_KINDS) });
+export type SetBlockInput = z.infer<typeof setBlockSchema>;
+
+export interface BlockedUserDTO {
+  id: string;
+  username: string;
+  avatarUrl: string | null;
+  kind: BlockKind;
+  createdAt: string;
+}
+
 // ---- Direct messages, news and contact ----
 
 export const MESSAGE_MAX_LENGTH = 1000;
@@ -399,6 +415,8 @@ export interface ProfileDTO extends PublicUser {
   banned: boolean;
   /** The lists are private and the viewer may not open them (never true for the owner or an admin). */
   connectionsHidden: boolean;
+  /** How the viewer treats this person, or null. */
+  blockKind: BlockKind | null;
 }
 
 export type NotificationType = "like" | "comment" | "follow";

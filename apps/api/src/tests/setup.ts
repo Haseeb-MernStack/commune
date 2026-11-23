@@ -42,4 +42,19 @@ beforeEach(async () => {
   vi.spyOn(QuotaLog, "insertMany").mockResolvedValue([] as never);
   vi.spyOn(QuotaLog, "countDocuments").mockResolvedValue(0 as never);
   vi.spyOn(QuotaLog, "deleteMany").mockResolvedValue({} as never);
+
+  // Nobody has muted or blocked anyone, unless a test says otherwise.
+  const { Block } = await import("../models/Block.js");
+  const none = () => {
+    const q: Record<string, unknown> = {};
+    for (const m of ["select", "sort", "limit", "populate"]) q[m] = () => q;
+    q.lean = () => Promise.resolve([]);
+    return q;
+  };
+  vi.spyOn(Block, "find").mockImplementation((() => none()) as never);
+  vi.spyOn(Block, "findOne").mockImplementation((() => ({
+    select: () => ({ lean: () => Promise.resolve(null) }),
+  })) as never);
+  vi.spyOn(Block, "exists").mockResolvedValue(null as never);
+  vi.spyOn(Block, "deleteMany").mockResolvedValue({} as never);
 });

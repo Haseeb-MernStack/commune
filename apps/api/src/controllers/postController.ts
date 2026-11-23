@@ -21,6 +21,7 @@ import {
   type PopulatedComment,
   type PopulatedPost,
 } from "../utils/serializers.js";
+import { assertNotBlockedBy, hiddenAuthorIds } from "../services/blockService.js";
 
 const AUTHOR_FIELDS = "username avatarUrl plusUntil";
 const COMMUNITY_FIELDS = "slug name";
@@ -109,12 +110,17 @@ export async function sendPostPage(
 
 export async function listPosts(req: Request, res: Response) {
   const { feed } = (res.locals as { query: { feed: "all" | "following" } }).query;
+  const hidden = await hiddenAuthorIds(req.userId!);
 
   const baseFilter: Record<string, unknown> = {};
   if (feed === "following") {
-    // Posts from people I follow, plus my own.
     const follows = await Follow.find({ follower: req.userId }).select("following").lean();
-    baseFilter.author = { $in: [...follows.map((f) => f.following), req.userId] };
+    const skip = new Set(hidden.map(String));
+    baseFilter.author = {
+      $in: [...follows.map((f) => f.following), req.userId].filter((id) => !skip.has(String(id))),
+    };
+  } else if (hidden.length > 0) {
+    baseFilter.author = { $nin: hidden };
   }
   await sendPostPage(req, res, baseFilter);
 }
@@ -214,6 +220,8 @@ export async function toggleLike(req: Request, res: Response) {
   const target = await Post.findById(id).select("author").lean();
   if (!target) throw notFound("Post not found");
 
+  await assertNotBlockedBy(req.userId!, target.author);
+
   const removed = await Like.findOneAndDelete({ post: id, user: req.userId });
   if (removed) {
     await Post.updateOne({ _id: id }, { $inc: { likeCount: -1 } });
@@ -235,7 +243,12 @@ export async function toggleLike(req: Request, res: Response) {
 
 export async function listComments(req: Request, res: Response) {
   const id = param(req, "id");
-  const comments = (await Comment.find({ post: id })
+  const hidden = await hiddenAuthorIds(req.userId!);
+
+  const comments = (await Comment.find({
+    post: id,
+    ...(hidden.length > 0 ? { author: { $nin: hidden } } : {}),
+  })
     .sort({ _id: 1 })
     .limit(200)
     .populate("author", AUTHOR_FIELDS)
@@ -246,13 +259,18 @@ export async function listComments(req: Request, res: Response) {
 export async function addComment(req: Request, res: Response) {
   const id = param(req, "id");
   const target = await Post.findById(id).select("author").lean();
+  const hidden = await hiddenAuthorIds(req.userId!);
   if (!target) throw notFound("Post not found");
+  await assertNotBlockedBy(req.userId!, target.author);
 
   const created = await Comment.create({ post: id, author: req.userId, content: req.body.content });
   await Post.updateOne({ _id: id }, { $inc: { commentCount: 1 } });
   await notify({ user: target.author, actor: req.userId!, type: "comment", post: id });
 
-  const comment = (await Comment.findById(created._id)
+  const comment = (await Comment.findById({
+    post: id,
+    ...(hidden.length > 0 ? { author: { $nin: hidden } } : {}),
+  })
     .populate("author", AUTHOR_FIELDS)
     .lean()) as unknown as PopulatedComment;
   res.status(201).json(toCommentDTO(comment));

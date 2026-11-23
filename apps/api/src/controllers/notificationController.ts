@@ -1,9 +1,11 @@
 import type { Request, Response } from "express";
 import { Notification } from "../models/Notification.js";
 import { toNotificationDTO, type PopulatedNotification } from "../utils/serializers.js";
+import { hiddenAuthorIds } from "../services/blockService.js";
 
 export async function list(req: Request, res: Response) {
-  const rows = (await Notification.find({ user: req.userId })
+  const hidden = await hiddenAuthorIds(req.userId!);
+  const rows = (await Notification.find({ user: req.userId, actor: { $nin: hidden } })
     .sort({ createdAt: -1 })
     .limit(30)
     .populate("actor", "username")
@@ -12,7 +14,12 @@ export async function list(req: Request, res: Response) {
 }
 
 export async function unreadCount(req: Request, res: Response) {
-  const count = await Notification.countDocuments({ user: req.userId, read: false });
+  const hidden = await hiddenAuthorIds(req.userId!);
+  const count = await Notification.countDocuments({
+    user: req.userId,
+    read: false,
+    actor: { $nin: hidden },
+  });
   res.json({ count });
 }
 
