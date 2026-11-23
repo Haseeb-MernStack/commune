@@ -72,8 +72,10 @@ export default function PrivacyPage() {
           that other people have already paid for stay available to them, without your name.
         </p>
         <p>
-          Depending on where you live you may also have the right to access, correct or object to
-          the use of your data. <Link to="/contact">Contact us</Link> and we will help.
+          You can also hide your followers and following lists from other people in Settings. The
+          counts on your profile stay visible. Depending on where you live you may also have the
+          right to access, correct or object to the use of your data.{" "}
+          <Link to="/contact">Contact us</Link> and we will help.
         </p>
       </Section>
 

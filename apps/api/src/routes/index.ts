@@ -16,6 +16,7 @@ import {
   createPostSchema,
   followListQuerySchema,
   updatePostSchema,
+  updatePrivacySchema,
   createReportSchema,
   forgotPasswordSchema,
   googleLoginSchema,
@@ -207,6 +208,14 @@ router.post(
 
 // Users. "/users/me" must be declared before "/users/:username".
 router.get("/users/me", requireAuth, asyncHandler(users.me));
+router.get("/users/me/privacy", requireAuth, asyncHandler(users.getPrivacy));
+router.patch(
+  "/users/me/privacy",
+  requireAuth,
+  validate(updatePrivacySchema),
+  requireActive,
+  asyncHandler(users.updatePrivacy),
+);
 router.get("/users/me/avatar-allowance", requireAuth, asyncHandler(users.avatarStatus));
 router.patch(
   "/users/me",

@@ -42,7 +42,7 @@ const iso = (d: Date | null | undefined) => (d ? new Date(d).toISOString() : nul
 export async function buildDataExport(userId: string) {
   const uid = new mongoose.Types.ObjectId(userId);
   const user = (await User.findById(uid)
-    .select("username email bio avatarUrl role emailVerified plusUntil createdAt")
+    .select("username email bio avatarUrl role emailVerified plusUntil hideConnections createdAt")
     .lean()) as unknown as Row | null;
   if (!user) throw notFound("User not found");
 
@@ -104,6 +104,7 @@ export async function buildDataExport(userId: string) {
       bio: user.bio,
       avatarUrl: user.avatarUrl ?? null,
       emailVerified: Boolean(user.emailVerified),
+      hideFollowersAndFollowing: Boolean(user.hideConnections),
       joinedAt: iso(user.createdAt),
       plusUntil: iso(user.plusUntil as Date | null),
     },

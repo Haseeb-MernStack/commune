@@ -7,7 +7,7 @@ import { Post } from "../models/Post.js";
 import { User } from "../models/User.js";
 import { notify } from "../services/notificationService.js";
 import { deleteUploadIfUnused } from "../services/uploadService.js";
-import { badRequest, notFound } from "../utils/errors.js";
+import { badRequest, forbidden, notFound } from "../utils/errors.js";
 import { isPlusActive } from "../utils/plan.js";
 import { toProfileDTO, toPublicUser } from "../utils/serializers.js";
 import { sendPostPage } from "./postController.js";
@@ -23,14 +23,28 @@ export async function findByUsername(raw: string | undefined) {
   return user;
 }
 
+/**
+ * True when the lists are private and this viewer may not open them. The owner and admins (who
+ * need them for moderation) always can.
+ */
+async function connectionsHiddenFrom(
+  user: Awaited<ReturnType<typeof findByUsername>>,
+  viewerId: string,
+): Promise<boolean> {
+  if (!user.hideConnections || user._id.toString() === viewerId) return false;
+  const viewer = await User.findById(viewerId).select("role").lean();
+  return viewer?.role !== "admin";
+}
+
 async function buildProfile(user: Awaited<ReturnType<typeof findByUsername>>, viewerId: string) {
-  const [followerCount, followingCount, postCount, follows] = await Promise.all([
+  const [followerCount, followingCount, postCount, follows, hidden] = await Promise.all([
     Follow.countDocuments({ following: user._id }),
     Follow.countDocuments({ follower: user._id }),
     Post.countDocuments({ author: user._id }),
     Follow.exists({ follower: viewerId, following: user._id }),
+    connectionsHiddenFrom(user, viewerId),
   ]);
-  return toProfileDTO(user, { followerCount, followingCount, postCount }, Boolean(follows));
+  return toProfileDTO(user, { followerCount, followingCount, postCount }, Boolean(follows), hidden);
 }
 
 export async function me(req: Request, res: Response) {
@@ -119,6 +133,10 @@ async function followList(req: Request, res: Response, kind: "followers" | "foll
   if (cursor !== undefined && !mongoose.isValidObjectId(cursor)) throw badRequest("Invalid cursor");
 
   const target = await findByUsername(req.params.username);
+  // Enforced here, not only in the web app: the lists must not be readable by calling the API.
+  if (await connectionsHiddenFrom(target, req.userId!)) {
+    throw forbidden("This person keeps their followers and following private");
+  }
   // For "followers" we list the follower of each record; for "following", the one being followed.
   const shown = kind === "followers" ? "follower" : "following";
   const anchor = kind === "followers" ? "following" : "follower";
@@ -179,3 +197,16 @@ async function followList(req: Request, res: Response, kind: "followers" | "foll
 
 export const listFollowers = (req: Request, res: Response) => followList(req, res, "followers");
 export const listFollowing = (req: Request, res: Response) => followList(req, res, "following");
+
+/** The signed-in person's own privacy choices. */
+export async function getPrivacy(req: Request, res: Response) {
+  const user = await User.findById(req.userId).select("hideConnections").lean();
+  if (!user) throw notFound("User not found");
+  res.json({ hideConnections: Boolean(user.hideConnections) });
+}
+
+export async function updatePrivacy(req: Request, res: Response) {
+  const { hideConnections } = req.body as { hideConnections: boolean };
+  await User.updateOne({ _id: req.userId }, { $set: { hideConnections } });
+  res.json({ hideConnections });
+}

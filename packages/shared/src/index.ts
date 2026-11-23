@@ -119,6 +119,11 @@ export const updateProfileSchema = z.object({
   avatarUrl: uploadUrlSchema.nullable().optional(),
 });
 
+/** PATCH /users/me/privacy: who can see this person's followers and following lists. */
+export const updatePrivacySchema = z.object({
+  hideConnections: z.boolean(),
+});
+
 export const paginationSchema = z.object({
   cursor: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(50).default(20),
@@ -233,6 +238,12 @@ export type CreatePostInput = z.infer<typeof createPostSchema>;
 export type CreateCommentInput = z.infer<typeof createCommentSchema>;
 export type PaginationInput = z.infer<typeof paginationSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+export type UpdatePrivacyInput = z.infer<typeof updatePrivacySchema>;
+
+export interface PrivacyDTO {
+  /** Other people cannot open this person's followers and following lists. */
+  hideConnections: boolean;
+}
 export type CreateReportInput = z.infer<typeof createReportSchema>;
 export type ResolveReportInput = z.infer<typeof resolveReportSchema>;
 export type BanUserInput = z.infer<typeof banUserSchema>;
@@ -386,6 +397,8 @@ export interface ProfileDTO extends PublicUser {
   followingCount: number;
   followedByMe: boolean;
   banned: boolean;
+  /** The lists are private and the viewer may not open them (never true for the owner or an admin). */
+  connectionsHidden: boolean;
 }
 
 export type NotificationType = "like" | "comment" | "follow";
