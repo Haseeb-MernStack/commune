@@ -10,6 +10,18 @@ const user = {
   password: "E2e-Test-Pass-12345",
 };
 
+// A returning visitor has already answered the cookie notice. Without this the notice sits over the
+// bottom of the page and these tests would depend on dismissing it.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    try {
+      localStorage.setItem("commune-consent", "essential");
+    } catch {
+      /* storage unavailable */
+    }
+  });
+});
+
 test("the API is healthy", async ({ request }) => {
   const res = await request.get("http://localhost:4000/api/health");
   expect(res.ok()).toBe(true);
@@ -26,7 +38,7 @@ test("join, post, sign out and sign back in", async ({ page }) => {
     await page.goto("/register");
     await page.getByLabel("Username").fill(user.username);
     await page.getByLabel("Email").fill(user.email);
-    await page.getByLabel("Password").fill(user.password);
+    await page.locator("input[autocomplete$=password]").fill(user.password);
     await page.getByRole("button", { name: "Create account" }).click();
     await expect(page.getByRole("textbox", { name: "Write a post" })).toBeVisible();
   });
@@ -57,7 +69,7 @@ test("join, post, sign out and sign back in", async ({ page }) => {
   await test.step("sign back in", async () => {
     await page.goto("/login");
     await page.getByLabel("Email").fill(user.email);
-    await page.getByLabel("Password").fill(user.password);
+    await page.locator("input[autocomplete$=password]").fill(user.password);
     await page.getByRole("button", { name: "Log in" }).click();
     await expect(page.getByRole("textbox", { name: "Write a post" })).toBeVisible();
   });

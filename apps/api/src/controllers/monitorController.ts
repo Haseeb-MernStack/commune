@@ -65,7 +65,7 @@ export function describeViolation(payload: unknown): { message: string; route: s
   const blocked = originOnly(report["blocked-uri"] ?? report.blockedURL ?? report.blockedUri);
   if (!directive) return null;
   const mode = report.disposition === "enforce" ? "blocked" : "would block";
-  let route = "";
+  let route: string;
   try {
     route = new URL(String(report["document-uri"] ?? report.documentURL ?? "")).pathname;
   } catch {
