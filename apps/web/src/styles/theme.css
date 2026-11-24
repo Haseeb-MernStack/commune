@@ -30,21 +30,23 @@
   font-family: var(--font-body);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0b0d13;
-    --surface: #141822;
-    --surface-2: #1c2130;
-    --text: #eceef5;
-    --muted: #9aa2b7;
-    --border: #262b3b;
-    --accent: #aeb9ff;
-    --accent-hover: #c6ceff;
-    --accent-contrast: #0b0d13;
-    --accent-soft: #1f2547;
-    --like: #ff6b5b;
-    --danger: #ff7a6e;
-  }
+/* Dark scheme: the same tokens, applied when the page carries
+   data-theme="dark" (set by the inline script in apps/web/index.html and
+   by src/lib/theme.ts). The OS preference only matters while no choice is
+   saved, so it is no longer read here. */
+:root[data-theme="dark"] {
+  --bg: #0b0d13;
+  --surface: #141822;
+  --surface-2: #1c2130;
+  --text: #eceef5;
+  --muted: #9aa2b7;
+  --border: #262b3b;
+  --accent: #aeb9ff;
+  --accent-hover: #c6ceff;
+  --accent-contrast: #0b0d13;
+  --accent-soft: #1f2547;
+  --like: #ff6b5b;
+  --danger: #ff7a6e;
 }
 
 body {
@@ -1199,6 +1201,44 @@ h3,
 
 .sound-volume input[type="range"]:disabled {
   opacity: 0.45;
+}
+
+/* ---- Appearance settings (theme picker) ---- */
+.theme-settings {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 16px;
+}
+
+.theme-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.theme-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.theme-choice:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.theme-choice input[type="radio"] {
+  accent-color: var(--accent);
+  margin: 0;
 }
 
 /* ---- Sign-in form: password reveal and field hints ---- */
