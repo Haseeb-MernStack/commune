@@ -173,6 +173,7 @@ export default function Header() {
                 )}
                 {user.plus && item("/plus", "card", "Billing")}
                 {user.role === "admin" && item("/admin", "shield", "Admin")}
+                {item("/saved", "bookmark", "Saved")}
                 {item("/settings", "gear", "Settings")}
                 {item("/contact", "contact", "Contact")}
                 {item("/privacy", "shield", "Privacy")}

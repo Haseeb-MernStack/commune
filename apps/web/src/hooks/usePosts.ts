@@ -57,10 +57,10 @@ export function useCreatePost() {
   });
 }
 
-type FeedData = InfiniteData<Page<PostDTO>>;
+export type FeedData = InfiniteData<Page<PostDTO>>;
 
 /** Applies `change` to one post everywhere it is cached: every feed and the single-post view. */
-function patchPost(qc: QueryClient, id: string, change: (post: PostDTO) => PostDTO) {
+export function patchPost(qc: QueryClient, id: string, change: (post: PostDTO) => PostDTO) {
   qc.setQueriesData<FeedData>({ queryKey: ["feed"] }, (data) =>
     data
       ? {

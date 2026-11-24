@@ -58,6 +58,7 @@ export default function LeftNav() {
           user.plus ? "Insights" : "Commune Plus",
         )}
         {user.role === "admin" && link("/admin", "shield", "Admin")}
+        {link("/saved", "bookmark", "Saved")}
         {link("/settings", "gear", "Settings")}
         {link("/contact", "contact", "Contact")}
         <GitHubLink className="side-link" size={22} label="Star on GitHub" />
