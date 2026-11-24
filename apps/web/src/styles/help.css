@@ -1,0 +1,54 @@
+/* Help and FAQ page */
+.help-item {
+  border-bottom: 1px solid var(--border);
+}
+
+.legal-section .help-item:first-of-type {
+  border-top: 1px solid var(--border);
+}
+
+.help-item summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 10px 0;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.help-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.help-item summary::after {
+  content: "+";
+  flex: none;
+  color: var(--muted);
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.help-item[open] summary::after {
+  content: "\2013";
+}
+
+.help-item summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.help-answer {
+  padding: 0 0 14px;
+}
+
+.help-answer p {
+  margin: 0;
+}
+
+.help-contact {
+  margin-top: 24px;
+}

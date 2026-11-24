@@ -60,6 +60,7 @@ export default function LeftNav() {
         {user.role === "admin" && link("/admin", "shield", "Admin")}
         {link("/saved", "bookmark", "Saved")}
         {link("/settings", "gear", "Settings")}
+        {link("/help", "help", "Help")}
         {link("/contact", "contact", "Contact")}
         <GitHubLink className="side-link" size={22} label="Star on GitHub" />
       </nav>

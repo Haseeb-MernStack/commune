@@ -41,6 +41,7 @@ const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPassword"));
+const HelpPage = lazy(() => import("./pages/HelpPage"));
 
 const TITLES: Record<string, string> = {
   "/": "Commune: an open source community platform",
@@ -62,6 +63,7 @@ const TITLES: Record<string, string> = {
   "/admin": "Admin",
   "/settings": "Settings",
   "/saved": "Saved",
+  "/help": "Help and FAQ",
 };
 
 /** Per-page browser title and canonical link, so tabs, history and search engines get real names. */
@@ -234,6 +236,7 @@ function AppRoutes() {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
+        <Route path="/help" element={<HelpPage />} />
         <Route
           path="/messages"
           element={
