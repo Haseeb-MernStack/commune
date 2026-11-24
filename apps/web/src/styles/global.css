@@ -1386,6 +1386,19 @@ video {
   color: var(--muted);
 }
 
+.rail-link-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.rail-link-btn:hover {
+  text-decoration: underline;
+}
+
 /* --- News --- */
 .news-panel {
   display: flex;
@@ -1841,6 +1854,10 @@ main:focus {
   margin-top: 32px;
   padding-top: 16px;
   border-top: 1px solid var(--border);
+}
+
+.legal-cookie-btn {
+  font-weight: inherit;
 }
 
 .consent-bar {
