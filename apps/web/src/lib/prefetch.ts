@@ -7,6 +7,7 @@ const loaders: Array<[prefix: string, load: () => Promise<unknown>]> = [
   ["/notifications", () => import("../pages/NotificationsPage")],
   ["/u/", () => import("../pages/ProfilePage")],
   ["/posts/", () => import("../pages/PostPage")],
+  ["/saved", () => import("../pages/SavedPage")],
   ["/news", () => import("../pages/NewsPage")],
   ["/communities", () => import("../pages/CommunitiesPage")],
   ["/c/", () => import("../pages/CommunityPage")],

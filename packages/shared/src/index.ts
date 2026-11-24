@@ -296,6 +296,8 @@ export interface PostDTO {
   likeCount: number;
   commentCount: number;
   likedByMe: boolean;
+  /** The viewer saved this post (bookmark). Only the viewer ever sees their own saves. */
+  bookmarkedByMe: boolean;
   /** The community this post was made in, if any. */
   community: { slug: string; name: string } | null;
   /** Price in US cents, or null for a free post. */

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../store/auth";
+import { openCookieSettings } from "../lib/consent";
 import { REPO_URL } from "../lib/links";
 import NewsPanel from "./NewsPanel";
 import SearchBox from "./SearchBox";
@@ -21,6 +22,9 @@ export default function RightRail() {
         <Link to="/contact">Contact</Link>
         <Link to="/privacy">Privacy</Link>
         <Link to="/terms">Terms</Link>
+        <button type="button" className="rail-link-btn" onClick={openCookieSettings}>
+          Cookie settings
+        </button>
         <a href={REPO_URL} target="_blank" rel="noopener noreferrer">
           GitHub
         </a>

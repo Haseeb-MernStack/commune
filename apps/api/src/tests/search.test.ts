@@ -3,6 +3,7 @@ import request from "supertest";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { searchQuerySchema } from "@commune/shared";
 import { createApp } from "../app.js";
+import { Bookmark } from "../models/Bookmark.js";
 import { Like } from "../models/Like.js";
 import { Post } from "../models/Post.js";
 import { Purchase } from "../models/Purchase.js";
@@ -112,6 +113,7 @@ describe("GET /api/search/posts", () => {
     };
     const find = vi.spyOn(Post, "find").mockReturnValue(queryChain([free, paid]) as never);
     vi.spyOn(Like, "find").mockReturnValue(queryChain([]) as never);
+    vi.spyOn(Bookmark, "find").mockReturnValue(queryChain([]) as never);
     vi.spyOn(Purchase, "find").mockReturnValue(queryChain([]) as never);
 
     const res = await request(app).get("/api/search/posts?q=hello").set(auth);
