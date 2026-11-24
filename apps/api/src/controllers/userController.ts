@@ -11,6 +11,8 @@ import { badRequest, forbidden, notFound } from "../utils/errors.js";
 import { isPlusActive } from "../utils/plan.js";
 import { toProfileDTO, toPublicUser } from "../utils/serializers.js";
 import { sendPostPage } from "./postController.js";
+import { Block } from "../models/Block.js";
+import { assertNotBlockedBy } from "../services/blockService.js";
 
 /** Usernames are case-insensitive, so lookups use the same collation as the unique index. */
 export async function findByUsername(raw: string | undefined) {
@@ -37,14 +39,21 @@ async function connectionsHiddenFrom(
 }
 
 async function buildProfile(user: Awaited<ReturnType<typeof findByUsername>>, viewerId: string) {
-  const [followerCount, followingCount, postCount, follows, hidden] = await Promise.all([
+  const [followerCount, followingCount, postCount, follows, hidden, relation] = await Promise.all([
     Follow.countDocuments({ following: user._id }),
     Follow.countDocuments({ follower: user._id }),
     Post.countDocuments({ author: user._id }),
     Follow.exists({ follower: viewerId, following: user._id }),
     connectionsHiddenFrom(user, viewerId),
+    Block.findOne({ blocker: viewerId, blocked: user._id }).select("kind").lean(),
   ]);
-  return toProfileDTO(user, { followerCount, followingCount, postCount }, Boolean(follows), hidden);
+  return toProfileDTO(
+    user,
+    { followerCount, followingCount, postCount },
+    Boolean(follows),
+    hidden,
+    relation?.kind ?? null,
+  );
 }
 
 export async function me(req: Request, res: Response) {
@@ -108,6 +117,8 @@ export async function userPosts(req: Request, res: Response) {
 export async function toggleFollow(req: Request, res: Response) {
   const user = await findByUsername(req.params.username);
   if (user._id.toString() === req.userId) throw badRequest("You can't follow yourself");
+
+  await assertNotBlockedBy(req.userId!, user._id);
 
   const removed = await Follow.findOneAndDelete({ follower: req.userId, following: user._id });
   if (!removed) {

@@ -30,6 +30,7 @@ import {
   searchQuerySchema,
   updateProfileSchema,
   verifyEmailSchema,
+  setBlockSchema,
 } from "@commune/shared";
 import * as account from "../controllers/accountController.js";
 import * as push from "../controllers/pushController.js";
@@ -53,6 +54,7 @@ import * as search from "../controllers/searchController.js";
 import * as uploads from "../controllers/uploadController.js";
 import * as data from "../controllers/dataController.js";
 import * as users from "../controllers/userController.js";
+import * as blocks from "../controllers/blockController.js";
 import { requireActive, requireAdmin, requireAuth, requirePlus } from "../middleware/auth.js";
 import {
   authLimiter,
@@ -72,6 +74,7 @@ import {
   searchLimiter,
   uploadLimiter,
   viewLimiter,
+  blockLimiter,
 } from "../middleware/rateLimit.js";
 import { parseImageUpload } from "../middleware/upload.js";
 import { userQuota } from "../middleware/quota.js";
@@ -462,4 +465,26 @@ router.post(
   validate(sendMessageSchema),
   requireActive,
   asyncHandler(messages.send),
+);
+
+// User Block Routes
+
+// next to the other /users/me routes (before "/users/:username")
+router.get("/users/me/blocks", requireAuth, asyncHandler(blocks.list));
+
+// after the follow route
+router.put(
+  "/users/:username/block",
+  requireAuth,
+  blockLimiter,
+  validate(setBlockSchema),
+  requireActive,
+  asyncHandler(blocks.set),
+);
+router.delete(
+  "/users/:username/block",
+  requireAuth,
+  blockLimiter,
+  requireActive,
+  asyncHandler(blocks.remove),
 );

@@ -6,6 +6,7 @@ import { Message } from "../models/Message.js";
 import { User } from "../models/User.js";
 import { badRequest, forbidden, notFound } from "../utils/errors.js";
 import { pushConfigured, pushToUser } from "../services/pushService.js";
+import { assertCanMessage, blockedByMeIds } from "../services/blockService.js";
 import { emitToUsers } from "../services/realtime.js";
 import { isPlusActive } from "../utils/plan.js";
 import { findByUsername } from "./userController.js";
@@ -137,6 +138,13 @@ export async function listConversations(req: Request, res: Response) {
     .lean()) as unknown as (LeanUser & { banned?: boolean })[];
   const byId = new Map(users.map((u) => [str(u._id), u]));
 
+  const blocked = new Set((await blockedByMeIds(me)).map(String));
+  convos.forEach((c, i) => {
+    const other = byId.get(otherIds[i]!);
+    if (other && !other.banned && !blocked.has(str(other._id)))
+      out.push(toConversationDTO(c, me, other));
+  });
+
   const out: ConversationDTO[] = [];
   convos.forEach((c, i) => {
     const other = byId.get(otherIds[i]!);
@@ -204,6 +212,7 @@ export async function send(req: Request, res: Response) {
     banned?: boolean;
   } | null;
   if (!other || other.banned) throw forbidden("You can't message this account");
+  await assertCanMessage(me, otherId);
   res.status(201).json(await saveMessage(str(convo._id), me, otherId, req.body.text));
 }
 
@@ -214,6 +223,8 @@ export async function start(req: Request, res: Response) {
   const targetId = str(target._id);
   if (targetId === me) throw badRequest("You can't message yourself");
   if (target.banned) throw forbidden("You can't message this account");
+
+  await assertCanMessage(me, targetId);
 
   const key = pairKey(me, targetId);
   const convo = (await Conversation.findOneAndUpdate(

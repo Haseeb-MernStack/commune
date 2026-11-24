@@ -9,6 +9,7 @@ import { badRequest, conflict, forbidden, notFound } from "../utils/errors.js";
 import { escapeRegex } from "../utils/regex.js";
 import { toCommunityDTO } from "../utils/serializers.js";
 import { sendPostPage } from "./postController.js";
+import { hiddenAuthorIds } from "../services/blockService.js";
 
 const MAX_COMMUNITIES_FREE = 5;
 const MAX_COMMUNITIES_PLUS = 20;
@@ -120,4 +121,10 @@ export async function leave(req: Request, res: Response) {
 export async function posts(req: Request, res: Response) {
   const community = await findBySlug(req.params.slug);
   await sendPostPage(req, res, { community: community._id });
+
+  const hidden = await hiddenAuthorIds(req.userId!);
+  await sendPostPage(req, res, {
+    community: community._id,
+    ...(hidden.length > 0 ? { author: { $nin: hidden } } : {}),
+  });
 }

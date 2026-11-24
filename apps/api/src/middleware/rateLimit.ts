@@ -174,3 +174,13 @@ export const dataLimiter = rateLimit({
   skip,
   message: { error: "Too many data requests, try again later." },
 });
+
+/** Muting and blocking: generous for real use, tight enough to stop scripts. */
+export const blockLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 60,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "Too many requests, try again later." },
+});

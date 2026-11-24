@@ -11,6 +11,7 @@ import type {
   ReportDTO,
   ReportReason,
   ReportStatus,
+  BlockKind,
 } from "@commune/shared";
 
 interface UserLike {
@@ -105,6 +106,7 @@ export function toProfileDTO(
   counts: { followerCount: number; followingCount: number; postCount: number },
   followedByMe: boolean,
   connectionsHidden = false,
+  blockKind: BlockKind | null = null,
 ): ProfileDTO {
   return {
     ...toPublicUser(u),
@@ -112,6 +114,7 @@ export function toProfileDTO(
     followedByMe,
     banned: Boolean(u.banned),
     connectionsHidden,
+    blockKind,
   };
 }
 

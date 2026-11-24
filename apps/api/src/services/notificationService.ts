@@ -3,6 +3,7 @@ import type { NotificationType } from "@commune/shared";
 import { logger } from "../config/logger.js";
 import { Notification } from "../models/Notification.js";
 import { User } from "../models/User.js";
+import { Block } from "../models/Block.js";
 import { pushConfigured, pushToUser } from "./pushService.js";
 import { emitToUsers } from "./realtime.js";
 
@@ -26,6 +27,7 @@ export async function notify({ user, actor, type, post }: NotifyInput): Promise<
   if (user.toString() === actor) return;
   try {
     const key = { user, actor, type, post: post ?? null };
+    if (await Block.exists({ blocker: user, blocked: actor })) return;
     if (type === "comment") {
       await Notification.create({ ...key, read: false });
     } else {

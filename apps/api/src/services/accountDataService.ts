@@ -22,6 +22,7 @@ import { AppError, badRequest, forbidden, notFound } from "../utils/errors.js";
 import { removePost } from "./moderationService.js";
 import { disconnectUser } from "./realtime.js";
 import { deleteUploadIfUnused } from "./uploadService.js";
+import { Block } from "../models/Block.js";
 
 /** Most rows of each kind put in one export, so a very active account cannot exhaust memory. */
 const EXPORT_LIMIT = 5000;
@@ -237,6 +238,7 @@ export async function deleteAccount(userId: string, input: DeleteAccountInput): 
   await Membership.deleteMany({ user: uid });
 
   await Follow.deleteMany({ $or: [{ follower: uid }, { following: uid }] });
+  await Block.deleteMany({ $or: [{ blocker: uid }, { blocked: uid }] });
   await Notification.deleteMany({ $or: [{ user: uid }, { actor: uid }] });
   await PostView.deleteMany({ viewer: uid });
 

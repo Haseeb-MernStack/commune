@@ -11,6 +11,7 @@ import { ProfileSkeleton } from "../components/Skeleton";
 import { useBanUser, useUnbanUser } from "../hooks/useModeration";
 import { useAvatarAllowance, useProfilePhoto } from "../hooks/useProfilePhoto";
 import { useProfile, useToggleFollow, useUpdateProfile, useUserPosts } from "../hooks/useSocial";
+import { useRemoveBlock, useSetBlock } from "../hooks/useBlocks";
 import { hueFor } from "../lib/hue";
 import { useAuth } from "../store/auth";
 
@@ -25,6 +26,8 @@ export default function ProfilePage() {
   const update = useUpdateProfile();
   const ban = useBanUser(username);
   const unban = useUnbanUser(username);
+  const setBlock = useSetBlock();
+  const removeBlock = useRemoveBlock();
   const allowance = useAvatarAllowance(Boolean(me && profile.data && me.id === profile.data.id));
   const photo = useProfilePhoto(allowance.data);
   const [editing, setEditing] = useState(false);
@@ -94,6 +97,37 @@ export default function ProfilePage() {
                   >
                     <Icon name="mail" size={18} /> Message
                   </Link>
+
+                  {p.blockKind ? (
+                    <button
+                      className="btn btn-outline"
+                      disabled={removeBlock.isPending}
+                      onClick={() => removeBlock.mutate(p.username)}
+                    >
+                      {p.blockKind === "block" ? "Unblock" : "Unmute"}
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        className="btn btn-outline"
+                        disabled={setBlock.isPending}
+                        onClick={() => setBlock.mutate({ username: p.username, kind: "mute" })}
+                      >
+                        <Icon name="mute" size={18} /> Mute
+                      </button>
+                      <button
+                        className="btn btn-outline"
+                        disabled={setBlock.isPending}
+                        onClick={() =>
+                          window.confirm(
+                            `Block @${p.username}? They won't be able to follow, message or comment on you.`,
+                          ) && setBlock.mutate({ username: p.username, kind: "block" })
+                        }
+                      >
+                        <Icon name="block" size={18} /> Block
+                      </button>
+                    </>
+                  )}
                 </>
               )}
             </div>
@@ -141,6 +175,9 @@ export default function ProfilePage() {
           )}
 
           {follow.isError && <p className="error">{follow.error.message}</p>}
+          {(setBlock.isError || removeBlock.isError) && (
+            <p className="error">{(setBlock.error ?? removeBlock.error)?.message}</p>
+          )}
           {p.banned && <p className="suspended">This account is suspended.</p>}
           {isAdmin && !isMe && p.role !== "admin" && (
             <div className="row">
