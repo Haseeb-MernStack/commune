@@ -15,9 +15,7 @@ const THEME_CHOICES: Array<{ value: ThemePreference; label: string }> = [
 /** Appearance settings: pick System, Light or Dark. The choice is saved in
  * localStorage and applied straight away, so the page follows it at once. */
 export default function ThemeSettings() {
-  const [preference, setPreference] = useState<ThemePreference>(() =>
-    getThemePreference(),
-  );
+  const [preference, setPreference] = useState<ThemePreference>(() => getThemePreference());
 
   useEffect(() => {
     applyThemePreference(preference);
@@ -34,9 +32,7 @@ export default function ThemeSettings() {
       <h2 id="theme-title" className="push-title">
         Appearance
       </h2>
-      <p className="muted small">
-        System follows your device setting, and changes with it.
-      </p>
+      <p className="muted small">System follows your device setting, and changes with it.</p>
       <div className="theme-choices" role="radiogroup" aria-label="Theme">
         {THEME_CHOICES.map((choice) => (
           <label key={choice.value} className="theme-choice">

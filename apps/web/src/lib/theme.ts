@@ -62,15 +62,11 @@ export function applyThemePreference(preference: ThemePreference): ResolvedTheme
   }
   const root = document.documentElement;
   root.dataset.theme = resolved;
-  const themeColor = document.querySelector<HTMLMetaElement>(
-    'meta[name="theme-color"]',
-  );
+  const themeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
   if (themeColor) {
     themeColor.content = THEME_BACKGROUNDS[resolved];
   }
-  const colorScheme = document.querySelector<HTMLMetaElement>(
-    'meta[name="color-scheme"]',
-  );
+  const colorScheme = document.querySelector<HTMLMetaElement>('meta[name="color-scheme"]');
   if (colorScheme) {
     colorScheme.content = resolved;
   }
