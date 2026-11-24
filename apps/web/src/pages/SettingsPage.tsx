@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import AccountData from "../components/AccountData";
 import PrivacySettings from "../components/PrivacySettings";
 import BlockedUsers from "../components/BlockedUsers";
+import ThemeSettings from "../components/ThemeSettings";
 
 export default function SettingsPage() {
   return (
@@ -11,6 +12,7 @@ export default function SettingsPage() {
         Sounds and push notifications are on the <Link to="/notifications">Notifications</Link>{" "}
         page.
       </p>
+      <ThemeSettings />
       <BlockedUsers />
       <PrivacySettings />
       <AccountData />

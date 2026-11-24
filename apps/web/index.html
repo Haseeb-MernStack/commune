@@ -30,10 +30,42 @@
     <!-- Do not use this site's content to train or feed AI models. Search engines are still welcome. -->
     <meta name="robots" content="index, follow, noai, noimageai" />
 
-    <!-- Browser UI colours follow the user's light or dark setting. -->
+    <!-- Browser UI colours follow the saved theme. The theme script below keeps
+      theme-color in step with the choice; without JavaScript it stays light. -->
     <meta name="color-scheme" content="light dark" />
-    <meta name="theme-color" content="#f6f5f1" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#141412" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f3f4f9" />
+
+    <!--
+      Apply the saved theme before first paint, so there is no flash: read the
+      choice from localStorage (key "commune_theme"), follow the OS setting
+      while it is "system", then set data-theme on <html> and update the
+      theme-color and color-scheme meta tags. Mirrors src/lib/theme.ts;
+      keep the two in sync.
+    -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("commune_theme");
+          var preference =
+            stored === "light" || stored === "dark" || stored === "system" ? stored : "system";
+          var resolved =
+            preference === "system"
+              ? window.matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light"
+              : preference;
+          document.documentElement.dataset.theme = resolved;
+          var themeColor = document.querySelector('meta[name="theme-color"]');
+          if (themeColor) {
+            themeColor.content = resolved === "dark" ? "#0b0d13" : "#f3f4f9";
+          }
+          var colorScheme = document.querySelector('meta[name="color-scheme"]');
+          if (colorScheme) {
+            colorScheme.content = resolved;
+          }
+        } catch (e) {}
+      })();
+    </script>
 
     <!-- Google Adsense Implementation -->
     <script
@@ -118,6 +150,40 @@
         .boot-body h1 {
           color: #eceef5;
         }
+      }
+      /* A saved theme wins over the OS setting above: data-theme is set by
+         the theme script before first paint. */
+      html[data-theme="dark"],
+      html[data-theme="dark"] body {
+        background: #0b0d13;
+        color: #eceef5;
+      }
+      html[data-theme="light"],
+      html[data-theme="light"] body {
+        background: #f3f4f9;
+        color: #12141c;
+      }
+      html[data-theme="dark"] .boot-header {
+        background: #141822;
+        border-color: #262b3b;
+        color: #eceef5;
+      }
+      html[data-theme="dark"] .boot-body {
+        color: #9aa2b7;
+      }
+      html[data-theme="dark"] .boot-body h1 {
+        color: #eceef5;
+      }
+      html[data-theme="light"] .boot-header {
+        background: #fff;
+        border-color: #e2e5ee;
+        color: #12141c;
+      }
+      html[data-theme="light"] .boot-body {
+        color: #596073;
+      }
+      html[data-theme="light"] .boot-body h1 {
+        color: #12141c;
       }
     </style>
 
