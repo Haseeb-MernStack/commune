@@ -38,7 +38,7 @@ Two things to check first:
 - **Live messaging** connects to your Render service. The policy allows `*.onrender.com` and
   `wss://*.onrender.com`. If you use a custom domain for the realtime server, add it
   (`https://realtime.example.com wss://realtime.example.com`) to `connect-src`.
-- **Inline scripts.** `index.html` has three small inline scripts (token cleaner, early request,
+- **Inline scripts.** `index.html` has four small inline scripts (token cleaner, theme, early request,
   Google tag). The policy allows them with `'unsafe-inline'`, which also lets injected inline
   scripts run, so it is the weakest part of the policy. To remove it, run
   `node apps/web/scripts/csp-hashes.mjs`, put the printed `'sha256-...'` values in `script-src`
