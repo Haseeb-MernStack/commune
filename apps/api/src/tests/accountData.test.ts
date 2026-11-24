@@ -7,6 +7,7 @@ import { Comment } from "../models/Comment.js";
 import { Community } from "../models/Community.js";
 import { Conversation } from "../models/Conversation.js";
 import { Follow } from "../models/Follow.js";
+import { Bookmark } from "../models/Bookmark.js";
 import { Like } from "../models/Like.js";
 import { Membership } from "../models/Membership.js";
 import { Message } from "../models/Message.js";
@@ -61,6 +62,7 @@ function mockEverythingElse() {
   vi.spyOn(Comment, "deleteMany").mockResolvedValue({} as never);
   vi.spyOn(Like, "find").mockReturnValue(chain([]));
   vi.spyOn(Like, "deleteMany").mockResolvedValue({} as never);
+  vi.spyOn(Bookmark, "deleteMany").mockResolvedValue({} as never);
   vi.spyOn(Membership, "find").mockReturnValue(chain([]));
   vi.spyOn(Membership, "deleteMany").mockResolvedValue({} as never);
   vi.spyOn(Community, "updateMany").mockResolvedValue({} as never);

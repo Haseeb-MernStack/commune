@@ -7,6 +7,7 @@ import { Comment } from "../models/Comment.js";
 import { Community } from "../models/Community.js";
 import { Conversation } from "../models/Conversation.js";
 import { Follow } from "../models/Follow.js";
+import { Bookmark } from "../models/Bookmark.js";
 import { Like } from "../models/Like.js";
 import { Membership } from "../models/Membership.js";
 import { Message } from "../models/Message.js";
@@ -225,6 +226,7 @@ export async function deleteAccount(userId: string, input: DeleteAccountInput): 
     await Post.updateMany({ _id: { $in: liked.map((l) => l.post) } }, { $inc: { likeCount: -1 } });
   }
   await Like.deleteMany({ user: uid });
+  await Bookmark.deleteMany({ user: uid });
 
   const joined = (await Membership.find({ user: uid })
     .select("community")

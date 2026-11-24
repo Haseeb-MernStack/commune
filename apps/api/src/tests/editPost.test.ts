@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { updatePostSchema } from "@commune/shared";
 import { createApp } from "../app.js";
+import { Bookmark } from "../models/Bookmark.js";
 import { Like } from "../models/Like.js";
 import { Post } from "../models/Post.js";
 import { User } from "../models/User.js";
@@ -50,6 +51,9 @@ function mockStoredPost(author: string, content = "old text", imageUrl: string |
     return chain;
   }) as never);
   vi.spyOn(Like, "find").mockImplementation((() => ({
+    select: () => ({ lean: () => Promise.resolve([]) }),
+  })) as never);
+  vi.spyOn(Bookmark, "find").mockImplementation((() => ({
     select: () => ({ lean: () => Promise.resolve([]) }),
   })) as never);
 }

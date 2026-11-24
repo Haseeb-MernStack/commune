@@ -6,6 +6,7 @@ import { Block } from "../models/Block.js";
 import { Comment } from "../models/Comment.js";
 import { Conversation } from "../models/Conversation.js";
 import { Follow } from "../models/Follow.js";
+import { Bookmark } from "../models/Bookmark.js";
 import { Like } from "../models/Like.js";
 import { Message } from "../models/Message.js";
 import { Notification } from "../models/Notification.js";
@@ -134,6 +135,7 @@ describe("feeds, search and notifications hide muted and blocked people", () => 
     hiding(OTHER);
     const find = vi.spyOn(Post, "find").mockReturnValue(chain([]));
     vi.spyOn(Like, "find").mockReturnValue(chain([]));
+    vi.spyOn(Bookmark, "find").mockReturnValue(chain([]));
     expect((await call(app, "get", "/api/posts", token)).status).toBe(200);
     expect(find).toHaveBeenCalledWith({ author: { $nin: [OTHER] } });
   });
@@ -143,6 +145,7 @@ describe("feeds, search and notifications hide muted and blocked people", () => 
     vi.spyOn(Follow, "find").mockReturnValue(chain([{ following: OTHER }, { following: THIRD }]));
     const find = vi.spyOn(Post, "find").mockReturnValue(chain([]));
     vi.spyOn(Like, "find").mockReturnValue(chain([]));
+    vi.spyOn(Bookmark, "find").mockReturnValue(chain([]));
     await call(app, "get", "/api/posts?feed=following", token);
     expect(find).toHaveBeenCalledWith({ author: { $in: [THIRD, ME] } });
   });
@@ -151,6 +154,7 @@ describe("feeds, search and notifications hide muted and blocked people", () => 
     hiding(OTHER);
     const find = vi.spyOn(Post, "find").mockReturnValue(chain([]));
     vi.spyOn(Like, "find").mockReturnValue(chain([]));
+    vi.spyOn(Bookmark, "find").mockReturnValue(chain([]));
     await call(app, "get", "/api/search/posts?q=hello", token);
     expect(find).toHaveBeenCalledWith(
       { $text: { $search: "hello" }, author: { $nin: [OTHER] } },

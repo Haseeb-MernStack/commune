@@ -5,6 +5,7 @@ import { FREE_POST_LENGTH, PLUS_POST_LENGTH, type PostDTO } from "@commune/share
 import { useAuth } from "../store/auth";
 import RichText from "./RichText";
 import { useDeletePost, useToggleLike, useUpdatePost } from "../hooks/usePosts";
+import { useToggleBookmark } from "../hooks/useBookmarks";
 import { formatPrice, useCheckout } from "../hooks/usePayments";
 import { useSetBlock } from "../hooks/useBlocks";
 import { assetUrl } from "../lib/api";
@@ -13,6 +14,7 @@ import Avatar from "./Avatar";
 import Icon from "./Icon";
 import PlusBadge from "./PlusBadge";
 import { hueFor } from "../lib/hue";
+import PostMenu, { type MenuItem } from "./PostMenu";
 import ReportForm from "./ReportForm";
 
 export function timeAgo(iso: string): string {
@@ -30,9 +32,12 @@ export default function PostCard({ post }: { post: PostDTO }) {
   const checkout = useCheckout();
   const update = useUpdatePost();
   const setBlock = useSetBlock();
+  const bookmark = useToggleBookmark();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(post.content);
   const [reporting, setReporting] = useState(false);
+  // Plays the small "pop" only right after a tap, never when a post first appears.
+  const [popped, setPopped] = useState<"like" | "save" | null>(null);
   const mine = user?.id === post.author.id;
   const isAdmin = user?.role === "admin";
   const max = user?.plus ? PLUS_POST_LENGTH : Math.max(FREE_POST_LENGTH, post.content.length);
@@ -66,229 +71,276 @@ export default function PostCard({ post }: { post: PostDTO }) {
     }
   };
 
+  const share = async () => {
+    // Paid posts never put their text in a share sheet.
+    const text = post.priceCents == null ? post.content.slice(0, 120) : undefined;
+    const url = `${window.location.origin}/posts/${post.id}`;
+    if (typeof navigator.share === "function") {
+      try {
+        await navigator.share({ title: `@${post.author.username} on Commune`, text, url });
+        return;
+      } catch (err) {
+        // Closing the share sheet is not an error; any other failure falls back to copying.
+        if ((err as DOMException).name === "AbortError") return;
+      }
+    }
+    await copyLink();
+  };
+
+  const menuItems: MenuItem[] = [
+    { key: "copy", label: "Copy link", icon: "link", onSelect: () => void copyLink() },
+  ];
+  if (mine && !editing) {
+    menuItems.push({ key: "edit", label: "Edit post", icon: "pencil", onSelect: startEdit });
+  }
+  if (!mine) {
+    menuItems.push(
+      { key: "report", label: "Report post", icon: "flag", onSelect: () => setReporting(true) },
+      {
+        key: "mute",
+        label: `Mute @${post.author.username}`,
+        icon: "mute",
+        disabled: setBlock.isPending,
+        onSelect: () => setBlock.mutate({ username: post.author.username, kind: "mute" }),
+      },
+      {
+        key: "block",
+        label: `Block @${post.author.username}`,
+        icon: "block",
+        danger: true,
+        disabled: setBlock.isPending,
+        onSelect: () =>
+          window.confirm(`Block @${post.author.username}?`) &&
+          setBlock.mutate({ username: post.author.username, kind: "block" }),
+      },
+    );
+  }
+  if (mine || isAdmin) {
+    menuItems.push({
+      key: "delete",
+      label: mine ? "Delete post" : "Remove post",
+      icon: "trash",
+      danger: true,
+      disabled: del.isPending,
+      onSelect: () =>
+        window.confirm(mine ? "Delete this post?" : "Remove this post as an admin?") &&
+        del.mutate(post.id),
+    });
+  }
+
   return (
-    <article className="card post post-head">
-      <Avatar username={post.author.username} url={post.author.avatarUrl} />
-      <div className="post-main">
-        <div className="post-meta">
-          <Link to={`/u/${post.author.username}`} className="user-link">
-            @{post.author.username}
-          </Link>
-          <PlusBadge plus={post.author.plus} />
-          <Link
-            to={`/posts/${post.id}`}
-            className="post-time muted"
-            title={new Date(post.createdAt).toLocaleString()}
-          >
-            <span aria-hidden="true">· </span>
-            <time dateTime={post.createdAt}>{timeAgo(post.createdAt)}</time>
-          </Link>
-          {post.editedAt && (
-            <span
-              className="post-edited muted"
-              title={`Edited ${new Date(post.editedAt).toLocaleString()}`}
-            >
-              · edited
-            </span>
-          )}
-          {post.community && (
-            <Link
-              to={`/c/${post.community.slug}`}
-              className="community-tag"
-              style={{ "--hue": hueFor(post.community.slug).bg } as CSSProperties}
-            >
-              c/{post.community.slug}
+    <article className="card post ig-post">
+      <header className="ig-head">
+        <Link
+          to={`/u/${post.author.username}`}
+          className="ig-avatar"
+          tabIndex={-1}
+          aria-hidden="true"
+        >
+          <Avatar username={post.author.username} url={post.author.avatarUrl} size={40} />
+        </Link>
+        <div className="ig-who">
+          <div className="post-meta">
+            <Link to={`/u/${post.author.username}`} className="user-link">
+              @{post.author.username}
             </Link>
-          )}
-          {post.priceCents != null && (
-            <span className="price-badge">{formatPrice(post.priceCents)}</span>
+            <PlusBadge plus={post.author.plus} />
+            <Link
+              to={`/posts/${post.id}`}
+              className="post-time muted"
+              title={new Date(post.createdAt).toLocaleString()}
+            >
+              <span aria-hidden="true">· </span>
+              <time dateTime={post.createdAt}>{timeAgo(post.createdAt)}</time>
+            </Link>
+            {post.editedAt && (
+              <span
+                className="post-edited muted"
+                title={`Edited ${new Date(post.editedAt).toLocaleString()}`}
+              >
+                · edited
+              </span>
+            )}
+          </div>
+          {(post.community || post.priceCents != null) && (
+            <div className="ig-sub">
+              {post.community && (
+                <Link
+                  to={`/c/${post.community.slug}`}
+                  className="community-tag"
+                  style={{ "--hue": hueFor(post.community.slug).bg } as CSSProperties}
+                >
+                  c/{post.community.slug}
+                </Link>
+              )}
+              {post.priceCents != null && (
+                <span className="price-badge">{formatPrice(post.priceCents)}</span>
+              )}
+            </div>
           )}
         </div>
-        {editing ? (
-          <div className="post-edit">
-            <textarea
-              className="input"
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Escape") setEditing(false);
-                if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) save();
-              }}
-              maxLength={max}
-              rows={Math.min(10, Math.max(3, draft.split("\n").length + 1))}
-              aria-label="Edit your post"
-              autoFocus
-            />
-            <div className="post-edit-bar">
-              <span
-                className={`muted small${draft.length >= max ? " at-limit" : ""}`}
-                aria-live="polite"
-              >
-                {draft.length}/{max}
-              </span>
-              <span className="row">
-                <button className="btn btn-outline" onClick={() => setEditing(false)}>
-                  Cancel
-                </button>
-                <button
-                  className="btn"
-                  onClick={save}
-                  disabled={update.isPending || (!draft.trim() && !post.imageUrl)}
-                >
-                  {update.isPending ? "Saving…" : "Save"}
-                </button>
-              </span>
-            </div>
-            {update.isError && (
-              <p className="error" role="alert">
-                {update.error.message}
-              </p>
-            )}
-          </div>
-        ) : (
-          post.content && (
-            <p className="post-body">
-              <RichText text={post.content} />
-            </p>
-          )
-        )}
-        {post.imageUrl && (
-          <a href={assetUrl(post.imageUrl)} target="_blank" rel="noopener noreferrer">
-            <img
-              className="post-image"
-              src={assetUrl(post.imageUrl)}
-              alt={`Image posted by @${post.author.username}`}
-              loading="lazy"
-              decoding="async"
-            />
-          </a>
-        )}
-        {post.locked && post.priceCents != null && (
-          <div className="paywall">
-            <p>
-              <Icon name="lock" size={16} /> The rest of this post is for people who unlock it.
-            </p>
-            <button
-              className="btn"
-              disabled={checkout.isPending}
-              onClick={() => checkout.mutate(post.id)}
-            >
-              {checkout.isPending
-                ? "Opening checkout…"
-                : `Unlock for ${formatPrice(post.priceCents)}`}
-            </button>
-            {checkout.isError && (
-              <p className="error" role="alert">
-                {checkout.error.message}
-              </p>
-            )}
-          </div>
-        )}
-        {post.premiumContent && (
-          <div className="premium">
-            <span className="premium-label">Unlocked content</span>
-            <p className="post-body">{post.premiumContent}</p>
-          </div>
-        )}
-        <div className="post-actions">
-          <button
-            className={`btn btn-ghost ${post.likedByMe ? "liked" : ""}`}
-            onClick={() => {
-              if (!like.isPending) like.mutate(post.id);
+        <PostMenu
+          items={menuItems}
+          label={`More options for the post by @${post.author.username}`}
+        />
+      </header>
+      {editing ? (
+        <div className="post-edit">
+          <textarea
+            className="input"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setEditing(false);
+              if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) save();
             }}
+            maxLength={max}
+            rows={Math.min(10, Math.max(3, draft.split("\n").length + 1))}
+            aria-label="Edit your post"
+            autoFocus
+          />
+          <div className="post-edit-bar">
+            <span
+              className={`muted small${draft.length >= max ? " at-limit" : ""}`}
+              aria-live="polite"
+            >
+              {draft.length}/{max}
+            </span>
+            <span className="row">
+              <button className="btn btn-outline" onClick={() => setEditing(false)}>
+                Cancel
+              </button>
+              <button
+                className="btn"
+                onClick={save}
+                disabled={update.isPending || (!draft.trim() && !post.imageUrl)}
+              >
+                {update.isPending ? "Saving…" : "Save"}
+              </button>
+            </span>
+          </div>
+          {update.isError && (
+            <p className="error" role="alert">
+              {update.error.message}
+            </p>
+          )}
+        </div>
+      ) : (
+        post.content && (
+          <p className="post-body">
+            <RichText text={post.content} />
+          </p>
+        )
+      )}
+      {post.imageUrl && (
+        <a href={assetUrl(post.imageUrl)} target="_blank" rel="noopener noreferrer">
+          <img
+            className="post-image"
+            src={assetUrl(post.imageUrl)}
+            alt={`Image posted by @${post.author.username}`}
+            loading="lazy"
+            decoding="async"
+          />
+        </a>
+      )}
+      {post.locked && post.priceCents != null && (
+        <div className="paywall">
+          <p>
+            <Icon name="lock" size={16} /> The rest of this post is for people who unlock it.
+          </p>
+          <button
+            className="btn"
+            disabled={checkout.isPending}
+            onClick={() => checkout.mutate(post.id)}
+          >
+            {checkout.isPending
+              ? "Opening checkout…"
+              : `Unlock for ${formatPrice(post.priceCents)}`}
+          </button>
+          {checkout.isError && (
+            <p className="error" role="alert">
+              {checkout.error.message}
+            </p>
+          )}
+        </div>
+      )}
+      {post.premiumContent && (
+        <div className="premium">
+          <span className="premium-label">Unlocked content</span>
+          <p className="post-body">{post.premiumContent}</p>
+        </div>
+      )}
+      <div className="ig-bar">
+        <div className="ig-bar-left">
+          <button
+            type="button"
+            className={`ig-icon-btn${post.likedByMe ? " liked" : ""}${popped === "like" ? " pop" : ""}`}
+            onClick={() => {
+              if (like.isPending) return;
+              if (!post.likedByMe) setPopped("like");
+              like.mutate(post.id);
+            }}
+            onAnimationEnd={() => setPopped(null)}
             aria-pressed={post.likedByMe}
             aria-label={`${post.likedByMe ? "Unlike" : "Like"}, ${post.likeCount} ${
               post.likeCount === 1 ? "like" : "likes"
             }`}
           >
-            <Icon name="heart" size={19} filled={post.likedByMe} />
-            <span>{post.likeCount}</span>
+            <Icon name="heart" size={25} filled={post.likedByMe} />
           </button>
           <Link
-            className="btn btn-ghost"
+            className="ig-icon-btn"
             to={`/posts/${post.id}`}
             aria-label={`${post.commentCount} ${post.commentCount === 1 ? "comment" : "comments"}, open post`}
           >
-            <Icon name="comment" size={19} />
-            <span>{post.commentCount}</span>
+            <Icon name="comment" size={25} />
           </Link>
           <button
-            className="btn btn-ghost"
-            onClick={copyLink}
-            aria-label="Copy link to post"
-            title="Copy link"
+            type="button"
+            className="ig-icon-btn"
+            onClick={() => void share()}
+            aria-label="Share post"
+            title="Share"
           >
-            <Icon name="link" size={18} /> <span className="action-label">Copy link</span>
+            <Icon name="share" size={24} />
           </button>
-          {!mine && (
-            <>
-              <button
-                className="btn btn-ghost action-push"
-                onClick={() => setReporting((r) => !r)}
-                aria-expanded={reporting}
-                aria-label="Report post"
-                title="Report"
-              >
-                <Icon name="flag" size={18} /> <span className="action-label">Report</span>
-              </button>
-              <button
-                className="btn btn-ghost"
-                disabled={setBlock.isPending}
-                onClick={() => setBlock.mutate({ username: post.author.username, kind: "mute" })}
-                aria-label={`Mute @${post.author.username}`}
-                title="Mute"
-              >
-                <Icon name="mute" size={18} /> <span className="action-label">Mute</span>
-              </button>
-              <button
-                className="btn btn-ghost danger"
-                disabled={setBlock.isPending}
-                onClick={() =>
-                  window.confirm(`Block @${post.author.username}?`) &&
-                  setBlock.mutate({ username: post.author.username, kind: "block" })
-                }
-                aria-label={`Block @${post.author.username}`}
-                title="Block"
-              >
-                <Icon name="block" size={18} /> <span className="action-label">Block</span>
-              </button>
-            </>
-          )}
-          {mine && !editing && (
-            <button
-              className="btn btn-ghost action-push"
-              onClick={startEdit}
-              aria-label="Edit post"
-              title="Edit"
-            >
-              <Icon name="pencil" size={18} /> <span className="action-label">Edit</span>
-            </button>
-          )}
-          {(mine || isAdmin) && (
-            <button
-              className="btn btn-ghost danger"
-              disabled={del.isPending}
-              aria-label={mine ? "Delete post" : "Remove post"}
-              title={mine ? "Delete" : "Remove"}
-              onClick={() =>
-                window.confirm(mine ? "Delete this post?" : "Remove this post as an admin?") &&
-                del.mutate(post.id)
-              }
-            >
-              <Icon name="trash" size={18} />{" "}
-              <span className="action-label">{mine ? "Delete" : "Remove"}</span>
-            </button>
-          )}
         </div>
-        {(like.isError || del.isError) && (
-          <p className="error" role="alert">
-            {del.isError
-              ? "Could not delete this post. Try again."
-              : "Could not update your like. Try again."}
-          </p>
-        )}
-        {reporting && <ReportForm postId={post.id} onClose={() => setReporting(false)} />}
+        <button
+          type="button"
+          className={`ig-icon-btn ig-save${post.bookmarkedByMe ? " saved" : ""}${popped === "save" ? " pop" : ""}`}
+          onClick={() => {
+            if (bookmark.isPending) return;
+            if (!post.bookmarkedByMe) setPopped("save");
+            bookmark.mutate(post.id);
+          }}
+          onAnimationEnd={() => setPopped(null)}
+          aria-pressed={post.bookmarkedByMe}
+          aria-label={post.bookmarkedByMe ? "Remove from saved" : "Save post"}
+          title={post.bookmarkedByMe ? "Saved" : "Save"}
+        >
+          <Icon name="bookmark" size={25} filled={post.bookmarkedByMe} />
+        </button>
       </div>
+      <p className="ig-stats">
+        <strong>
+          {post.likeCount} {post.likeCount === 1 ? "like" : "likes"}
+        </strong>
+        {post.commentCount > 0 && (
+          <Link to={`/posts/${post.id}`} className="muted">
+            {post.commentCount} {post.commentCount === 1 ? "comment" : "comments"}
+          </Link>
+        )}
+      </p>
+      {(like.isError || del.isError || bookmark.isError) && (
+        <p className="error" role="alert">
+          {del.isError
+            ? "Could not delete this post. Try again."
+            : bookmark.isError
+              ? "Could not update your saved posts. Try again."
+              : "Could not update your like. Try again."}
+        </p>
+      )}
+      {reporting && <ReportForm postId={post.id} onClose={() => setReporting(false)} />}
     </article>
   );
 }

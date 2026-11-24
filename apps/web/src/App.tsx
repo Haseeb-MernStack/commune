@@ -35,6 +35,7 @@ const PlusPage = lazy(() => import("./pages/PlusPage"));
 const InsightsPage = lazy(() => import("./pages/InsightsPage"));
 const MessagesPage = lazy(() => import("./pages/MessagesPage"));
 const NewsPage = lazy(() => import("./pages/NewsPage"));
+const SavedPage = lazy(() => import("./pages/SavedPage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
@@ -60,6 +61,7 @@ const TITLES: Record<string, string> = {
   "/reset-password": "Reset password",
   "/admin": "Admin",
   "/settings": "Settings",
+  "/saved": "Saved",
 };
 
 /** Per-page browser title and canonical link, so tabs, history and search engines get real names. */
@@ -160,6 +162,14 @@ function AppRoutes() {
           element={
             <Protected>
               <NotificationsPage />
+            </Protected>
+          }
+        />
+        <Route
+          path="/saved"
+          element={
+            <Protected>
+              <SavedPage />
             </Protected>
           }
         />
