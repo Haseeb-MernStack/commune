@@ -5,6 +5,7 @@ import type { Page, PostDTO } from "@commune/shared";
 import { Comment } from "../models/Comment.js";
 import { Follow } from "../models/Follow.js";
 import { Community } from "../models/Community.js";
+import { Bookmark } from "../models/Bookmark.js";
 import { Like } from "../models/Like.js";
 import { Membership } from "../models/Membership.js";
 import { Post } from "../models/Post.js";
@@ -39,6 +40,13 @@ async function likedSet(userId: string, postIds: mongoose.Types.ObjectId[]) {
   return new Set(likes.map((l) => l.post.toString()));
 }
 
+async function bookmarkedSet(userId: string, postIds: mongoose.Types.ObjectId[]) {
+  const rows = await Bookmark.find({ user: userId, post: { $in: postIds } })
+    .select("post")
+    .lean();
+  return new Set(rows.map((b) => b.post.toString()));
+}
+
 async function loadPost(id: string): Promise<PopulatedPost> {
   const post = (await Post.findById(id)
     .populate("author", AUTHOR_FIELDS)
@@ -50,23 +58,30 @@ async function loadPost(id: string): Promise<PopulatedPost> {
 
 /** Builds the DTO for a single post as seen by this viewer (paid content only if unlocked). */
 async function withViewer(userId: string, post: PopulatedPost, liked: Set<string>) {
-  const unlocked = await unlockedPostIds(userId, [post]);
+  const [unlocked, saved] = await Promise.all([
+    unlockedPostIds(userId, [post]),
+    bookmarkedSet(userId, [post._id]),
+  ]);
   const key = post._id.toString();
-  return toPostDTO(post, liked.has(key), unlocked.has(key) || post.priceCents == null);
+  return toPostDTO(
+    post,
+    liked.has(key),
+    unlocked.has(key) || post.priceCents == null,
+    saved.has(key),
+  );
 }
 
 /** Turns loaded posts into DTOs for one viewer (likes and paid-content access included). */
 export async function presentPosts(userId: string, posts: PopulatedPost[]): Promise<PostDTO[]> {
-  const [liked, unlocked] = await Promise.all([
-    likedSet(
-      userId,
-      posts.map((p) => p._id),
-    ),
+  const ids = posts.map((p) => p._id);
+  const [liked, unlocked, saved] = await Promise.all([
+    likedSet(userId, ids),
     unlockedPostIds(userId, posts),
+    bookmarkedSet(userId, ids),
   ]);
   return posts.map((p) => {
     const key = p._id.toString();
-    return toPostDTO(p, liked.has(key), unlocked.has(key) || p.priceCents == null);
+    return toPostDTO(p, liked.has(key), unlocked.has(key) || p.priceCents == null, saved.has(key));
   });
 }
 
@@ -92,16 +107,22 @@ export async function sendPostPage(
 
   const hasMore = rows.length > limit;
   const posts = hasMore ? rows.slice(0, limit) : rows;
-  const liked = await likedSet(
-    req.userId!,
-    posts.map((p) => p._id),
-  );
+  const ids = posts.map((p) => p._id);
+  const [liked, saved] = await Promise.all([
+    likedSet(req.userId!, ids),
+    bookmarkedSet(req.userId!, ids),
+  ]);
 
   const unlocked = await unlockedPostIds(req.userId!, posts);
   const body: Page<PostDTO> = {
     items: posts.map((p) => {
       const key = p._id.toString();
-      return toPostDTO(p, liked.has(key), unlocked.has(key) || p.priceCents == null);
+      return toPostDTO(
+        p,
+        liked.has(key),
+        unlocked.has(key) || p.priceCents == null,
+        saved.has(key),
+      );
     }),
     nextCursor: hasMore ? (posts[posts.length - 1]?._id.toString() ?? null) : null,
   };
@@ -187,12 +208,14 @@ export async function updatePost(req: Request, res: Response) {
   if (content !== post.content) {
     await Post.updateOne({ _id: id }, { $set: { content, editedAt: new Date() } });
   }
-  const [updated, liked] = await Promise.all([
+  const oid = new mongoose.Types.ObjectId(id);
+  const [updated, liked, saved] = await Promise.all([
     loadPost(id),
-    likedSet(req.userId!, [new mongoose.Types.ObjectId(id)]),
+    likedSet(req.userId!, [oid]),
+    bookmarkedSet(req.userId!, [oid]),
   ]);
   // The author can always read their own paid content.
-  res.json(toPostDTO(updated, liked.has(id), true));
+  res.json(toPostDTO(updated, liked.has(id), true, saved.has(id)));
 }
 
 export async function deletePost(req: Request, res: Response) {
@@ -239,6 +262,60 @@ export async function toggleLike(req: Request, res: Response) {
   const post = await loadPost(id);
   const liked = await likedSet(req.userId!, [post._id]);
   res.json(await withViewer(req.userId!, post, liked));
+}
+
+/** Saves or un-saves a post for the signed-in person. Saves are private to them. */
+export async function toggleBookmark(req: Request, res: Response) {
+  const id = param(req, "id");
+  const target = await Post.findById(id).select("author").lean();
+  if (!target) throw notFound("Post not found");
+  await assertNotBlockedBy(req.userId!, target.author);
+
+  const removed = await Bookmark.findOneAndDelete({ post: id, user: req.userId });
+  if (!removed) {
+    try {
+      await Bookmark.create({ post: id, user: req.userId });
+    } catch (err) {
+      // A concurrent request already saved it; treat as success.
+      if ((err as { code?: number }).code !== 11000) throw err;
+    }
+  }
+
+  const post = await loadPost(id);
+  const liked = await likedSet(req.userId!, [post._id]);
+  res.json(await withViewer(req.userId!, post, liked));
+}
+
+/** The signed-in person's saved posts, newest save first. Posts that are gone or hidden are skipped. */
+export async function listSaved(req: Request, res: Response) {
+  const { cursor, limit } = (res.locals as { query: { cursor?: string; limit: number } }).query;
+  if (cursor && !mongoose.isValidObjectId(cursor)) throw badRequest("Invalid cursor");
+  const hidden = new Set((await hiddenAuthorIds(req.userId!)).map(String));
+
+  const rows = await Bookmark.find({
+    user: req.userId,
+    ...(cursor ? { _id: { $lt: cursor } } : {}),
+  })
+    .sort({ _id: -1 })
+    .limit(limit + 1)
+    .lean();
+  const hasMore = rows.length > limit;
+  const page = hasMore ? rows.slice(0, limit) : rows;
+
+  const found = (await Post.find({ _id: { $in: page.map((b) => b.post) } })
+    .populate("author", AUTHOR_FIELDS)
+    .populate("community", COMMUNITY_FIELDS)
+    .lean()) as unknown as PopulatedPost[];
+  const byId = new Map(found.map((p) => [p._id.toString(), p]));
+  const posts = page
+    .map((b) => byId.get(b.post.toString()))
+    .filter((p): p is PopulatedPost => !!p && !hidden.has(String(p.author._id)));
+
+  const body: Page<PostDTO> = {
+    items: await presentPosts(req.userId!, posts),
+    nextCursor: hasMore ? (page[page.length - 1]?._id.toString() ?? null) : null,
+  };
+  res.json(body);
 }
 
 export async function listComments(req: Request, res: Response) {

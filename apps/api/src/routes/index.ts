@@ -347,6 +347,13 @@ router.post(
   requireActive,
   asyncHandler(posts.createPost),
 );
+// Registered before "/posts/:id" so "saved" is not read as an id.
+router.get(
+  "/posts/saved",
+  requireAuth,
+  validate(paginationSchema, "query"),
+  asyncHandler(posts.listSaved),
+);
 router.get("/posts/:id", requireAuth, asyncHandler(posts.getPost));
 router.patch(
   "/posts/:id",
@@ -358,6 +365,7 @@ router.patch(
 );
 router.delete("/posts/:id", requireAuth, requireActive, asyncHandler(posts.deletePost));
 router.post("/posts/:id/like", requireAuth, requireActive, asyncHandler(posts.toggleLike));
+router.post("/posts/:id/bookmark", requireAuth, requireActive, asyncHandler(posts.toggleBookmark));
 router.post(
   "/posts/:id/checkout",
   requireAuth,

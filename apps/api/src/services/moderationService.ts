@@ -1,4 +1,5 @@
 import { Comment } from "../models/Comment.js";
+import { Bookmark } from "../models/Bookmark.js";
 import { Like } from "../models/Like.js";
 import { Notification } from "../models/Notification.js";
 import { Post } from "../models/Post.js";
@@ -21,6 +22,7 @@ export async function removePost(postId: string, resolvedBy?: string): Promise<v
     post.deleteOne(),
     Comment.deleteMany({ post: postId }),
     Like.deleteMany({ post: postId }),
+    Bookmark.deleteMany({ post: postId }),
     Notification.deleteMany({ post: postId }),
     Report.updateMany(
       { post: postId, status: "open" },
