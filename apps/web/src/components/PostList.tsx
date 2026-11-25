@@ -7,9 +7,11 @@ import type { useFeed } from "../hooks/usePosts";
 export default function PostList({
   query,
   emptyMessage,
+  highlight,
 }: {
   query: ReturnType<typeof useFeed>;
   emptyMessage: string;
+  highlight?: string;
 }) {
   const posts = query.data?.pages.flatMap((p) => p.items) ?? [];
   const { hasNextPage, isFetchingNextPage, isError, fetchNextPage } = query;
@@ -29,7 +31,7 @@ export default function PostList({
       )}
       {query.isSuccess && posts.length === 0 && <p className="muted center">{emptyMessage}</p>}
       {posts.map((post) => (
-        <PostCard key={post.id} post={post} />
+        <PostCard key={post.id} post={post} highlight={highlight} />
       ))}
       {isFetchingNextPage && <PostListSkeleton count={1} />}
       {query.hasNextPage && <div ref={sentinel} aria-hidden="true" />}
