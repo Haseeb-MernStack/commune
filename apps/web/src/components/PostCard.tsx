@@ -174,7 +174,7 @@ export default function PostCard({
   if (hidden.has(post.id)) return null;
 
   return (
-    <article className="card post ig-post">
+    <article className="card post ig-post" tabIndex={-1} data-post-id={post.id}>
       <header className="ig-head">
         <Link
           to={`/u/${post.author.username}`}
