@@ -5,7 +5,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { MESSAGE_MAX_LENGTH, type MessageDTO } from "@commune/shared";
 import Avatar from "../components/Avatar";
 import PlusBadge from "../components/PlusBadge";
-import { timeAgo } from "../components/PostCard";
+import { timeAgo } from "../lib/time";
 import {
   PENDING_PREFIX,
   loadOlder,
