@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { loginSchema, registerSchema } from "@commune/shared";
+import { getPasswordStrength } from "../lib/password-strength";
 import { useAuth } from "../store/auth";
 import GoogleButton, { GOOGLE_CLIENT_ID } from "./GoogleButton";
 
@@ -13,6 +14,7 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const strength = getPasswordStrength(fields.password);
 
   if (user) return <Navigate to="/" replace />;
 
@@ -119,9 +121,10 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
           <small id="password-hint" className="muted field-hint">
             At least 8 characters.
           </small>
+      
         )}
       </label>
-      {notice && mode === "login" && (
+      {mode === "register" && fields.password.length > 0 && (<div aria-live="polite"><span>Password strength: {strength.label}</span><div role="progressbar" aria-valuenow={strength.score} aria-valuemin={0} aria-valuemax={5} aria-label="Password strength"><span style={{ width: `${(strength.score / 5) * 100}%` }} /></div>{strength.tips.length > 0 && <small className="muted">{strength.tips.join(" ")}</small>}</div>)}{notice && mode === "login" && (
         <p className="notice" role="status">
           {notice}
         </p>
