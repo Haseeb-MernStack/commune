@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+import EmptyState from "../components/EmptyState";
 import PostList from "../components/PostList";
 import { useSaved } from "../hooks/useBookmarks";
 
@@ -10,7 +12,16 @@ export default function SavedPage() {
       <p className="muted saved-note">Only you can see what you save.</p>
       <PostList
         query={query}
-        emptyMessage="Nothing saved yet. Tap the bookmark on a post to keep it here."
+        emptyState={
+          <EmptyState
+            icon="bookmark"
+            message="Nothing saved yet. Tap the bookmark on a post to keep it here."
+          >
+            <Link className="btn" to="/explore">
+              Explore posts
+            </Link>
+          </EmptyState>
+        }
       />
     </>
   );
