@@ -1,4 +1,4 @@
-import PostCard from "./PostCard";
+import { useEffect } from "react"; import { handlePostShortcutKey } from "../lib/post-shortcuts"; import PostCard from "./PostCard";
 import { PostListSkeleton } from "./Skeleton";
 import { useLoadMoreOnVisible } from "../hooks/useInfiniteScroll";
 import type { useFeed } from "../hooks/usePosts";
@@ -11,7 +11,7 @@ export default function PostList({
   query: ReturnType<typeof useFeed>;
   emptyMessage: string;
 }) {
-  const posts = query.data?.pages.flatMap((p) => p.items) ?? [];
+  const posts = query.data?.pages.flatMap((p) => p.items) ?? []; useEffect(() => { window.addEventListener("keydown", handlePostShortcutKey); return () => window.removeEventListener("keydown", handlePostShortcutKey); }, []);
   const { hasNextPage, isFetchingNextPage, isError, fetchNextPage } = query;
   // Fetch the next page before the reader reaches the end.
   const sentinel = useLoadMoreOnVisible(
