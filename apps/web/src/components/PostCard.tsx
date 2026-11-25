@@ -304,6 +304,12 @@ export default function PostCard({
             alt={`Image posted by @${post.author.username}`}
             loading="lazy"
             decoding="async"
+      ref={(img) => {
+        if (img?.complete && img.naturalWidth > 0) img.dataset.loaded = "true";
+      }}
+      onLoad={(e) => {
+        e.currentTarget.dataset.loaded = "true";
+      }}
           />
         </a>
       )}
