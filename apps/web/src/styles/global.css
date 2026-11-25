@@ -2111,6 +2111,19 @@ body:has(.bottom-nav) .consent-bar {
 .follow-state p {
   margin: 0;
 }
+
+/* A centred empty state: a large icon, a short message and an optional action. */
+.empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 36px 24px;
+  text-align: center;
+  color: var(--muted);
+}
+.empty-state p {
+  margin: 0;
+}
 @media (max-width: 480px) {
   .person-row {
     padding: 12px;
