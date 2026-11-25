@@ -4,7 +4,7 @@ import {
   getThemePreference,
   watchSystemTheme,
   type ThemePreference,
-} from "../lib/theme";
+} from "../lib/theme"; import { readTextSize, setTextSize, type TextSize } from "../lib/text-size";
 
 const THEME_CHOICES: Array<{ value: ThemePreference; label: string }> = [
   { value: "system", label: "System" },
@@ -15,7 +15,7 @@ const THEME_CHOICES: Array<{ value: ThemePreference; label: string }> = [
 /** Appearance settings: pick System, Light or Dark. The choice is saved in
  * localStorage and applied straight away, so the page follows it at once. */
 export default function ThemeSettings() {
-  const [preference, setPreference] = useState<ThemePreference>(() => getThemePreference());
+  const [preference, setPreference] = useState<ThemePreference>(() => getThemePreference()); const [textSize, setTextSizeState] = useState<TextSize>(() => readTextSize());
 
   useEffect(() => {
     applyThemePreference(preference);
@@ -47,6 +47,6 @@ export default function ThemeSettings() {
           </label>
         ))}
       </div>
-    </section>
+    <p className="muted small">Text size: Small is 93%, Default is 100% and Large is 112% of the usual size.</p><div className="theme-choices" role="radiogroup" aria-label="Text size">{([{ value: "small", label: "Small" }, { value: "default", label: "Default" }, { value: "large", label: "Large" }] as const).map((choice) => (<label key={choice.value} className="theme-choice"><input type="radio" name="text-size" value={choice.value} checked={textSize === choice.value} onChange={() => { setTextSizeState(choice.value); setTextSize(choice.value); }} />{choice.label}</label>))}</div></section>
   );
 }
