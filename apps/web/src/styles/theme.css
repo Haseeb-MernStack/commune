@@ -1772,7 +1772,7 @@ h3,
 /* ---------- Post card (Instagram-style) ----------
    Top: who posted (left) and the three-dot menu (right).
    Bottom: like, comment and share (left) and save (right). Everything else lives in the menu. */
-.ig-post {
+.ig-post:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; } .ig-post {
   position: relative;
   min-width: 0;
   display: flex;
