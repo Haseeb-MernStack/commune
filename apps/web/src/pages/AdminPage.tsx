@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import type { ReportDTO, ReportStatus } from "@commune/shared";
 import Avatar from "../components/Avatar";
-import { timeAgo } from "../components/PostCard";
+import { timeAgo } from "../lib/time";
 import { REASON_LABELS } from "../components/ReportForm";
 import { useErrorEvents, useResolveError } from "../hooks/useErrors";
 import { useAdminReports, useDismissReport, useResolveReport } from "../hooks/useModeration";
