@@ -354,8 +354,18 @@ h3,
 }
 
 .post-image {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
   border-radius: var(--radius-sm);
   max-height: 520px;
+  background: var(--line);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.post-image[data-loaded="true"] {
+  opacity: 1;
 }
 
 .post-actions {
