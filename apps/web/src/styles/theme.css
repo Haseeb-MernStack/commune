@@ -49,8 +49,8 @@
   --danger: #ff7a6e;
 }
 
-body {
-  font-size: 15px;
+html[data-text-size="small"] { font-size: 93%; } html[data-text-size="large"] { font-size: 112%; } body {
+  font-size: 0.9375rem;
   line-height: 1.5;
   background: var(--bg);
   color: var(--text);
