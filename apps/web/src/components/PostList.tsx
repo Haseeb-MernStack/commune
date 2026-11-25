@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import PostCard from "./PostCard";
 import { PostListSkeleton } from "./Skeleton";
 import { useLoadMoreOnVisible } from "../hooks/useInfiniteScroll";
@@ -7,9 +8,11 @@ import type { useFeed } from "../hooks/usePosts";
 export default function PostList({
   query,
   emptyMessage,
+  emptyState,
 }: {
   query: ReturnType<typeof useFeed>;
-  emptyMessage: string;
+  emptyMessage?: string;
+  emptyState?: ReactNode;
 }) {
   const posts = query.data?.pages.flatMap((p) => p.items) ?? [];
   const { hasNextPage, isFetchingNextPage, isError, fetchNextPage } = query;
@@ -27,7 +30,9 @@ export default function PostList({
           {query.error.message}
         </p>
       )}
-      {query.isSuccess && posts.length === 0 && <p className="muted center">{emptyMessage}</p>}
+      {query.isSuccess && posts.length === 0 && (
+        emptyState ?? <p className="muted center">{emptyMessage}</p>
+      )}
       {posts.map((post) => (
         <PostCard key={post.id} post={post} />
       ))}
