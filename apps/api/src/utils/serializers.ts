@@ -14,6 +14,9 @@ import type {
   BlockKind,
 } from "@commune/shared";
 
+/** A username as shown to people: always lowercase, even for an account saved before the rule. */
+export const handle = (username: string) => username.toLowerCase();
+
 interface UserLike {
   _id: Types.ObjectId;
   username: string;
@@ -83,7 +86,7 @@ export interface PopulatedReport {
 
 const toAuthor = (a: PopulatedAuthor) => ({
   id: a._id.toString(),
-  username: a.username,
+  username: handle(a.username),
   avatarUrl: a.avatarUrl ?? null,
   plus: isPlusActive(a.plusUntil),
 });
@@ -91,7 +94,7 @@ const toAuthor = (a: PopulatedAuthor) => ({
 export function toPublicUser(u: UserLike): PublicUser {
   return {
     id: u._id.toString(),
-    username: u.username,
+    username: handle(u.username),
     bio: u.bio ?? "",
     avatarUrl: u.avatarUrl ?? null,
     role: u.role === "admin" ? "admin" : "user",
@@ -162,7 +165,7 @@ export function toNotificationDTO(n: PopulatedNotification): NotificationDTO {
   return {
     id: n._id.toString(),
     type: n.type,
-    actor: { id: n.actor._id.toString(), username: n.actor.username },
+    actor: { id: n.actor._id.toString(), username: handle(n.actor.username) },
     postId: n.post ? n.post.toString() : null,
     read: n.read,
     createdAt: n.createdAt.toISOString(),
@@ -175,7 +178,7 @@ export function toReportDTO(r: PopulatedReport): ReportDTO {
     reason: r.reason,
     details: r.details ?? "",
     status: r.status,
-    reporter: { id: r.reporter._id.toString(), username: r.reporter.username },
+    reporter: { id: r.reporter._id.toString(), username: handle(r.reporter.username) },
     post: r.post
       ? {
           id: r.post._id.toString(),

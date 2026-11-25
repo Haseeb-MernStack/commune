@@ -9,7 +9,7 @@
     "packages/*"
   ],
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
     "dev": "concurrently -n api, web, realtime -c blue,green,yellow \"npm run dev -w @commune/api\" \"npm run dev -w @commune/web\" \"npm run dev -w @commune/realtime\"",

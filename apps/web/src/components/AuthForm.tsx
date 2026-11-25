@@ -72,14 +72,16 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
           Username
           <input
             value={fields.username}
-            onChange={set("username")}
+            onChange={(e) => setFields((f) => ({ ...f, username: e.target.value.toLowerCase() }))}
             autoComplete="username"
             autoCapitalize="none"
+            autoCorrect="off"
             spellCheck={false}
+            maxLength={24}
             aria-describedby="username-hint"
           />
           <small id="username-hint" className="muted field-hint">
-            3 to 24 letters, numbers or underscores.
+            3 to 24 lowercase letters, numbers or underscores.
           </small>
         </label>
       )}

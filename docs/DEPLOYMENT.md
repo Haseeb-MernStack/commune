@@ -66,6 +66,22 @@ Run locally with `MONGODB_URI` pointed at Atlas:
 npm run make-admin -w @commune/api -- you@example.com
 ```
 
+## Lowercase usernames (one-time step)
+
+Usernames are always lowercase (`@sam_dev`, never `@Sam_Dev`). New accounts are saved that way, and
+the site already shows older accounts in lowercase and sends addresses like `/u/Sam` to `/u/sam`.
+To also fix the saved data, run the migration once against your production database:
+
+```bash
+# Shows what would change. Nothing is written.
+npm run lowercase-usernames -w @commune/api
+
+# Makes the change. Safe to run again.
+npm run lowercase-usernames -w @commune/api -- --apply
+```
+
+It cannot create a duplicate, because usernames were already unique ignoring case.
+
 ## Troubleshooting
 
 | Symptom | Likely cause |
