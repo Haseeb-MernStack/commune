@@ -28,9 +28,11 @@ import ReportForm from "./ReportForm";
 export default function PostCard({
   post,
   fullText = false,
+  highlight,
 }: {
   post: PostDTO;
   fullText?: boolean;
+  highlight?: string;
 }) {
   const { user } = useAuth();
   const like = useToggleLike();
@@ -277,7 +279,7 @@ export default function PostCard({
             className={!fullText && !expanded ? "post-body clamped" : "post-body"}
             onClick={onTextTap}
           >
-            <RichText text={post.content} />
+            <RichText text={post.content} highlight={highlight} />
           </p>
         )
       )}
