@@ -51,6 +51,7 @@ a {
   padding: 12px 20px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
+  transition: transform 0.25s ease;
 }
 
 .brand {
@@ -1025,6 +1026,9 @@ video {
   .header {
     justify-content: space-between;
   }
+  .header-hidden {
+    transform: translateY(-100%);
+  }
 
   .nav-mobile {
     display: flex;
@@ -1183,7 +1187,8 @@ video {
 
 @media (prefers-reduced-motion: reduce) {
   .drawer,
-  .drawer-overlay {
+  .drawer-overlay,
+  .header {
     transition: none;
   }
 }
