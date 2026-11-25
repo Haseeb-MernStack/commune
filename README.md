@@ -350,6 +350,7 @@ See `apps/api/src/routes/index.ts` for the full list.
 | [Content Security Policy](docs/CSP.md) | Report-only CSP rollout |
 | [Backups](docs/BACKUPS.md) | Database backups |
 | [Development](docs/DEVELOPMENT.md) | Working on the code |
+| [Testing](docs/TESTING.md) | How to run unit, component and end-to-end tests, and what CI checks |
 
 ## Community
 

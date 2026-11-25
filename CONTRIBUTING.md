@@ -5,7 +5,7 @@ Thanks for helping out.
 1. Fork the repo and create a branch: `git checkout -b feat/short-description`
 2. Use Node.js 22 (`nvm use` reads `.nvmrc`), then `npm install` and `npm run dev`
 3. Keep changes focused. Add or update tests for backend logic.
-4. Run `npm run typecheck`, `npm test` and `npm run lint` before opening a pull request. `npm run format` tidies the formatting.
+4. Run `npm run typecheck`, `npm test` and `npm run lint` before opening a pull request. `npm run format` tidies the formatting. See [docs/TESTING.md](docs/TESTING.md) for how to run every kind of test.
 5. Open a PR describing what changed and why. The pull request template lists what to check.
 
 ## Conventions
