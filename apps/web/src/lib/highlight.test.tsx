@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { render, screen } from "../test/setup";
+import { render, screen } from "@testing-library/react";
 import { highlightText } from "./highlight";
 
 function renderHighlight(text: string, query: string) {
