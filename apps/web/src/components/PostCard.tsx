@@ -4,7 +4,13 @@ import { Link } from "react-router-dom";
 import { FREE_POST_LENGTH, PLUS_POST_LENGTH, type PostDTO } from "@commune/shared";
 import { useAuth } from "../store/auth";
 import RichText from "./RichText";
-import { useDeletePost, useToggleLike, useUpdatePost } from "../hooks/usePosts";
+import {
+  useDeletePost,
+  useToggleLike,
+  useUndoableDeletePost,
+  useUpdatePost,
+} from "../hooks/usePosts";
+import { useHiddenPosts } from "../lib/pendingDeletes";
 import { useToggleBookmark } from "../hooks/useBookmarks";
 import { formatPrice, useCheckout } from "../hooks/usePayments";
 import { useSetBlock } from "../hooks/useBlocks";
@@ -35,6 +41,8 @@ export default function PostCard({
   const { user } = useAuth();
   const like = useToggleLike();
   const del = useDeletePost();
+  const deleteWithUndo = useUndoableDeletePost();
+  const hidden = useHiddenPosts();
   const checkout = useCheckout();
   const update = useUpdatePost();
   const setBlock = useSetBlock();
@@ -144,11 +152,16 @@ export default function PostCard({
       icon: "trash",
       danger: true,
       disabled: del.isPending,
+      // Your own post: deleted after a short Undo window. An admin removal keeps its confirm.
       onSelect: () =>
-        window.confirm(mine ? "Delete this post?" : "Remove this post as an admin?") &&
-        del.mutate(post.id),
+        mine
+          ? deleteWithUndo(post.id)
+          : window.confirm("Remove this post as an admin?") && del.mutate(post.id),
     });
   }
+
+  // Hidden while its delete is pending, so Undo shows it again in the same place.
+  if (hidden.has(post.id)) return null;
 
   return (
     <article className="card post ig-post">

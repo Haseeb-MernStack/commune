@@ -8,6 +8,8 @@ import {
 } from "@tanstack/react-query";
 import type { AuthorDTO, CommentDTO, CreatePostInput, Page, PostDTO } from "@commune/shared";
 import { api, withQuery } from "../lib/api";
+import { scheduleDelete, undoDelete } from "../lib/pendingDeletes";
+import { showToast } from "../lib/toast";
 
 export type FeedType = "all" | "following";
 
@@ -133,6 +135,33 @@ export function useDeletePost() {
     mutationFn: (id: string) => api<void>(`/posts/${id}`, { method: "DELETE" }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["feed"] }),
   });
+}
+
+/**
+ * Deletes your own post with a short Undo instead of a confirm dialog: the post is hidden at once
+ * and the request is sent only if Undo is not pressed. A failed request brings the post back.
+ */
+export function useUndoableDeletePost() {
+  const qc = useQueryClient();
+  return (id: string) => {
+    scheduleDelete(
+      id,
+      async ({ keepalive }) => {
+        await api<void>(`/posts/${id}`, { method: "DELETE", keepalive });
+        void qc.invalidateQueries({ queryKey: ["feed"] });
+      },
+      () =>
+        showToast({
+          title: "Could not delete the post",
+          body: "It is back in its place. Try again.",
+        }),
+    );
+    showToast({
+      title: "Post deleted",
+      body: "You can undo this for a few seconds.",
+      action: { label: "Undo", onClick: () => undoDelete(id) },
+    });
+  };
 }
 
 /** Prefix of the local id a comment has while it is being sent. */

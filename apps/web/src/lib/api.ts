@@ -101,7 +101,7 @@ export class ApiError extends Error {
 
 export async function api<T>(
   path: string,
-  options: { method?: string; body?: unknown } = {},
+  options: { method?: string; body?: unknown; keepalive?: boolean } = {},
   retry = true,
 ): Promise<T> {
   const isForm = options.body instanceof FormData;
@@ -113,6 +113,8 @@ export async function api<T>(
     fetch(`${BASE}${path}`, {
       method: options.method ?? "GET",
       credentials: "include",
+      // Lets a request finish even if the page is closing (used for a pending delete).
+      keepalive: options.keepalive,
       headers: {
         // For FormData the browser sets the multipart Content-Type (with boundary) itself.
         ...(options.body && !isForm ? { "Content-Type": "application/json" } : {}),

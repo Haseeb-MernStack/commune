@@ -6,7 +6,9 @@ export interface Toast {
   title: string;
   body: string;
   /** A page on this site, opened when the banner is tapped. */
-  to: string;
+  to?: string;
+  /** A button on the banner, such as Undo. Pressing it also dismisses the banner. */
+  action?: { label: string; onClick: () => void };
 }
 
 const SHOWN_MS = 5000;
@@ -22,12 +24,15 @@ export function dismissToast(id: number): void {
   emit();
 }
 
-export function showToast(input: Omit<Toast, "id">): void {
+/** Shows a banner for a few seconds and returns its id. */
+export function showToast(input: Omit<Toast, "id">): number {
   const id = nextId++;
   // The same conversation replaces its own banner instead of stacking up.
-  toasts = [...toasts.filter((t) => t.to !== input.to), { ...input, id }].slice(-MAX_SHOWN);
+  const others = input.to ? toasts.filter((t) => t.to !== input.to) : toasts;
+  toasts = [...others, { ...input, id }].slice(-MAX_SHOWN);
   emit();
   window.setTimeout(() => dismissToast(id), SHOWN_MS);
+  return id;
 }
 
 const subscribe = (l: () => void) => {
