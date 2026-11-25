@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useNews } from "../hooks/useNews";
-import { timeAgo } from "./PostCard";
+import { timeAgo } from "../lib/time";
 import { NewsPanelSkeleton } from "./Skeleton";
 
 /** "What's happening": live headlines. Every item opens the publisher's own page. */
