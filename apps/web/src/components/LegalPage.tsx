@@ -23,8 +23,6 @@ export default function LegalPage({
       <p className="muted small legal-foot">
         <Link to="/privacy">Privacy Policy</Link> · <Link to="/terms">Terms of Service</Link> ·{" "}
         <Link to="/contact">Contact us</Link> · <Link to="/help">Help</Link> ·{" "}
-        <Link to="/privacy">Privacy Policy</Link> · <Link to="/terms">Terms of Service</Link> ·{" "}
-        <Link to="/contact">Contact us</Link>
         <button type="button" className="link-btn legal-cookie-btn" onClick={openCookieSettings}>
           Cookie settings
         </button>
