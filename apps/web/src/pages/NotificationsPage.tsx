@@ -4,7 +4,7 @@ import type { NotificationDTO } from "@commune/shared";
 import PushSettings from "../components/PushSettings";
 import SoundSettings from "../components/SoundSettings";
 import { RowsSkeleton } from "../components/Skeleton";
-import { timeAgo } from "../components/PostCard";
+import { timeAgo } from "../lib/time";
 import { useMarkAllRead, useNotifications } from "../hooks/useSocial";
 
 const TEXT: Record<NotificationDTO["type"], string> = {
