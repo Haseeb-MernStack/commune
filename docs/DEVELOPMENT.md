@@ -7,7 +7,7 @@ See the [README](../README.md#getting-started). In short: `docker compose up -d 
 
 ## Dev container / GitHub Codespaces
 
-`.devcontainer/` gives every contributor the same Node 20 + MongoDB setup with the editor extensions already
+`.devcontainer/` gives every contributor the same Node 22 + MongoDB setup with the editor extensions already
 installed.
 
 - **VS Code on your computer:** install the *Dev Containers* extension, open the folder and choose

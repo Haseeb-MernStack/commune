@@ -17,6 +17,7 @@ import BottomNav from "./components/BottomNav";
 import Brand from "./components/BrandMark";
 import Icon from "./components/Icon";
 import { PageSkeleton } from "./components/Skeleton";
+import LowercaseUsername from "./components/LowercaseUsername";
 import { prefetchLikelyRoutes } from "./lib/prefetch";
 
 const PostPage = lazy(() => import("./pages/PostPage"));
@@ -139,7 +140,9 @@ function AppRoutes() {
           path="/u/:username/followers"
           element={
             <Protected>
-              <FollowListPage kind="followers" />
+              <LowercaseUsername>
+                <FollowListPage kind="followers" />
+              </LowercaseUsername>
             </Protected>
           }
         />
@@ -147,7 +150,9 @@ function AppRoutes() {
           path="/u/:username/following"
           element={
             <Protected>
-              <FollowListPage kind="following" />
+              <LowercaseUsername>
+                <FollowListPage kind="following" />
+              </LowercaseUsername>
             </Protected>
           }
         />
@@ -155,7 +160,9 @@ function AppRoutes() {
           path="/u/:username"
           element={
             <Protected>
-              <ProfilePage />
+              <LowercaseUsername>
+                <ProfilePage />
+              </LowercaseUsername>
             </Protected>
           }
         />

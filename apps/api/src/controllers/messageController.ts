@@ -9,6 +9,7 @@ import { pushConfigured, pushToUser } from "../services/pushService.js";
 import { assertCanMessage, blockedByMeIds } from "../services/blockService.js";
 import { emitToUsers } from "../services/realtime.js";
 import { isPlusActive } from "../utils/plan.js";
+import { handle } from "../utils/serializers.js";
 import { findByUsername } from "./userController.js";
 
 const PREVIEW_LENGTH = 120;
@@ -58,7 +59,7 @@ function toConversationDTO(c: LeanConversation, me: string, other: LeanUser): Co
     id: str(c._id),
     other: {
       id: str(other._id),
-      username: other.username,
+      username: handle(other.username),
       bio: other.bio ?? "",
       avatarUrl: other.avatarUrl ?? null,
       plus: isPlusActive(other.plusUntil),
@@ -139,16 +140,11 @@ export async function listConversations(req: Request, res: Response) {
   const byId = new Map(users.map((u) => [str(u._id), u]));
 
   const blocked = new Set((await blockedByMeIds(me)).map(String));
+  const out: ConversationDTO[] = [];
   convos.forEach((c, i) => {
     const other = byId.get(otherIds[i]!);
     if (other && !other.banned && !blocked.has(str(other._id)))
       out.push(toConversationDTO(c, me, other));
-  });
-
-  const out: ConversationDTO[] = [];
-  convos.forEach((c, i) => {
-    const other = byId.get(otherIds[i]!);
-    if (other && !other.banned) out.push(toConversationDTO(c, me, other));
   });
   res.json(out);
 }

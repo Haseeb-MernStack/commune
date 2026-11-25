@@ -3,6 +3,7 @@ import request from "supertest";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { contactSchema, sendMessageSchema } from "@commune/shared";
 import { createApp } from "../app.js";
+import { Block } from "../models/Block.js";
 import { Conversation } from "../models/Conversation.js";
 import { ContactMessage } from "../models/ContactMessage.js";
 import { Message } from "../models/Message.js";
@@ -93,6 +94,35 @@ describe("message routes", () => {
       update.mock.calls[0] as unknown as [unknown, { $inc: Record<string, number> }]
     )[1];
     expect(change.$inc).toEqual({ [`unread.${OTHER.toString()}`]: 1 });
+  });
+
+  it("list conversations, leaving out suspended and blocked people", async () => {
+    const [fine, suspended, blocked] = [oid(), oid(), oid()];
+    const convo = (other: mongoose.Types.ObjectId) => ({
+      _id: oid(),
+      participants: [ME, other],
+      lastMessageAt: new Date(),
+    });
+    vi.spyOn(Conversation, "find").mockImplementation((() => ({
+      sort: () => ({ limit: () => leanOf([convo(fine), convo(suspended), convo(blocked)]) }),
+    })) as never);
+    vi.spyOn(User, "find").mockImplementation((() => ({
+      select: () =>
+        leanOf([
+          { _id: fine, username: "SamRivers", banned: false },
+          { _id: suspended, username: "gone", banned: true },
+          { _id: blocked, username: "blocked_one", banned: false },
+        ]),
+    })) as never);
+    vi.spyOn(Block, "find").mockImplementation((() => ({
+      select: () => leanOf([{ blocked }]),
+    })) as never);
+
+    const res = await request(app).get("/api/messages").set(auth);
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(1);
+    // Shown lowercase, even for a name saved before the lowercase rule.
+    expect(res.body[0].other.username).toBe("samrivers");
   });
 
   it("hide other people's conversations (404, not 403)", async () => {

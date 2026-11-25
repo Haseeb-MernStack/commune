@@ -1,11 +1,18 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { FREE_POST_LENGTH, PLUS_POST_LENGTH, type PostDTO } from "@commune/shared";
 import { useAuth } from "../store/auth";
 import RichText from "./RichText";
-import { useDeletePost, useToggleLike, useUpdatePost } from "../hooks/usePosts";
+import {
+  useDeletePost,
+  useToggleLike,
+  useUndoableDeletePost,
+  useUpdatePost,
+} from "../hooks/usePosts";
+import { useHiddenPosts } from "../lib/pendingDeletes";
 import { useToggleBookmark } from "../hooks/useBookmarks";
+import { useDoubleTap } from "../hooks/useDoubleTap";
 import { formatPrice, useCheckout } from "../hooks/usePayments";
 import { useSetBlock } from "../hooks/useBlocks";
 import { assetUrl } from "../lib/api";
@@ -25,10 +32,18 @@ export function timeAgo(iso: string): string {
   return `${Math.floor(seconds / 86400)}d`;
 }
 
-export default function PostCard({ post }: { post: PostDTO }) {
+export default function PostCard({
+  post,
+  fullText = false,
+}: {
+  post: PostDTO;
+  fullText?: boolean;
+}) {
   const { user } = useAuth();
   const like = useToggleLike();
   const del = useDeletePost();
+  const deleteWithUndo = useUndoableDeletePost();
+  const hidden = useHiddenPosts();
   const checkout = useCheckout();
   const update = useUpdatePost();
   const setBlock = useSetBlock();
@@ -40,6 +55,22 @@ export default function PostCard({ post }: { post: PostDTO }) {
   const [popped, setPopped] = useState<"like" | "save" | null>(null);
   const [heart, setHeart] = useState(false);
   const [heartKey, setHeartKey] = useState(0);
+  const bodyRef = useRef<HTMLParagraphElement | null>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+  useEffect(() => {
+    setExpanded(false);
+  }, [post.content]);
+  useEffect(() => {
+    if (fullText || expanded || editing) return;
+    const el = bodyRef.current;
+    if (!el) return;
+    const check = () => setOverflows(el.scrollHeight > el.clientHeight);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, [fullText, expanded, post.content, editing]);
+
   const mine = user?.id === post.author.id;
   const isAdmin = user?.role === "admin";
   const max = user?.plus ? PLUS_POST_LENGTH : Math.max(FREE_POST_LENGTH, post.content.length);
@@ -89,14 +120,20 @@ export default function PostCard({ post }: { post: PostDTO }) {
     await copyLink();
   };
 
-  const handleDoubleTap = (event: React.MouseEvent) => {
-    if ((event.target as HTMLElement).closest(".rich-link")) return;
+  // Tapping twice quickly likes the post (and never un-likes it). Works with a mouse and on touch.
+  const showHeart = () => {
     if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setHeartKey((value) => value + 1);
       setHeart(true);
     }
     if (!post.likedByMe && !like.isPending) like.mutate(post.id);
   };
+  const onTextTap = useDoubleTap(showHeart);
+  // A plain click on the image still opens it in a new tab, but only after the short wait that
+  // tells one tap from two. Clicks with Ctrl, Cmd or Shift are left to the browser.
+  const onImageTap = useDoubleTap(showHeart, () => {
+    if (post.imageUrl) window.open(assetUrl(post.imageUrl), "_blank", "noopener,noreferrer");
+  });
   const menuItems: MenuItem[] = [
     { key: "copy", label: "Copy link", icon: "link", onSelect: () => void copyLink() },
   ];
@@ -132,11 +169,16 @@ export default function PostCard({ post }: { post: PostDTO }) {
       icon: "trash",
       danger: true,
       disabled: del.isPending,
+      // Your own post: deleted after a short Undo window. An admin removal keeps its confirm.
       onSelect: () =>
-        window.confirm(mine ? "Delete this post?" : "Remove this post as an admin?") &&
-        del.mutate(post.id),
+        mine
+          ? deleteWithUndo(post.id)
+          : window.confirm("Remove this post as an admin?") && del.mutate(post.id),
     });
   }
+
+  // Hidden while its delete is pending, so Undo shows it again in the same place.
+  if (hidden.has(post.id)) return null;
 
   return (
     <article className="card post ig-post">
@@ -237,13 +279,32 @@ export default function PostCard({ post }: { post: PostDTO }) {
         </div>
       ) : (
         post.content && (
-          <p className="post-body" onDoubleClick={handleDoubleTap}>
+          <p
+            ref={bodyRef}
+            className={!fullText && !expanded ? "post-body clamped" : "post-body"}
+            onClick={onTextTap}
+          >
             <RichText text={post.content} />
           </p>
         )
       )}
+      {!editing && post.content && !fullText && overflows && (
+        <button
+          type="button"
+          className="link-btn"
+          aria-expanded={expanded}
+          onClick={() => setExpanded((value) => !value)}
+        >
+          {expanded ? "Show less" : "Show more"}
+        </button>
+      )}
       {post.imageUrl && (
-        <a href={assetUrl(post.imageUrl)} target="_blank" rel="noopener noreferrer" onDoubleClick={handleDoubleTap}>
+        <a
+          href={assetUrl(post.imageUrl)}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={onImageTap}
+        >
           <img
             className="post-image"
             src={assetUrl(post.imageUrl)}
@@ -352,10 +413,15 @@ export default function PostCard({ post }: { post: PostDTO }) {
       )}
       {reporting && <ReportForm postId={post.id} onClose={() => setReporting(false)} />}
       {heart && (
-        <span key={heartKey} className="double-tap-heart" onAnimationEnd={() => setHeart(false)} aria-hidden="true">
-            <Icon name="heart" size={80} filled />
+        <span
+          key={heartKey}
+          className="double-tap-heart"
+          onAnimationEnd={() => setHeart(false)}
+          aria-hidden="true"
+        >
+          <Icon name="heart" size={80} filled />
         </span>
-        )}
+      )}
     </article>
   );
 }

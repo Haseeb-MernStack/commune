@@ -6,8 +6,10 @@ import {
   type InfiniteData,
   type QueryClient,
 } from "@tanstack/react-query";
-import type { CommentDTO, CreatePostInput, Page, PostDTO } from "@commune/shared";
+import type { AuthorDTO, CommentDTO, CreatePostInput, Page, PostDTO } from "@commune/shared";
 import { api, withQuery } from "../lib/api";
+import { scheduleDelete, undoDelete } from "../lib/pendingDeletes";
+import { showToast } from "../lib/toast";
 
 export type FeedType = "all" | "following";
 
@@ -135,13 +137,84 @@ export function useDeletePost() {
   });
 }
 
-export function useAddComment(postId: string) {
+/**
+ * Deletes your own post with a short Undo instead of a confirm dialog: the post is hidden at once
+ * and the request is sent only if Undo is not pressed. A failed request brings the post back.
+ */
+export function useUndoableDeletePost() {
   const qc = useQueryClient();
+  return (id: string) => {
+    scheduleDelete(
+      id,
+      async ({ keepalive }) => {
+        await api<void>(`/posts/${id}`, { method: "DELETE", keepalive });
+        void qc.invalidateQueries({ queryKey: ["feed"] });
+      },
+      () =>
+        showToast({
+          title: "Could not delete the post",
+          body: "It is back in its place. Try again.",
+        }),
+    );
+    showToast({
+      title: "Post deleted",
+      body: "You can undo this for a few seconds.",
+      action: { label: "Undo", onClick: () => undoDelete(id) },
+    });
+  };
+}
+
+/** Prefix of the local id a comment has while it is being sent. */
+export const PENDING_COMMENT_PREFIX = "pending-";
+
+export const isPendingComment = (c: CommentDTO) => c.id.startsWith(PENDING_COMMENT_PREFIX);
+
+const changeCommentCount = (qc: QueryClient, postId: string, by: number) =>
+  patchPost(qc, postId, (post) => ({
+    ...post,
+    commentCount: Math.max(0, post.commentCount + by),
+  }));
+
+/**
+ * Shows the comment at once, with a pending id, then swaps in the server's copy. If the request
+ * fails the comment and the count go back to how they were; the page puts the text back.
+ */
+export function useAddComment(postId: string, author: AuthorDTO | null) {
+  const qc = useQueryClient();
+  const key = ["comments", postId];
   return useMutation({
     mutationFn: (content: string) =>
       api<CommentDTO>(`/posts/${postId}/comments`, { method: "POST", body: { content } }),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["comments", postId] });
+    onMutate: async (content) => {
+      if (!author) return undefined;
+      await qc.cancelQueries({ queryKey: key });
+      const pending: CommentDTO = {
+        id: `${PENDING_COMMENT_PREFIX}${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        postId,
+        content,
+        author,
+        createdAt: new Date().toISOString(),
+      };
+      // Comments are listed oldest first, so a new one goes at the end.
+      qc.setQueryData<CommentDTO[]>(key, (list) => [...(list ?? []), pending]);
+      changeCommentCount(qc, postId, 1);
+      return { pendingId: pending.id };
+    },
+    onError: (_error, _content, context) => {
+      if (!context) return;
+      qc.setQueryData<CommentDTO[]>(key, (list) => list?.filter((c) => c.id !== context.pendingId));
+      changeCommentCount(qc, postId, -1);
+    },
+    onSuccess: (saved, _content, context) => {
+      // Replace the pending copy, and never list the saved comment twice.
+      qc.setQueryData<CommentDTO[]>(key, (list) => {
+        const rest = (list ?? []).filter((c) => c.id !== saved.id);
+        return context
+          ? rest.map((c) => (c.id === context.pendingId ? saved : c))
+          : [...rest, saved];
+      });
+      if (!context) changeCommentCount(qc, postId, 1);
+      void qc.invalidateQueries({ queryKey: key });
       void qc.invalidateQueries({ queryKey: ["post", postId] });
       void qc.invalidateQueries({ queryKey: ["feed"] });
     },
