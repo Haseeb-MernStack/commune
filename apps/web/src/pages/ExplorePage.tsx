@@ -11,6 +11,7 @@ import { useLoadMoreOnVisible } from "../hooks/useInfiniteScroll";
 import { usePublicPosts } from "../hooks/usePublic";
 import { assetUrl } from "../lib/api";
 import { useAuth } from "../store/auth";
+import { useFeedScrollRestoration } from "../lib/scroll-restoration";
 
 /** One ad after every N posts. */
 const AD_EVERY = 5;
@@ -25,6 +26,7 @@ export default function ExplorePage() {
   const query = usePublicPosts();
   const posts = query.data?.pages.flatMap((p) => p.items) ?? [];
   const { hasNextPage, isFetchingNextPage, isError, fetchNextPage } = query;
+  useFeedScrollRestoration(query.isSuccess);
   const sentinel = useLoadMoreOnVisible(
     () => void fetchNextPage(),
     hasNextPage && !isFetchingNextPage && !isError,
