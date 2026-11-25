@@ -22,6 +22,7 @@ import Icon from "./Icon";
 import PlusBadge from "./PlusBadge";
 import { hueFor } from "../lib/hue";
 import { timeAgo } from "../lib/time";
+import { tap } from "../lib/haptics";
 import PostMenu, { type MenuItem } from "./PostMenu";
 import ReportForm from "./ReportForm";
 
@@ -341,7 +342,7 @@ export default function PostCard({
             className={`ig-icon-btn${post.likedByMe ? " liked" : ""}${popped === "like" ? " pop" : ""}`}
             onClick={() => {
               if (like.isPending) return;
-              if (!post.likedByMe) setPopped("like");
+              if (!post.likedByMe) { setPopped("like"); tap(); }
               like.mutate(post.id);
             }}
             onAnimationEnd={() => setPopped(null)}
@@ -374,7 +375,7 @@ export default function PostCard({
           className={`ig-icon-btn ig-save${post.bookmarkedByMe ? " saved" : ""}${popped === "save" ? " pop" : ""}`}
           onClick={() => {
             if (bookmark.isPending) return;
-            if (!post.bookmarkedByMe) setPopped("save");
+            if (!post.bookmarkedByMe) { setPopped("save"); tap(); }
             bookmark.mutate(post.id);
           }}
           onAnimationEnd={() => setPopped(null)}
