@@ -52,7 +52,7 @@ export function likeFocusedPost(): void {
   const post = active?.closest("[data-post-id]") as HTMLElement | null;
   if (!post) return;
   const likeButton = post.querySelector(
-    'button[aria-label="Like"]',
+    'button[aria-label^="Like"]',
   ) as HTMLButtonElement | null;
   likeButton?.click();
 }
