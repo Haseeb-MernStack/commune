@@ -219,7 +219,7 @@ describe("AuthForm in register mode", () => {
     await user.type(ui.password(), "correct-horse");
     await user.click(ui.submit("Create account"));
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Letters, numbers and underscores only",
+      "Lowercase letters, numbers and underscores only",
     );
     expect(h.register).not.toHaveBeenCalled();
   });
@@ -249,6 +249,18 @@ describe("AuthForm in register mode", () => {
       password: "correct-horse",
     });
     expect(h.navigate).toHaveBeenCalledWith("/", { replace: true });
+  });
+
+  it("turns capital letters into lowercase while typing the username", async () => {
+    h.register.mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    renderForm("register", "/register");
+    await user.type(ui.username(), "Sam_Dev");
+    expect(ui.username()).toHaveValue("sam_dev");
+    await user.type(ui.email(), "sam@example.com");
+    await user.type(ui.password(), "correct-horse");
+    await user.click(ui.submit("Create account"));
+    expect(h.register).toHaveBeenCalledWith(expect.objectContaining({ username: "sam_dev" }));
   });
 
   it("announces a server error such as a taken username", async () => {

@@ -10,7 +10,8 @@
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "make-admin": "tsx src/scripts/makeAdmin.ts"
+    "make-admin": "tsx src/scripts/makeAdmin.ts",
+    "lowercase-usernames": "tsx src/scripts/lowercaseUsernames.ts"
   },
   "dependencies": {
     "@commune/shared": "*",

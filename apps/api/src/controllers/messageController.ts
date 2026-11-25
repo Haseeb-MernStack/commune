@@ -9,6 +9,7 @@ import { pushConfigured, pushToUser } from "../services/pushService.js";
 import { assertCanMessage, blockedByMeIds } from "../services/blockService.js";
 import { emitToUsers } from "../services/realtime.js";
 import { isPlusActive } from "../utils/plan.js";
+import { handle } from "../utils/serializers.js";
 import { findByUsername } from "./userController.js";
 
 const PREVIEW_LENGTH = 120;
@@ -58,7 +59,7 @@ function toConversationDTO(c: LeanConversation, me: string, other: LeanUser): Co
     id: str(c._id),
     other: {
       id: str(other._id),
-      username: other.username,
+      username: handle(other.username),
       bio: other.bio ?? "",
       avatarUrl: other.avatarUrl ?? null,
       plus: isPlusActive(other.plusUntil),
