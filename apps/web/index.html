@@ -54,7 +54,7 @@
                 ? "dark"
                 : "light"
               : preference;
-          document.documentElement.dataset.theme = resolved;
+          document.documentElement.dataset.theme = resolved; var textSize = localStorage.getItem("commune_text_size"); if (textSize === "small" || textSize === "large") document.documentElement.dataset.textSize = textSize;
           var themeColor = document.querySelector('meta[name="theme-color"]');
           if (themeColor) {
             themeColor.content = resolved === "dark" ? "#0b0d13" : "#f3f4f9";
@@ -185,7 +185,7 @@
       html[data-theme="light"] .boot-body h1 {
         color: #12141c;
       }
-    </style>
+    html[data-text-size="small"] { font-size: 93%; } html[data-text-size="large"] { font-size: 112%; } </style>
 
     <!--
       Start the requests the first screen needs right now, in parallel with downloading the
