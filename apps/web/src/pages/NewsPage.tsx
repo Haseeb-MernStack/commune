@@ -2,7 +2,7 @@ import { useState } from "react";
 import { NewsCardsSkeleton } from "../components/Skeleton";
 import { NEWS_TOPICS, type NewsTopic } from "@commune/shared";
 import { useNews } from "../hooks/useNews";
-import { timeAgo } from "../components/PostCard";
+import { timeAgo } from "../lib/time";
 
 const LABELS: Record<NewsTopic, string> = {
   top: "Top",
