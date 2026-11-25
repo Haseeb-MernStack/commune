@@ -154,6 +154,13 @@ a {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+.post-body.clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 
 .post-actions {
   display: flex;
