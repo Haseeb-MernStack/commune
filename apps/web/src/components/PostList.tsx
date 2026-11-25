@@ -1,3 +1,4 @@
+import Icon from "./Icon";
 import PostCard from "./PostCard";
 import { PostListSkeleton } from "./Skeleton";
 import { useLoadMoreOnVisible } from "../hooks/useInfiniteScroll";
@@ -37,6 +38,11 @@ export default function PostList({
         <button className="btn btn-ghost block" onClick={() => void query.fetchNextPage()}>
           Load more
         </button>
+      )}
+      {query.isSuccess && posts.length > 0 && !hasNextPage && (
+        <p className="muted center" role="status">
+          <Icon name="check" size={16} /> You&apos;re all caught up
+        </p>
       )}
     </>
   );
