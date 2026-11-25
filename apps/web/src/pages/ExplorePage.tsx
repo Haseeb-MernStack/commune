@@ -5,7 +5,7 @@ import Avatar from "../components/Avatar";
 import Icon from "../components/Icon";
 import PlusBadge from "../components/PlusBadge";
 import AdSlot, { FEED_AD_SLOT } from "../components/AdSlot";
-import { timeAgo } from "../components/PostCard";
+import { timeAgo } from "../lib/time";
 import { PostListSkeleton } from "../components/Skeleton";
 import { useLoadMoreOnVisible } from "../hooks/useInfiniteScroll";
 import { usePublicPosts } from "../hooks/usePublic";
