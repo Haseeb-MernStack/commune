@@ -12,6 +12,7 @@ import {
 } from "../hooks/usePosts";
 import { useHiddenPosts } from "../lib/pendingDeletes";
 import { useToggleBookmark } from "../hooks/useBookmarks";
+import { useDoubleTap } from "../hooks/useDoubleTap";
 import { formatPrice, useCheckout } from "../hooks/usePayments";
 import { useSetBlock } from "../hooks/useBlocks";
 import { assetUrl } from "../lib/api";
@@ -52,6 +53,8 @@ export default function PostCard({
   const [reporting, setReporting] = useState(false);
   // Plays the small "pop" only right after a tap, never when a post first appears.
   const [popped, setPopped] = useState<"like" | "save" | null>(null);
+  const [heart, setHeart] = useState(false);
+  const [heartKey, setHeartKey] = useState(0);
   const bodyRef = useRef<HTMLParagraphElement | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [overflows, setOverflows] = useState(false);
@@ -117,6 +120,20 @@ export default function PostCard({
     await copyLink();
   };
 
+  // Tapping twice quickly likes the post (and never un-likes it). Works with a mouse and on touch.
+  const showHeart = () => {
+    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setHeartKey((value) => value + 1);
+      setHeart(true);
+    }
+    if (!post.likedByMe && !like.isPending) like.mutate(post.id);
+  };
+  const onTextTap = useDoubleTap(showHeart);
+  // A plain click on the image still opens it in a new tab, but only after the short wait that
+  // tells one tap from two. Clicks with Ctrl, Cmd or Shift are left to the browser.
+  const onImageTap = useDoubleTap(showHeart, () => {
+    if (post.imageUrl) window.open(assetUrl(post.imageUrl), "_blank", "noopener,noreferrer");
+  });
   const menuItems: MenuItem[] = [
     { key: "copy", label: "Copy link", icon: "link", onSelect: () => void copyLink() },
   ];
@@ -262,7 +279,11 @@ export default function PostCard({
         </div>
       ) : (
         post.content && (
-          <p ref={bodyRef} className={!fullText && !expanded ? "post-body clamped" : "post-body"}>
+          <p
+            ref={bodyRef}
+            className={!fullText && !expanded ? "post-body clamped" : "post-body"}
+            onClick={onTextTap}
+          >
             <RichText text={post.content} />
           </p>
         )
@@ -278,7 +299,12 @@ export default function PostCard({
         </button>
       )}
       {post.imageUrl && (
-        <a href={assetUrl(post.imageUrl)} target="_blank" rel="noopener noreferrer">
+        <a
+          href={assetUrl(post.imageUrl)}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={onImageTap}
+        >
           <img
             className="post-image"
             src={assetUrl(post.imageUrl)}
@@ -386,6 +412,16 @@ export default function PostCard({
         </p>
       )}
       {reporting && <ReportForm postId={post.id} onClose={() => setReporting(false)} />}
+      {heart && (
+        <span
+          key={heartKey}
+          className="double-tap-heart"
+          onAnimationEnd={() => setHeart(false)}
+          aria-hidden="true"
+        >
+          <Icon name="heart" size={80} filled />
+        </span>
+      )}
     </article>
   );
 }

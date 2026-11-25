@@ -1773,6 +1773,7 @@ h3,
    Top: who posted (left) and the three-dot menu (right).
    Bottom: like, comment and share (left) and save (right). Everything else lives in the menu. */
 .ig-post {
+  position: relative;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -1915,6 +1916,35 @@ h3,
   }
 }
 
+.double-tap-heart {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  color: var(--like);
+}
+.double-tap-heart svg {
+  animation: double-tap-heart 0.6s ease-out forwards;
+}
+@keyframes double-tap-heart {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.1);
+  }
+}
 .ig-stats {
   display: flex;
   flex-wrap: wrap;
@@ -2048,6 +2078,9 @@ h3,
   .post-menu,
   .menu-backdrop,
   .ig-icon-btn.pop svg {
+    animation: none;
+  }
+  .double-tap-heart svg {
     animation: none;
   }
   .ig-icon-btn {
