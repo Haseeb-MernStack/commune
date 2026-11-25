@@ -11,15 +11,19 @@ vi.mock("../lib/api", () => ({ api: h.api, withQuery: (p: string) => p }));
 
 const post: PostDTO = {
   id: "p1",
-  author: { id: "a1", username: "ada", displayName: "Ada", avatarUrl: null },
+  author: { id: "a1", username: "ada", avatarUrl: null, plus: false },
   content: "Hello",
-  media: [],
+  imageUrl: null,
   createdAt: "2026-01-01T00:00:00.000Z",
+  editedAt: null,
   likedByMe: false,
   likeCount: 0,
   bookmarkedByMe: false,
   commentCount: 0,
+  community: null,
+  priceCents: null,
   locked: false,
+  premiumContent: null,
 };
 
 function deferred<T>() {
