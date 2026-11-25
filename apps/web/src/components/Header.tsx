@@ -82,6 +82,9 @@ export default function Header() {
               <NavLink to="/news" className={navClass}>
                 News
               </NavLink>
+              <NavLink to="/help" className={navClass}>
+                Help
+              </NavLink>
               <Link to="/login" className="nav-link">
                 Log in
               </Link>
@@ -175,6 +178,7 @@ export default function Header() {
                 {user.role === "admin" && item("/admin", "shield", "Admin")}
                 {item("/saved", "bookmark", "Saved")}
                 {item("/settings", "gear", "Settings")}
+                {item("/help", "help", "Help")}
                 {item("/contact", "contact", "Contact")}
                 {item("/privacy", "shield", "Privacy")}
                 {item("/terms", "news", "Terms")}
@@ -189,6 +193,7 @@ export default function Header() {
                 {item("/", "home", "Home", undefined, true)}
                 {item("/explore", "compass", "Explore")}
                 {item("/news", "news", "News")}
+                {item("/help", "help", "Help")}
                 {item("/contact", "contact", "Contact")}
                 {item("/privacy", "shield", "Privacy")}
                 {item("/terms", "news", "Terms")}

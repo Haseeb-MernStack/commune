@@ -74,3 +74,11 @@ test("join, post, sign out and sign back in", async ({ page }) => {
     await expect(page.getByRole("textbox", { name: "Write a post" })).toBeVisible();
   });
 });
+
+test("the help page opens and its answers expand", async ({ page }) => {
+  await page.goto("/help");
+  await expect(page.getByRole("heading", { name: "Help and FAQ", level: 1 })).toBeVisible();
+  const first = page.locator("details.help-item").first();
+  await first.locator("summary").click();
+  await expect(first).toHaveAttribute("open", "");
+});

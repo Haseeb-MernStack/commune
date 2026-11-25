@@ -22,7 +22,7 @@ export default function LegalPage({
       {children}
       <p className="muted small legal-foot">
         <Link to="/privacy">Privacy Policy</Link> · <Link to="/terms">Terms of Service</Link> ·{" "}
-        <Link to="/contact">Contact us</Link> ·{" "}
+        <Link to="/contact">Contact us</Link> · <Link to="/help">Help</Link> ·{" "}
         <button type="button" className="link-btn legal-cookie-btn" onClick={openCookieSettings}>
           Cookie settings
         </button>

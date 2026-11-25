@@ -44,6 +44,7 @@ const PATHS = {
   bookmark: "M7 4h10a1 1 0 0 1 1 1v15.5l-6-4.2-6 4.2V5a1 1 0 0 1 1-1z",
   share: "M21 3 10 14M21 3l-7 18-4-7-7-4z",
   dots: "M5.5 12a1.2 1.2 0 1 0 .01 0zM12 12a1.2 1.2 0 1 0 .01 0zM18.5 12a1.2 1.2 0 1 0 .01 0z",
+  help: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM9.5 9.5a2.5 2.5 0 1 1 3.6 2.2c-.7.4-1.1.9-1.1 1.8M12 17h.01",
 } as const;
 
 export type IconName = keyof typeof PATHS;

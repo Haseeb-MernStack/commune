@@ -19,6 +19,7 @@ export default function RightRail() {
       <nav className="rail-links muted small" aria-label="Footer">
         <Link to="/explore">Explore</Link>
         <Link to="/plus">Plus</Link>
+        <Link to="/help">Help</Link>
         <Link to="/contact">Contact</Link>
         <Link to="/privacy">Privacy</Link>
         <Link to="/terms">Terms</Link>
