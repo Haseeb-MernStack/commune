@@ -9,7 +9,8 @@ import { User } from "../models/User.js";
  */
 export function mockUser(user: { role: "user" | "admin"; banned: boolean } | null) {
   return vi.spyOn(User, "findById").mockImplementation((() => ({
-    select: () => ({ lean: () => Promise.resolve(user) }),
+    // Every real user has a username, so the stand-in has one too.
+    select: () => ({ lean: () => Promise.resolve(user && { username: "test_user", ...user }) }),
   })) as never);
 }
 

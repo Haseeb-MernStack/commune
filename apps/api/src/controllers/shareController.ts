@@ -140,14 +140,16 @@ export async function userPreview(req: Request, res: Response) {
     .lean<{ username: string; bio?: string; avatarUrl?: string | null; banned?: boolean }>();
   if (!user || user.banned) return send(res, 404, renderPreview(generic));
 
+  // Always the lowercase name, so the shared address is the same one everywhere.
+  const name = user.username.toLowerCase();
   send(
     res,
     200,
     renderPreview({
-      title: `${user.username} on ${SITE}`,
-      description: clip(user.bio ?? "", 200) || `See ${user.username}'s posts on ${SITE}.`,
+      title: `${name} on ${SITE}`,
+      description: clip(user.bio ?? "", 200) || `See ${name}'s posts on ${SITE}.`,
       image: absolute(user.avatarUrl),
-      path: `/u/${user.username}`,
+      path: `/u/${name}`,
       card: "summary",
     }),
   );

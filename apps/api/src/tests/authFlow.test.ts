@@ -93,6 +93,20 @@ describe("POST /api/auth/register", () => {
     expect(stored.email).toBe("sam@example.com");
   });
 
+  it("stores a username typed with capitals in lowercase", async () => {
+    registerLookup(null);
+    const create = vi
+      .spyOn(User, "create")
+      .mockImplementation((async (doc: object) =>
+        fakeUser(doc as Record<string, unknown>)) as never);
+    const res = await request(app)
+      .post("/api/auth/register")
+      .send({ username: "Sam_Dev", email: "sam@example.com", password: PASSWORD });
+    expect(res.status).toBe(201);
+    expect((create.mock.calls[0]![0] as unknown as { username: string }).username).toBe("sam_dev");
+    expect(res.body.user.username).toBe("sam_dev");
+  });
+
   it("sets the refresh token as an httpOnly cookie limited to the auth routes", async () => {
     registerLookup(null);
     vi.spyOn(User, "create").mockResolvedValue(fakeUser() as never);
