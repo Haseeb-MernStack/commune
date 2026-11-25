@@ -2,6 +2,7 @@ import PostCard from "./PostCard";
 import { PostListSkeleton } from "./Skeleton";
 import { useLoadMoreOnVisible } from "../hooks/useInfiniteScroll";
 import type { useFeed } from "../hooks/usePosts";
+import { useFeedScrollRestoration } from "../lib/scroll-restoration";
 
 /** Renders any infinite post query: loading, error, empty state, posts and "Load more". */
 export default function PostList({
@@ -13,6 +14,7 @@ export default function PostList({
 }) {
   const posts = query.data?.pages.flatMap((p) => p.items) ?? [];
   const { hasNextPage, isFetchingNextPage, isError, fetchNextPage } = query;
+  useFeedScrollRestoration(query.isSuccess);
   // Fetch the next page before the reader reaches the end.
   const sentinel = useLoadMoreOnVisible(
     () => void fetchNextPage(),
