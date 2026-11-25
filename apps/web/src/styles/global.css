@@ -177,6 +177,16 @@ a {
   resize: vertical;
 }
 
+.composer-row textarea {
+  min-width: 0;
+  max-height: 40vh;
+  /* The small viewport stays stable when mobile browser chrome or the keyboard appears. */
+  max-height: 40svh;
+  resize: none;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
 .composer textarea:focus,
 .auth input:focus {
   outline: 2px solid var(--accent);

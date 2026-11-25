@@ -43,10 +43,64 @@ test("join, post, sign out and sign back in", async ({ page }) => {
     await expect(page.getByRole("textbox", { name: "Write a post" })).toBeVisible();
   });
 
-  const text = `Hello from the browser test ${unique}`;
+  const composer = page.getByRole("textbox", { name: "Write a post" });
+  const composerHeight = () => composer.evaluate((el) => el.getBoundingClientRect().height);
+  const initialHeight = await composerHeight();
+
+  await test.step("the composer grows with typed and pasted text, then shrinks", async () => {
+    await composer.pressSequentially("First line");
+    await composer.press("Enter");
+    await composer.pressSequentially("Second line");
+    await composer.press("Enter");
+    await composer.pressSequentially("Third line");
+    await expect.poll(composerHeight).toBeGreaterThan(initialHeight);
+    await expect
+      .poll(() => composer.evaluate((el) => el.scrollHeight <= el.clientHeight))
+      .toBe(true);
+
+    await composer.fill("");
+    await expect.poll(composerHeight).toBe(initialHeight);
+
+    const pasted = "One\nTwo\nThree\nFour";
+    await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
+    await page.evaluate((value) => navigator.clipboard.writeText(value), pasted);
+    await composer.press("ControlOrMeta+V");
+    await expect(composer).toHaveValue(pasted);
+    await expect.poll(composerHeight).toBeGreaterThan(initialHeight);
+    const max = await composer.getAttribute("maxlength");
+    await expect(page.getByText(`${pasted.length}/${max}`, { exact: true })).toBeVisible();
+
+    await composer.fill("Short draft");
+    await expect.poll(composerHeight).toBe(initialHeight);
+  });
+
+  await test.step("the mobile composer stops growing and scrolls at the height limit", async () => {
+    const desktop = page.viewportSize()!;
+    const mobile = { width: 390, height: 844 };
+    await composer.fill("A longer draft that wraps across the composer. ".repeat(4));
+    const wideHeight = await composerHeight();
+    await page.setViewportSize(mobile);
+    await expect.poll(composerHeight).toBeGreaterThan(wideHeight);
+    await composer.fill("");
+    const mobileInitialHeight = await composerHeight();
+    await composer.fill("Line\n".repeat(40));
+    await expect.poll(composerHeight).toBeGreaterThan(mobileInitialHeight);
+    await expect.poll(composerHeight).toBeGreaterThanOrEqual(mobile.height * 0.4 - 1);
+    await expect.poll(composerHeight).toBeLessThanOrEqual(mobile.height * 0.4 + 1);
+    await expect.poll(() => composer.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true);
+
+    await composer.fill("");
+    await expect.poll(composerHeight).toBe(mobileInitialHeight);
+    await page.setViewportSize(desktop);
+  });
+
+  const text = `Hello from the browser test ${unique}\nThis is a longer post.\nIt has three lines.`;
   await test.step("publish a post and see it in the feed", async () => {
-    await page.getByRole("textbox", { name: "Write a post" }).fill(text);
+    await composer.fill(text);
+    await expect.poll(composerHeight).toBeGreaterThan(initialHeight);
     await page.getByRole("button", { name: "Post", exact: true }).click();
+    await expect(composer).toHaveValue("");
+    await expect.poll(composerHeight).toBe(initialHeight);
     await expect(page.getByText(text).first()).toBeVisible();
   });
 

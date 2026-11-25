@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { ChangeEvent, ClipboardEvent, DragEvent, FormEvent } from "react";
 import { useCreatePost } from "../hooks/usePosts";
 import { useUploadImage } from "../hooks/useUpload";
@@ -15,10 +15,23 @@ import { useAuth } from "../store/auth";
 import Avatar from "./Avatar";
 import Icon from "./Icon";
 
+function resizeTextarea(textarea: HTMLTextAreaElement) {
+  const scrollTop = textarea.scrollTop;
+  textarea.style.height = "auto";
+  if (!textarea.value) return;
+
+  // scrollHeight includes the padding, but not the borders of the border-box textarea.
+  const borders = textarea.offsetHeight - textarea.clientHeight;
+  textarea.style.height = `${Math.max(textarea.offsetHeight, textarea.scrollHeight + borders)}px`;
+  // Keep the reading position when editing a post that has reached the height limit.
+  textarea.scrollTop = scrollTop;
+}
+
 export default function Composer({ communitySlug }: { communitySlug?: string }) {
   const { user } = useAuth();
   const MAX = user?.plus ? PLUS_POST_LENGTH : FREE_POST_LENGTH;
   const [content, setContent] = useState("");
+  const contentRef = useRef<HTMLTextAreaElement>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(null); // local copy, shown instantly
@@ -31,6 +44,32 @@ export default function Composer({ communitySlug }: { communitySlug?: string }) 
   const fileRef = useRef<HTMLInputElement>(null);
   const create = useCreatePost();
   const upload = useUploadImage("post");
+
+  // Measure before paint, including when pasting, deleting or clearing a successful post.
+  useLayoutEffect(() => {
+    if (contentRef.current) resizeTextarea(contentRef.current);
+  }, [content]);
+
+  // A new width can change line wrapping. Ignore height-only changes (including mobile
+  // keyboard resizes) so the measurement does not resize itself in a loop.
+  useEffect(() => {
+    const textarea = contentRef.current;
+    if (!textarea || typeof ResizeObserver === "undefined") return;
+
+    let width = textarea.offsetWidth;
+    let frame = 0;
+    const observer = new ResizeObserver(() => {
+      if (textarea.offsetWidth === width) return;
+      width = textarea.offsetWidth;
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => resizeTextarea(textarea));
+    });
+    observer.observe(textarea);
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
+  }, []);
 
   // Free the temporary preview when it is replaced or the composer goes away.
   useEffect(
@@ -139,6 +178,7 @@ export default function Composer({ communitySlug }: { communitySlug?: string }) 
       <div className="composer-row">
         {user && <Avatar username={user.username} url={user.avatarUrl} size={42} />}
         <textarea
+          ref={contentRef}
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder={
