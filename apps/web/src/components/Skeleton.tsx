@@ -46,23 +46,37 @@ export function PostSkeleton({ index = 0 }: { index?: number }) {
   const lines = BODY_WIDTHS[index % BODY_WIDTHS.length]!;
   const withImage = index % 3 === 1;
   return (
-    <div className="card post post-head sk-post" aria-hidden="true">
-      <Sk circle w={40} h={40} />
-      <div className="post-main">
-        <div className="sk-row">
+    <div className="card post ig-post sk-post" aria-hidden="true">
+      <div className="ig-head">
+        <Sk circle w={40} h={40} />
+        <div className="ig-who">
           <Sk className="sk-line tall" w={110} />
-          <Sk className="sk-line" w={48} />
         </div>
-        <div className="sk-stack">
-          {lines.map((w, i) => (
-            <Sk key={i} className="sk-line" w={w} />
-          ))}
-        </div>
+        <span className="sk-action">
+          <Sk circle w={24} h={24} />
+        </span>
+      </div>
+      <div className="sk-stack">
+        {lines.map((w, i) => (
+          <Sk key={i} className="sk-line" w={w} />
+        ))}
+      </div>
         {withImage && <Sk className="sk-image" />}
-        <div className="sk-actions">
-          <Sk className="sk-pill" />
-          <Sk className="sk-pill" />
+        <div className="ig-bar">
+        <div className="ig-bar-left">
+          <span className="sk-action">
+            <Sk circle w={25} h={25} />
+          </span>
+          <span className="sk-action">
+            <Sk circle w={25} h={25} />
+          </span>
+          <span className="sk-action">
+            <Sk circle w={25} h={25} />
+          </span>
         </div>
+        <span className="sk-action">
+          <Sk circle w={25} h={25} />
+        </span>
       </div>
     </div>
   );
