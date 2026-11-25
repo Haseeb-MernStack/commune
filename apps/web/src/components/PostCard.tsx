@@ -38,6 +38,8 @@ export default function PostCard({ post }: { post: PostDTO }) {
   const [reporting, setReporting] = useState(false);
   // Plays the small "pop" only right after a tap, never when a post first appears.
   const [popped, setPopped] = useState<"like" | "save" | null>(null);
+  const [heart, setHeart] = useState(false);
+  const [heartKey, setHeartKey] = useState(0);
   const mine = user?.id === post.author.id;
   const isAdmin = user?.role === "admin";
   const max = user?.plus ? PLUS_POST_LENGTH : Math.max(FREE_POST_LENGTH, post.content.length);
@@ -87,6 +89,14 @@ export default function PostCard({ post }: { post: PostDTO }) {
     await copyLink();
   };
 
+  const handleDoubleTap = (event: React.MouseEvent) => {
+    if ((event.target as HTMLElement).closest(".rich-link")) return;
+    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setHeartKey((value) => value + 1);
+      setHeart(true);
+    }
+    if (!post.likedByMe && !like.isPending) like.mutate(post.id);
+  };
   const menuItems: MenuItem[] = [
     { key: "copy", label: "Copy link", icon: "link", onSelect: () => void copyLink() },
   ];
@@ -227,13 +237,13 @@ export default function PostCard({ post }: { post: PostDTO }) {
         </div>
       ) : (
         post.content && (
-          <p className="post-body">
+          <p className="post-body" onDoubleClick={handleDoubleTap}>
             <RichText text={post.content} />
           </p>
         )
       )}
       {post.imageUrl && (
-        <a href={assetUrl(post.imageUrl)} target="_blank" rel="noopener noreferrer">
+        <a href={assetUrl(post.imageUrl)} target="_blank" rel="noopener noreferrer" onDoubleClick={handleDoubleTap}>
           <img
             className="post-image"
             src={assetUrl(post.imageUrl)}
@@ -341,6 +351,11 @@ export default function PostCard({ post }: { post: PostDTO }) {
         </p>
       )}
       {reporting && <ReportForm postId={post.id} onClose={() => setReporting(false)} />}
+      {heart && (
+        <span key={heartKey} className="double-tap-heart" onAnimationEnd={() => setHeart(false)} aria-hidden="true">
+            <Icon name="heart" size={80} filled />
+        </span>
+        )}
     </article>
   );
 }
