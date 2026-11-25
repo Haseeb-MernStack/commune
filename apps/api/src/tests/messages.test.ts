@@ -162,7 +162,7 @@ describe("message routes", () => {
     const update = vi.spyOn(Conversation, "updateOne").mockResolvedValue({} as never);
 
     const res = await request(app).get(`/api/messages/${convoId}?limit=2`).set(auth);
-    expect(res.status).toBe(200);
+    expect(res.status, JSON.stringify(res.body)).toBe(200);
     expect(res.body.items.map((m: { text: string }) => m.text)).toEqual(["m2", "m3"]);
     expect(res.body.nextCursor).toBe(new Date(base + 2000).toISOString());
     // reading the latest page clears the unread counter
