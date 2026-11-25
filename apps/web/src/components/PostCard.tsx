@@ -25,7 +25,13 @@ export function timeAgo(iso: string): string {
   return `${Math.floor(seconds / 86400)}d`;
 }
 
-export default function PostCard({ post, fullText = false }: { post: PostDTO; fullText?: boolean }) {
+export default function PostCard({
+  post,
+  fullText = false,
+}: {
+  post: PostDTO;
+  fullText?: boolean;
+}) {
   const { user } = useAuth();
   const like = useToggleLike();
   const del = useDeletePost();
@@ -53,7 +59,7 @@ export default function PostCard({ post, fullText = false }: { post: PostDTO; fu
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
   }, [fullText, expanded, post.content, editing]);
-    
+
   const mine = user?.id === post.author.id;
   const isAdmin = user?.role === "admin";
   const max = user?.plus ? PLUS_POST_LENGTH : Math.max(FREE_POST_LENGTH, post.content.length);
@@ -249,15 +255,15 @@ export default function PostCard({ post, fullText = false }: { post: PostDTO; fu
         )
       )}
       {!editing && post.content && !fullText && overflows && (
-      <button
-        type="button"
-        className="link-btn"
-        aria-expanded={expanded}
-        onClick={() => setExpanded((value) => !value)}
-      >
-        {expanded ? "Show less" : "Show more"}
-      </button>
-    )}
+        <button
+          type="button"
+          className="link-btn"
+          aria-expanded={expanded}
+          onClick={() => setExpanded((value) => !value)}
+        >
+          {expanded ? "Show less" : "Show more"}
+        </button>
+      )}
       {post.imageUrl && (
         <a href={assetUrl(post.imageUrl)} target="_blank" rel="noopener noreferrer">
           <img
