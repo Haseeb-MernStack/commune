@@ -1976,6 +1976,7 @@ h3,
   background: var(--surface);
   box-shadow: 0 12px 32px rgba(15, 20, 40, 0.18);
   animation: menu-in 0.12s ease-out;
+  transition: transform 0.2s ease;
 }
 
 .menu-grab {
@@ -2054,6 +2055,9 @@ h3,
     margin: 4px auto 8px;
     border-radius: 2px;
     background: var(--border);
+    background-clip: content-box;
+    padding: 8px 0;
+    touch-action: none;
   }
 
   .menu-item {
@@ -2084,6 +2088,9 @@ h3,
     animation: none;
   }
   .ig-icon-btn {
+    transition: none;
+  }
+  .post-menu {
     transition: none;
   }
 }
