@@ -140,16 +140,11 @@ export async function listConversations(req: Request, res: Response) {
   const byId = new Map(users.map((u) => [str(u._id), u]));
 
   const blocked = new Set((await blockedByMeIds(me)).map(String));
+  const out: ConversationDTO[] = [];
   convos.forEach((c, i) => {
     const other = byId.get(otherIds[i]!);
     if (other && !other.banned && !blocked.has(str(other._id)))
       out.push(toConversationDTO(c, me, other));
-  });
-
-  const out: ConversationDTO[] = [];
-  convos.forEach((c, i) => {
-    const other = byId.get(otherIds[i]!);
-    if (other && !other.banned) out.push(toConversationDTO(c, me, other));
   });
   res.json(out);
 }

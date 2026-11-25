@@ -170,7 +170,7 @@ The web app calls `/api/...` on its own domain and Vercel rewrites it to the API
 
 ## Getting started
 
-Requirements: Node.js 20+, npm 10+, and either Docker or a MongoDB connection string.
+Requirements: Node.js 22+, npm 10+, and either Docker or a MongoDB connection string.
 
 ```bash
 git clone https://github.com/Haseeb-MernStack/commune.git
