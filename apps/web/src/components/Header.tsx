@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../store/auth";
+import { useScrollDirection } from "../hooks/useScrollDirection";
 import { useUnreadCount } from "../hooks/useSocial";
 import { useUnreadMessages } from "../hooks/useMessages";
 import Avatar from "./Avatar";
@@ -20,6 +21,9 @@ export default function Header() {
   const unread = useUnreadCount(Boolean(user));
   const msgs = useUnreadMessages(Boolean(user));
   const [open, setOpen] = useState(false);
+  const [focusInside, setFocusInside] = useState(false);
+  const direction = useScrollDirection();
+  const hidden = direction === "down" && !open && !focusInside;
   const count = unread.data?.count ?? 0;
   const msgCount = msgs.data?.count ?? 0;
   const countLabel = count > 99 ? "99+" : String(count);
@@ -61,7 +65,13 @@ export default function Header() {
 
   return (
     <>
-      <header className={`header${user ? " header-user" : ""}`}>
+      <header
+      className={"header" + (user ? " header-user" : "") + (hidden ? " header-hidden" : "")}
+      onFocus={() => setFocusInside(true)}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocusInside(false);
+      }}
+    >
         <Link to="/" className="brand" aria-label="Commune home">
           <Brand size={30} />
         </Link>
