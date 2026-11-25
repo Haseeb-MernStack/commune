@@ -9,11 +9,25 @@ const selectOne = vi.fn();
 const selectTwo = vi.fn();
 const selectThree = vi.fn();
 
-const defaultItems: MenuItem[] = [
-  { key: "one", label: "First action", icon: "bookmark", onSelect: selectOne },
-  { key: "two", label: "Second action", icon: "share", onSelect: selectTwo },
-  { key: "three", label: "Third action", icon: "flag", onSelect: selectThree },
-];
+const firstItem: MenuItem = {
+  key: "one",
+  label: "First action",
+  icon: "bookmark",
+  onSelect: selectOne,
+};
+const secondItem: MenuItem = {
+  key: "two",
+  label: "Second action",
+  icon: "share",
+  onSelect: selectTwo,
+};
+const thirdItem: MenuItem = {
+  key: "three",
+  label: "Third action",
+  icon: "flag",
+  onSelect: selectThree,
+};
+const defaultItems: MenuItem[] = [firstItem, secondItem, thirdItem];
 
 const mediaQueryStub = {
   get matches() {
@@ -105,11 +119,7 @@ describe("PostMenu", () => {
   });
 
   it("a disabled item cannot be selected", async () => {
-    const { user, button } = renderMenu([
-      defaultItems[0],
-      defaultItems[1],
-      { ...defaultItems[2], disabled: true },
-    ]);
+    const { user, button } = renderMenu([firstItem, secondItem, { ...thirdItem, disabled: true }]);
     await user.click(button);
     const third = screen.getByRole("menuitem", { name: "Third action" });
     expect(third).toBeDisabled();
