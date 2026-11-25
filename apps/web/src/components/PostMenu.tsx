@@ -1,5 +1,5 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
-import type { CSSProperties, KeyboardEvent } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import type { CSSProperties, KeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
 import { createPortal } from "react-dom";
 import Icon, { type IconName } from "./Icon";
 
@@ -30,6 +30,67 @@ export default function PostMenu({ items, label }: { items: MenuItem[]; label: s
   const close = (returnFocus: boolean) => {
     setOpen(false);
     if (returnFocus) button.current?.focus();
+  };
+
+  // Swipe the sheet down to close it on phones. The gesture starts on the
+  // grab handle only, so scrolling the menu items still works.
+  const drag = useRef<{
+    startY: number;
+    lastY: number;
+    lastTime: number;
+    velocity: number;
+    dy: number;
+  } | null>(null);
+  const [dragY, setDragY] = useState<number | null>(null);
+
+  const onDragMove = useCallback((e: PointerEvent) => {
+    const d = drag.current;
+    if (!d) return;
+    const dy = Math.max(0, e.clientY - d.startY);
+    const dt = e.timeStamp - d.lastTime;
+    if (dt > 0) d.velocity = (e.clientY - d.lastY) / dt;
+    d.lastY = e.clientY;
+    d.lastTime = e.timeStamp;
+    d.dy = dy;
+    setDragY(dy);
+  }, []);
+
+  const onDragEnd = useCallback(() => {
+    const d = drag.current;
+    drag.current = null;
+    window.removeEventListener("pointermove", onDragMove);
+    window.removeEventListener("pointerup", onDragEnd);
+    window.removeEventListener("pointercancel", onDragEnd);
+    if (!d) return;
+    // Close after a long drag, or a fast flick; otherwise snap back.
+    if (d.dy > 80 || (d.dy > 24 && d.velocity > 0.5)) {
+      setOpen(false);
+    }
+    setDragY(null);
+  }, [onDragMove]);
+
+  // Drop the listeners if the menu unmounts mid-drag.
+  useEffect(() => {
+    return () => {
+      window.removeEventListener("pointermove", onDragMove);
+      window.removeEventListener("pointerup", onDragEnd);
+      window.removeEventListener("pointercancel", onDragEnd);
+    };
+  }, [onDragMove, onDragEnd]);
+
+  const onGrabPointerDown = (e: ReactPointerEvent<HTMLSpanElement>) => {
+    if (e.button !== 0) return;
+    if (!window.matchMedia(PHONE).matches) return;
+    drag.current = {
+      startY: e.clientY,
+      lastY: e.clientY,
+      lastTime: e.timeStamp,
+      velocity: 0,
+      dy: 0,
+    };
+    window.addEventListener("pointermove", onDragMove);
+    window.addEventListener("pointerup", onDragEnd);
+    window.addEventListener("pointercancel", onDragEnd);
   };
 
   // Place the popover under the button, or above it when there is no room. Phones use the sheet.
@@ -120,10 +181,14 @@ export default function PostMenu({ items, label }: { items: MenuItem[]; label: s
               role="menu"
               aria-label={label}
               className="post-menu"
-              style={pos}
+              style={{
+              ...pos,
+              transform: dragY === null ? undefined : `translateY(${dragY}px)`,
+              transition: dragY === null ? undefined : "none",
+            }}
               onKeyDown={onMenuKey}
             >
-              <span className="menu-grab" aria-hidden="true" />
+              <span className="menu-grab" aria-hidden="true" onPointerDown={onGrabPointerDown} />
               {items.map((item) => (
                 <button
                   key={item.key}
