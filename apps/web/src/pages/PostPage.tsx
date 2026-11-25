@@ -49,7 +49,7 @@ export default function PostPage() {
       {justPaid && post.data?.locked && (
         <p className="notice">Payment received. Unlocking your post, this takes a few seconds…</p>
       )}
-      {post.data && <PostCard post={post.data} />}
+      {post.data && <PostCard post={post.data} fullText />}
 
       <form className="card composer" onSubmit={submit}>
         <textarea

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { FREE_POST_LENGTH, PLUS_POST_LENGTH, type PostDTO } from "@commune/shared";
@@ -31,7 +31,13 @@ export function timeAgo(iso: string): string {
   return `${Math.floor(seconds / 86400)}d`;
 }
 
-export default function PostCard({ post }: { post: PostDTO }) {
+export default function PostCard({
+  post,
+  fullText = false,
+}: {
+  post: PostDTO;
+  fullText?: boolean;
+}) {
   const { user } = useAuth();
   const like = useToggleLike();
   const del = useDeletePost();
@@ -46,6 +52,22 @@ export default function PostCard({ post }: { post: PostDTO }) {
   const [reporting, setReporting] = useState(false);
   // Plays the small "pop" only right after a tap, never when a post first appears.
   const [popped, setPopped] = useState<"like" | "save" | null>(null);
+  const bodyRef = useRef<HTMLParagraphElement | null>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+  useEffect(() => {
+    setExpanded(false);
+  }, [post.content]);
+  useEffect(() => {
+    if (fullText || expanded || editing) return;
+    const el = bodyRef.current;
+    if (!el) return;
+    const check = () => setOverflows(el.scrollHeight > el.clientHeight);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, [fullText, expanded, post.content, editing]);
+
   const mine = user?.id === post.author.id;
   const isAdmin = user?.role === "admin";
   const max = user?.plus ? PLUS_POST_LENGTH : Math.max(FREE_POST_LENGTH, post.content.length);
@@ -240,10 +262,20 @@ export default function PostCard({ post }: { post: PostDTO }) {
         </div>
       ) : (
         post.content && (
-          <p className="post-body">
+          <p ref={bodyRef} className={!fullText && !expanded ? "post-body clamped" : "post-body"}>
             <RichText text={post.content} />
           </p>
         )
+      )}
+      {!editing && post.content && !fullText && overflows && (
+        <button
+          type="button"
+          className="link-btn"
+          aria-expanded={expanded}
+          onClick={() => setExpanded((value) => !value)}
+        >
+          {expanded ? "Show less" : "Show more"}
+        </button>
       )}
       {post.imageUrl && (
         <a href={assetUrl(post.imageUrl)} target="_blank" rel="noopener noreferrer">
