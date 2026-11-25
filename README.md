@@ -6,17 +6,18 @@
 
 **An open-source community platform for the MERN stack. Posts, communities, live news, real-time messages, push notifications and creator payments, in one TypeScript monorepo.**
 
-[**Live demo**](https://commune-mu.vercel.app) · [Documentation](docs/) · [Report a bug](https://github.com/Haseeb-MernStack/commune/issues) · [Request a feature](https://github.com/Haseeb-MernStack/commune/issues)
+[**Live demo**](https://commune-mu.vercel.app) · [Documentation](docs/) · [Report a bug](https://github.com/Haseeb-MernStack/commune/issues) · [Request a feature](https://github.com/Haseeb-MernStack/commune/issues) · [Discord](https://discord.gg/qk2gfMaAf)
 
 [![CI](https://github.com/Haseeb-MernStack/commune/actions/workflows/ci.yml/badge.svg)](https://github.com/Haseeb-MernStack/commune/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-1b2559.svg)](LICENSE)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-ffb224.svg)](CONTRIBUTING.md)
 [![Live](https://img.shields.io/badge/demo-online-2ea44f.svg)](https://commune-mu.vercel.app)
+[![Discord](https://img.shields.io/badge/Discord-join_the_community-5865F2?logo=discord&logoColor=white)](https://discord.gg/qk2gfMaAf)
 
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
 ![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)
-![Node.js](https://img.shields.io/badge/Node.js-20+-339933?logo=nodedotjs&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-22+-339933?logo=nodedotjs&logoColor=white)
 ![Express](https://img.shields.io/badge/Express-4-000000?logo=express&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose_8-47A248?logo=mongodb&logoColor=white)
 ![Socket.IO](https://img.shields.io/badge/Socket.IO-realtime-010101?logo=socketdotio&logoColor=white)
@@ -51,6 +52,7 @@
   - [API overview](#api-overview)
   - [Roadmap](#roadmap)
   - [Documentation](#documentation)
+  - [Community](#community)
   - [Contributing](#contributing)
   - [License](#license)
 
@@ -87,8 +89,15 @@
 ## Features
 
 **Social**
-- Posts with photos, likes, comments and reports
-- Follow people, profiles with avatars and bios, notifications
+- Posts with photos, likes, comments and reports, and editing your own posts
+- Instagram-style post card: author and time on top, a three-dot menu (copy link, edit, report, mute, block, delete), and like, comment, share and bookmark underneath
+- Bookmarks with a private **Saved** page
+- Share with the native share sheet, or copy the link
+- Double-tap a post to like it, instant comments that roll back if sending fails, and a 5-second **Undo** after deleting a post
+- Long posts collapse behind **Show more**
+- Follow people, followers and following lists, profiles with avatars and bios, notifications
+- Lowercase usernames only, so profile links are always clean (`/u/username`)
+- Block people and set your privacy
 - Communities (`c/name`) with their own feeds
 - Full-text search across people and posts
 
@@ -113,11 +122,14 @@
 - Short-lived access token in memory, rotating httpOnly refresh cookie, login lockout after repeated failures
 - Email verification and password reset (Resend)
 - Moderation: reports, an admin page, suspensions
+- Export your data or delete your account from Settings; fair-use limits are documented in [docs/LIMITS.md](docs/LIMITS.md)
 - Rate limiting, helmet, Zod validation on every write, same-origin checks, log redaction
 
 **Experience**
 - Responsive layout: three columns on desktop, bottom tab bar and drawer on mobile
-- Light and dark theme, installable PWA
+- System, light and dark theme, chosen in Settings and applied before the page paints
+- Built-in **Help and FAQ** page and a cookie settings link to change your consent later
+- Installable PWA
 - Instagram-style skeleton loading, endless scroll, and pages prefetched before you tap them
 - Image upload that shrinks on the device and uploads straight to Cloudinary
 - Lazy-loaded routes, early data fetching and cached sessions for fast first paint
@@ -125,6 +137,7 @@
 **Operations**
 - Error tracking in the admin page (grouped, with email alerts for new errors) and browser error reporting
 - Health and readiness endpoints, request ids on every response
+- Share previews (Open Graph tags) for links to posts and profiles, and a report-only Content Security Policy ([docs/CSP.md](docs/CSP.md))
 
 ## Tech stack
 
@@ -235,6 +248,10 @@ The realtime service has its own small set (`JWT_ACCESS_SECRET`, `REALTIME_SECRE
 | `npm test` | API and realtime tests |
 | `npm run build` | Production build of api, web and realtime |
 | `npm run format` | Prettier |
+| `npm run lint` | ESLint |
+| `npm run e2e` | Playwright end-to-end tests |
+| `npm run make-admin -w @commune/api -- you@example.com` | Make an account an admin |
+| `npm run lowercase-usernames -w @commune/api` | Dry run of the one-time username migration; add `-- --apply` to write changes ([details](docs/DEPLOYMENT.md)) |
 
 ## Testing and CI
 
@@ -243,7 +260,7 @@ npm run typecheck
 npm test
 ```
 
-API tests use Vitest and Supertest with mocked models, so they need no database. The realtime service is tested with real Socket.IO clients. GitHub Actions runs typecheck, tests and the build on every push and pull request, plus a security workflow: CodeQL, a dependency audit gate, dependency review on pull requests and secret scanning. Dependabot opens update pull requests.
+API tests use Vitest and Supertest with mocked models, so they need no database. The realtime service is tested with real Socket.IO clients. GitHub Actions (Node 22) runs typecheck, tests and the build on every push and pull request, plus end-to-end tests, a security workflow (CodeQL, a dependency audit gate, dependency review on pull requests and secret scanning) and an OpenSSF Scorecard check. All workflow actions are pinned to commit SHAs, and Dependabot keeps them and the npm packages up to date.
 
 ## Security
 
@@ -279,8 +296,9 @@ All routes are under `/api`.
 | Area | Examples |
 | --- | --- |
 | Auth | `POST /auth/register`, `/auth/login`, `/auth/refresh`, `/auth/logout`, `/auth/google` |
-| Posts | `GET /posts`, `POST /posts`, `POST /posts/:id/like`, `POST /posts/:id/comments` |
-| People | `GET /users/:username`, `POST /users/:username/follow` |
+| Posts | `GET /posts`, `POST /posts`, `POST /posts/:id/like`, `POST /posts/:id/comments`, `POST /posts/:id/bookmark`, `GET /posts/saved` |
+| People | `GET /users/:username`, `POST /users/:username/follow`, `GET /users/:username/followers`, `GET /users/:username/following`, `PATCH /users/me/privacy`, `GET /users/me/export` |
+| Blocking | `GET /users/me/blocks`, `PUT` and `DELETE /users/:username/block` |
 | Communities | `GET /communities`, `POST /communities`, `POST /communities/:slug/join` |
 | Messages | `GET /messages`, `POST /messages/with/:username`, `GET /messages/unread-count` |
 | News | `GET /news?topic=technology` |
@@ -304,9 +322,12 @@ See `apps/api/src/routes/index.ts` for the full list.
 - [x] Web push notifications and notification sounds
 - [x] Security hardening, CI security checks, error monitoring
 - [x] Skeleton loading, endless scroll and faster news
+- [x] Instagram-style post card, bookmarks and the Saved page
+- [x] Theme switch, Help page and cookie settings
+- [x] Lowercase usernames
+- [x] Account data export and deletion, end-to-end tests in CI
+- [ ] Reshare (repost) a post
 - [ ] Block and report inside messages
-- [ ] Backups, account deletion and data export
-- [ ] End-to-end tests in CI
 - [ ] Redis adapter to run several realtime instances
 - [ ] Hashtags and trending
 - [ ] Internationalisation
@@ -325,10 +346,20 @@ See `apps/api/src/routes/index.ts` for the full list.
 | [Uploads](docs/UPLOADS.md) | Cloudinary direct uploads |
 | [Performance](docs/PERFORMANCE.md) | Loading and caching |
 | [Design](docs/DESIGN.md) | Tokens and components |
+| [Limits](docs/LIMITS.md) | Fair-use quotas |
+| [Content Security Policy](docs/CSP.md) | Report-only CSP rollout |
+| [Backups](docs/BACKUPS.md) | Database backups |
+| [Development](docs/DEVELOPMENT.md) | Working on the code |
+
+## Community
+
+Contributors and users hang out on Discord. Come say hello, ask questions, share ideas and find something to work on.
+
+**[Join the Commune Discord](https://discord.gg/qk2gfMaAf)**
 
 ## Contributing
 
-Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md), open an issue to discuss larger changes, and make sure `npm run typecheck` and `npm test` pass before opening a pull request.
+Contributions are welcome, and there are plenty of labelled beginner-friendly and frontend issues to pick from. Read [CONTRIBUTING.md](CONTRIBUTING.md), say hi on [Discord](https://discord.gg/qk2gfMaAf), open an issue to discuss larger changes, and make sure `npm run typecheck` and `npm test` pass before opening a pull request.
 
 ## License
 
