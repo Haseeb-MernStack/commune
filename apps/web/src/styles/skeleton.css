@@ -34,7 +34,8 @@
 
 .sk-image {
     width: 100%;
-    aspect-ratio: 16 / 10;
+    aspect-ratio: 4 / 3;
+  max-height: 520px;
     border-radius: 12px;
     margin-top: 10px;
 }
@@ -49,23 +50,21 @@
     }
 }
 
-/* A skeleton post uses the real post layout (class "post post-head") so sizes match. */
-.sk-post .post-main {
-    display: grid;
-    gap: 10px;
-    min-width: 0;
+/* A skeleton post uses the real post layout (class "post ig-post") so sizes match. */
+/* A 44px box matching the real icon button, so the action row is the same height. */
+.sk-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
 }
 
 .sk-row {
     display: flex;
     align-items: center;
     gap: 12px;
-}
-
-.sk-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 4px;
 }
 
 .sk-stack {
