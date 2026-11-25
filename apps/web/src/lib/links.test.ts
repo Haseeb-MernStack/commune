@@ -89,9 +89,7 @@ describe("splitLinks", () => {
   });
 
   it("rejects hosts without a dot", () => {
-    expect(splitLinks("http://localhost")).toEqual([
-      { type: "text", value: "http://localhost" },
-    ]);
+    expect(splitLinks("http://localhost")).toEqual([{ type: "text", value: "http://localhost" }]);
   });
 
   it("rejects URLs over 2048 characters", () => {
