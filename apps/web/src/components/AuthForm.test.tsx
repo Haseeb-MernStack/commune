@@ -190,7 +190,7 @@ describe("AuthForm in register mode", () => {
     expect(screen.getByRole("link", { name: "Log in" })).toHaveAttribute("href", "/login");
   });
 
-  it("shows the consent line with working Terms and Privacy links", () => {
+  it("shows the password strength meter in register mode", async () => { const user = userEvent.setup(); renderForm("register", "/register"); expect(screen.queryByText(/Password strength:/)).not.toBeInTheDocument(); await user.type(ui.password(), "Correct-Horse9!"); expect(screen.getByText(/Password strength: Strong/)).toBeInTheDocument(); }); it("shows the consent line with working Terms and Privacy links", () => {
     renderForm("register", "/register");
     expect(screen.getByText(/you agree to the/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Terms" })).toHaveAttribute("href", "/terms");
