@@ -1,5 +1,5 @@
-import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { Suspense, lazy, useEffect } from "react";
+import { Link, Navigate, Route, Routes, useLocation, useNavigationType } from "react-router-dom";
+import { Suspense, lazy, useEffect, useLayoutEffect } from "react";
 import type { ReactNode } from "react";
 import { useAuth } from "./store/auth";
 import Header, { AUTH_PATHS } from "./components/Header";
@@ -68,6 +68,16 @@ const TITLES: Record<string, string> = {
 };
 
 /** Per-page browser title and canonical link, so tabs, history and search engines get real names. */
+/** A new page starts at the top; Back keeps the feed's saved position (see useFeedScrollRestoration). */
+function ScrollToTop() {
+  const { key } = useLocation();
+  const navigationType = useNavigationType();
+  useLayoutEffect(() => {
+    if (navigationType === "PUSH") window.scrollTo(0, 0);
+  }, [key, navigationType]);
+  return null;
+}
+
 function RouteMeta() {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -314,6 +324,7 @@ export default function App() {
     return (
       <>
         {skip}
+        <ScrollToTop />
         <RouteMeta />
         <PwaBanner />
         <CookieNotice />
@@ -333,7 +344,8 @@ export default function App() {
   return (
     <>
       {skip}
-      <RouteMeta />
+      <ScrollToTop />
+        <RouteMeta />
       <Header />
       <VerifyBanner />
       <BadgeSync />
