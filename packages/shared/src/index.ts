@@ -1,12 +1,17 @@
 import { z } from "zod";
 export * from "./links.js";
 
+/**
+ * Usernames are always lowercase (like @sam_dev, never @Sam_Dev). Capital letters that people type
+ * are lowered instead of rejected, so "Sam_Dev" becomes "sam_dev" rather than an error.
+ */
 export const usernameSchema = z
   .string()
   .trim()
+  .toLowerCase()
   .min(3)
   .max(24)
-  .regex(/^[a-zA-Z0-9_]+$/, "Letters, numbers and underscores only");
+  .regex(/^[a-z0-9_]+$/, "Lowercase letters, numbers and underscores only");
 
 export const registerSchema = z.object({
   username: usernameSchema,

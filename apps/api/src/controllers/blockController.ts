@@ -3,6 +3,7 @@ import type { BlockedUserDTO, BlockKind, SetBlockInput } from "@commune/shared";
 import { Block } from "../models/Block.js";
 import { Follow } from "../models/Follow.js";
 import { badRequest } from "../utils/errors.js";
+import { handle } from "../utils/serializers.js";
 import { findByUsername } from "./userController.js";
 
 /** PUT /users/:username/block  { kind: "mute" | "block" } */
@@ -48,7 +49,7 @@ export async function list(req: Request, res: Response) {
       ? [
           {
             id: r.blocked._id.toString(),
-            username: r.blocked.username,
+            username: handle(r.blocked.username),
             avatarUrl: r.blocked.avatarUrl ?? null,
             kind: r.kind,
             createdAt: r.createdAt.toISOString(),

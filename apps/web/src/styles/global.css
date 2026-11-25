@@ -2182,3 +2182,8 @@ body:has(.bottom-nav) .consent-bar {
     transition: none;
   }
 }
+
+/* A comment that is still being sent. */
+.comment-pending {
+  opacity: 0.6;
+}

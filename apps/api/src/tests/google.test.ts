@@ -114,7 +114,8 @@ describe("POST /api/auth/google: accounts", () => {
     const res = await post(idToken());
     expect(res.status).toBe(200);
     expect(res.body.accessToken).toBeTypeOf("string");
-    expect(res.body.user.username).toBe("SamRivers");
+    // An account saved before the lowercase rule is still shown in lowercase.
+    expect(res.body.user.username).toBe("samrivers");
     expect(create).not.toHaveBeenCalled();
     expect(res.headers["set-cookie"]?.[0]).toMatch(/commune_rt=/);
   });
@@ -130,7 +131,7 @@ describe("POST /api/auth/google: accounts", () => {
 
     const res = await post(idToken({ name: "Sam Rivers!" }));
     expect(res.status).toBe(200);
-    expect(doc.username).toBe("SamRivers");
+    expect(doc.username).toBe("samrivers");
     expect(doc.email).toBe("sam@example.com");
     expect(doc.googleId).toBe("google-sub-1");
     expect(doc.emailVerified).toBe(true);

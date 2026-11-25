@@ -7,7 +7,8 @@ import Avatar from "../components/Avatar";
 import PostCard, { timeAgo } from "../components/PostCard";
 import PlusBadge from "../components/PlusBadge";
 import { useTrackView } from "../hooks/useBilling";
-import { useAddComment, useComments, usePost } from "../hooks/usePosts";
+import { isPendingComment, useAddComment, useComments, usePost } from "../hooks/usePosts";
+import { useAuth } from "../store/auth";
 
 export default function PostPage() {
   const { id = "" } = useParams();
@@ -17,13 +18,25 @@ export default function PostPage() {
   const post = usePost(id, justPaid);
   useTrackView(id);
   const comments = useComments(id);
-  const add = useAddComment(id);
+  const { user } = useAuth();
+  const add = useAddComment(
+    id,
+    user
+      ? { id: user.id, username: user.username, avatarUrl: user.avatarUrl, plus: user.plus }
+      : null,
+  );
   const [content, setContent] = useState("");
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!content.trim()) return;
-    add.mutate(content, { onSuccess: () => setContent("") });
+    const sent = content;
+    // The comment shows in the list at once, so the box is cleared straight away.
+    setContent("");
+    add.mutate(sent, {
+      // Give the text back unless something new was typed meanwhile.
+      onError: () => setContent((now) => (now ? now : sent)),
+    });
   };
 
   return (
@@ -56,7 +69,11 @@ export default function PostPage() {
       </form>
 
       {comments.data?.map((c) => (
-        <div key={c.id} className="card comment post-head">
+        <div
+          key={c.id}
+          className={`card comment post-head${isPendingComment(c) ? " comment-pending" : ""}`}
+          aria-busy={isPendingComment(c) || undefined}
+        >
           <Avatar username={c.author.username} url={c.author.avatarUrl} size={32} />
           <div className="post-main">
             <div className="post-meta">
@@ -64,7 +81,9 @@ export default function PostPage() {
                 @{c.author.username}
               </Link>
               <PlusBadge plus={c.author.plus} />
-              <span className="muted">· {timeAgo(c.createdAt)}</span>
+              <span className="muted">
+                · {isPendingComment(c) ? "Sending…" : timeAgo(c.createdAt)}
+              </span>
             </div>
             <p className="post-body">
               <RichText text={c.content} />
