@@ -8,12 +8,13 @@
  */
 import mongoose from "mongoose";
 import { env } from "../config/env.js";
+import { logger } from "../config/logger.js";
 import { User } from "../models/User.js";
 
 async function main() {
   const email = process.argv[2]?.trim().toLowerCase();
   if (!email) {
-    console.error("Usage: npm run make-admin -w @commune/api -- you@example.com");
+    logger.error("Usage: npm run make-admin -w @commune/api -- you@example.com");
     process.exit(1);
   }
 
@@ -22,13 +23,13 @@ async function main() {
   await mongoose.disconnect();
 
   if (!user) {
-    console.error(`No user found with email ${email}. Register that account first.`);
+    logger.error(`No user found with email ${email}. Register that account first.`);
     process.exit(1);
   }
-  console.log(`@${user.username} is now an admin. Log out and back in to see the Admin link.`);
+  logger.info(`@${user.username} is now an admin. Log out and back in to see the Admin link.`);
 }
 
 main().catch((err) => {
-  console.error(err);
+  logger.error({ err }, "Failed to promote the user to admin");
   process.exit(1);
 });
