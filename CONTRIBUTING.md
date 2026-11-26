@@ -1,6 +1,7 @@
 # Contributing to Commune
 
 Thanks for helping out.
+New to open source? Start with the [first-contribution walkthrough](docs/FIRST_CONTRIBUTION.md).
 
 1. Fork the repo and create a branch: `git checkout -b feat/short-description`
 2. Use Node.js 22 (`nvm use` reads `.nvmrc`), then `npm install` and `npm run dev`
