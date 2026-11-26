@@ -84,6 +84,8 @@ export async function banUserByUsername(req: Request, res: Response) {
   await banUser(user._id.toString(), {
     removePosts: req.body.removePosts,
     adminId: req.userId,
+    reason: req.body.reason,
+    durationDays: req.body.durationDays,
   });
   res.status(204).end();
 }
