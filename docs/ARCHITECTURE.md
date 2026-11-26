@@ -51,6 +51,13 @@ Commune is an npm-workspaces monorepo with three packages:
 | POST   | /api/posts/:id/like       | yes  | Toggle like               |
 | GET    | /api/posts/:id/comments   | yes  | List comments             |
 | POST   | /api/posts/:id/comments   | yes  | Add comment               |
+### Trending posts
+
+`GET /api/public/posts/trending` returns the free posts from the last 24 hours, highest
+score first. The score is `(likeCount + 2 * commentCount) / (1 + ageInHours)`, so a comment
+counts twice as much as a like and older posts decay. Paid posts and posts from suspended
+accounts are excluded, `Post.createdAt` is indexed for the 24-hour window, and the
+response is cached for 60 seconds (`Cache-Control: public, max-age=60`).
 
 ## Data model
 
