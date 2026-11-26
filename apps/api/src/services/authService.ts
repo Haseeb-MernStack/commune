@@ -82,7 +82,7 @@ async function recordFailedLogin(userId: unknown) {
 }
 
 export async function login(input: LoginInput, res: Response, userAgent?: string) {
-  const user = await User.findOne({ email: input.email }).select(
+  const user = await User.findOne({ email: String(input.email) }).select(
     "+passwordHash +failedLogins +lockUntil",
   );
   const locked = Boolean(user?.lockUntil && user.lockUntil.getTime() > Date.now());
@@ -151,10 +151,9 @@ async function uniqueUsername(profile: GoogleProfile): Promise<string> {
 export async function loginWithGoogle(credential: string, res: Response, userAgent?: string) {
   if (!env.GOOGLE_CLIENT_ID) throw new AppError(503, "Google sign-in is not set up");
   const google = await verifyGoogleIdToken(credential);
-
   let user = await User.findOne({ googleId: google.sub });
   if (!user) {
-    const existing = await User.findOne({ email: google.email });
+    const existing = await User.findOne({ email: String(google.email) });
     if (existing) {
       existing.googleId = google.sub;
       if (!existing.emailVerified) {
