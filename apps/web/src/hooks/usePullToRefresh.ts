@@ -45,6 +45,7 @@ export function usePullToRefresh(onRefresh: () => Promise<unknown>) {
       if (refreshingRef.current || e.touches.length !== 1) return;
       if (window.scrollY > 0) return;
       const touch = e.touches[0];
+            if (!touch) return;
       startRef.current = { x: touch.clientX, y: touch.clientY };
     };
 
@@ -56,6 +57,7 @@ export function usePullToRefresh(onRefresh: () => Promise<unknown>) {
         return;
       }
       const touch = e.touches[0];
+            if (!touch) return;
       const dx = touch.clientX - start.x;
       const dy = touch.clientY - start.y;
       if (dy <= 0 || Math.abs(dx) > Math.abs(dy) || window.scrollY > 0) {
