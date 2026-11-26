@@ -19,6 +19,7 @@ import { assetUrl } from "../lib/api";
 import { showToast } from "../lib/toast";
 import Avatar from "./Avatar";
 import Icon from "./Icon";
+import ImageViewer from "./ImageViewer";
 import PlusBadge from "./PlusBadge";
 import { hueFor } from "../lib/hue";
 import { timeAgo } from "../lib/time";
@@ -53,6 +54,7 @@ export default function PostCard({
   const [heart, setHeart] = useState(false);
   const [heartKey, setHeartKey] = useState(0);
   const [expanded, setExpanded] = useState(false);
+    const [viewerOpen, setViewerOpen] = useState(false);
   const preview = useMemo(() => previewText(post.content), [post.content]);
   const collapsed = !fullText && preview.truncated && !expanded;
   useEffect(() => {
@@ -117,10 +119,10 @@ export default function PostCard({
     if (!post.likedByMe && !like.isPending) like.mutate(post.id);
   };
   const onTextTap = useDoubleTap(showHeart);
-  // A plain click on the image still opens it in a new tab, but only after the short wait that
+  // A plain click on the image opens the full-screen viewer, but only after the short wait that
   // tells one tap from two. Clicks with Ctrl, Cmd or Shift are left to the browser.
   const onImageTap = useDoubleTap(showHeart, () => {
-    if (post.imageUrl) window.open(assetUrl(post.imageUrl), "_blank", "noopener,noreferrer");
+    if (post.imageUrl) setViewerOpen(true);
   });
   const menuItems: MenuItem[] = [
     { key: "copy", label: "Copy link", icon: "link", onSelect: () => void copyLink() },
@@ -311,6 +313,7 @@ export default function PostCard({
           href={assetUrl(post.imageUrl)}
           target="_blank"
           rel="noopener noreferrer"
+                    aria-haspopup="dialog"
           onClick={onImageTap}
         >
           <img
@@ -322,6 +325,14 @@ export default function PostCard({
           />
         </a>
       )}
+      {post.imageUrl && (
+              <ImageViewer
+                          src={assetUrl(post.imageUrl)}
+                          alt={`Image posted by @${post.author.username}`}
+                          open={viewerOpen}
+                          onClose={() => setViewerOpen(false)}
+                        />
+            )}
       {post.locked && post.priceCents != null && (
         <div className="paywall">
           <p>
