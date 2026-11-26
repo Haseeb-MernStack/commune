@@ -1,5 +1,6 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type {
+  BanUserInput,
   CreateReportInput,
   Page,
   ReportDTO,
@@ -55,10 +56,10 @@ export function useResolveReport() {
 export function useBanUser(username: string) {
   const refresh = useRefreshAfterModeration();
   return useMutation({
-    mutationFn: (removePosts: boolean) =>
+    mutationFn: (input: BanUserInput) =>
       api<void>(`/admin/users/${encodeURIComponent(username)}/ban`, {
         method: "POST",
-        body: { removePosts },
+        body: input,
       }),
     onSuccess: refresh,
   });
