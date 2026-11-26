@@ -36,14 +36,25 @@ export async function removePost(postId: string, resolvedBy?: string): Promise<v
  * Suspends an account. Deleting their refresh tokens ends every session: they cannot get a new
  * access token, and requireActive blocks any write with the one they already hold.
  */
-export async function banUser(
-  userId: string,
-  options: { removePosts: boolean; adminId?: string },
-): Promise<void> {
-  await User.updateOne({ _id: userId }, { $set: { banned: true } });
+/** What an admin chooses when suspending an account. */
+export interface BanOptions {
+  removePosts: boolean;
+  adminId?: string;
+  /** Why the account is suspended, shown to the person at sign-in. */
+  reason?: string;
+  /** Whole days until the ban ends; null (or omitted) means permanent. */
+  durationDays?: number | null;
+}
+
+export async function banUser(userId: string, options: BanOptions): Promise<void> {
+  let bannedUntil: Date | null = null;
+  if (options.durationDays) {
+    bannedUntil = new Date(Date.now() + options.durationDays * 24 * 60 * 60 * 1000);
+  }
+  const banReason = options.reason?.trim() || null;
+  await User.updateOne({ _id: userId }, { $set: { banned: true, bannedUntil, banReason } });
   await RefreshToken.deleteMany({ user: userId });
   await disconnectUser(userId); // end live connections now
-
   if (options.removePosts) {
     const posts = await Post.find({ author: userId }).select("_id").lean();
     for (const post of posts) {
@@ -53,5 +64,8 @@ export async function banUser(
 }
 
 export async function unbanUser(userId: string): Promise<void> {
-  await User.updateOne({ _id: userId }, { $set: { banned: false } });
+  await User.updateOne(
+    { _id: userId },
+    { $set: { banned: false, bannedUntil: null, banReason: null } },
+  );
 }

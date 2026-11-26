@@ -1,5 +1,6 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type {
+  BanUserInput,
   CreateReportInput,
   Page,
   ReportDTO,
@@ -46,8 +47,8 @@ export function useDismissReport() {
 export function useResolveReport() {
   const refresh = useRefreshAfterModeration();
   return useMutation({
-    mutationFn: ({ id, action }: { id: string } & ResolveReportInput) =>
-      api<void>(`/admin/reports/${id}/resolve`, { method: "POST", body: { action } }),
+    mutationFn: ({ id, ...input }: { id: string } & ResolveReportInput) =>
+      api<void>(`/admin/reports/${id}/resolve`, { method: "POST", body: input }),
     onSuccess: refresh,
   });
 }
@@ -55,10 +56,10 @@ export function useResolveReport() {
 export function useBanUser(username: string) {
   const refresh = useRefreshAfterModeration();
   return useMutation({
-    mutationFn: (removePosts: boolean) =>
+    mutationFn: (input: BanUserInput) =>
       api<void>(`/admin/users/${encodeURIComponent(username)}/ban`, {
         method: "POST",
-        body: { removePosts },
+        body: input,
       }),
     onSuccess: refresh,
   });

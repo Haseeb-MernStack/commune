@@ -155,10 +155,14 @@ export const createReportSchema = z.object({
 
 export const resolveReportSchema = z.object({
   action: z.enum(["remove_post", "remove_post_and_ban"]),
+  reason: z.string().trim().max(200).optional(),
+  durationDays: z.number().int().min(1).max(365).nullable().optional(),
 });
 
 export const banUserSchema = z.object({
   removePosts: z.boolean().default(false),
+  reason: z.string().trim().max(200).optional(),
+  durationDays: z.number().int().min(1).max(365).nullable().optional(),
 });
 
 /** Deleting an account: type the username to confirm, and the password if the account has one. */
