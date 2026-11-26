@@ -9,6 +9,7 @@ import { AppError, conflict, forbidden, unauthorized } from "../utils/errors.js"
 import { toPublicUser } from "../utils/serializers.js";
 import { verifyGoogleIdToken, type GoogleProfile } from "./googleAuth.js";
 import { sendVerificationEmailInBackground } from "./accountService.js";
+import { notifyNewDeviceInBackground } from "/./deviceService.js";
 import { generateRefreshToken, hashToken, signAccessToken } from "../utils/tokens.js";
 
 export const REFRESH_COOKIE = "commune_rt";
@@ -80,7 +81,7 @@ async function recordFailedLogin(userId: unknown) {
   }
 }
 
-export async function login(input: LoginInput, res: Response) {
+export async function login(input: LoginInput, res: Response, userAgent?: string) {
   const user = await User.findOne({ email: input.email }).select(
     "+passwordHash +failedLogins +lockUntil",
   );
@@ -98,6 +99,7 @@ export async function login(input: LoginInput, res: Response) {
   }
   // Checked after the password so the message can't be used to discover which emails exist.
   if (user.banned) throw forbidden("This account has been suspended");
+  notifyNewDeviceInBackground(user, userAgent);
   return issueSession(res, user);
 }
 
@@ -146,7 +148,7 @@ async function uniqueUsername(profile: GoogleProfile): Promise<string> {
 }
 
 /** Sign in, or sign up, with a Google ID token. */
-export async function loginWithGoogle(credential: string, res: Response) {
+export async function loginWithGoogle(credential: string, res: Response, userAgent?: string) {
   if (!env.GOOGLE_CLIENT_ID) throw new AppError(503, "Google sign-in is not set up");
   const google = await verifyGoogleIdToken(credential);
 
@@ -176,5 +178,6 @@ export async function loginWithGoogle(credential: string, res: Response) {
     }
   }
   if (user.banned) throw forbidden("This account has been suspended");
+  notifyNewDeviceInBackground(user, userAgent);
   return issueSession(res, user);
 }
