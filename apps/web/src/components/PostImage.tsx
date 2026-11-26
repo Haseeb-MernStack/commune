@@ -17,11 +17,7 @@ export default function PostImage({
   const width = post.imageWidth ?? undefined;
   const height = post.imageHeight ?? undefined;
   const sized = Boolean(width && height);
-  const className = [
-    "post-image",
-    sized ? "" : "post-image-unsized",
-    loaded ? "is-loaded" : "",
-  ]
+  const className = ["post-image", sized ? "" : "post-image-unsized", loaded ? "is-loaded" : ""]
     .filter(Boolean)
     .join(" ");
 
