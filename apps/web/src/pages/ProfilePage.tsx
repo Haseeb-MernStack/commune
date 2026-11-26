@@ -238,7 +238,11 @@ export default function ProfilePage() {
             Also delete all of their posts
           </label>
           <span className="row">
-            <button type="button" className="btn btn-ghost" onClick={() => setSuspending(false)}>
+            <button
+                type="button"
+              className="btn btn-ghost"
+              onClick={() => setSuspending(false)}
+                >
               Cancel
             </button>
             <button className="btn btn-danger" disabled={ban.isPending}>
