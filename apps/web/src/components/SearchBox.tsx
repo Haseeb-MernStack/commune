@@ -107,7 +107,8 @@ export default function SearchBox() {
     }
   };
 
-  const status = open && total > 0 ? `${total} suggestion${total === 1 ? "" : "s"}` : "";
+  const plural = total === 1 ? "" : "s";
+  const status = open && total > 0 ? `${total} suggestion${plural}` : "";
 
   return (
     <form
@@ -133,12 +134,7 @@ export default function SearchBox() {
         maxLength={50}
       />
       {open && total > 0 && (
-        <ul
-          className="suggestions"
-          id={LISTBOX_ID}
-          role="listbox"
-          aria-label="Search suggestions"
-        >
+        <ul className="suggestions" id={LISTBOX_ID} role="listbox" aria-label="Search suggestions">
           {users.map((u, i) => (
             <li
               key={u.id}
