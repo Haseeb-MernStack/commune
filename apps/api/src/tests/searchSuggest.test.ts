@@ -54,7 +54,7 @@ describe("GET /search/suggest", () => {
     vi.mocked(Purchase.find).mockReturnValue(queryChain([]) as never);
 
     const res = await request(createApp())
-      .get("/search/suggest?q=sa")
+      .get("/api/search/suggest?q=sa")
       .set("Authorization", `Bearer ${token}`);
     expect(res.status).toBe(200);
     expect(res.body.users).toHaveLength(1);
@@ -75,7 +75,7 @@ describe("GET /search/suggest", () => {
 
   it("rejects queries shorter than 2 characters", async () => {
     const res = await request(createApp())
-      .get("/search/suggest?q=a")
+      .get("/api/search/suggest?q=a")
       .set("Authorization", `Bearer ${token}`);
     expect(res.status).toBe(400);
   });
