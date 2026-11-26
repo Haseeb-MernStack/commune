@@ -176,6 +176,12 @@ router.get(
   validate(paginationSchema, "query"),
   asyncHandler(publicApi.listPosts),
 );
+router.get(
+  "/public/posts/trending",
+  publicLimiter,
+  validate(paginationSchema, "query"),
+  asyncHandler(publicApi.listTrendingPosts),
+);
 
 // Link previews for chat apps and social sites (the web host sends bots here).
 router.get("/share/post/:id", publicLimiter, asyncHandler(share.postPreview));
