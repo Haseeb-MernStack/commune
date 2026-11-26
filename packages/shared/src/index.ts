@@ -154,6 +154,8 @@ export const resolveReportSchema = z.object({
 
 export const banUserSchema = z.object({
   removePosts: z.boolean().default(false),
+  reason: z.string().trim().max(200).optional(),
+  durationDays: z.number().int().min(1).max(365).nullable().optional(),
 });
 
 /** Deleting an account: type the username to confirm, and the password if the account has one. */
