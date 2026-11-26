@@ -119,8 +119,10 @@ export const createCommentSchema = z.object({
   content: z.string().trim().min(1).max(300),
 });
 
+/** Longest bio a person may write. */
+export const BIO_MAX_LENGTH = 160;
 export const updateProfileSchema = z.object({
-  bio: z.string().trim().max(160).optional(),
+  bio: z.string().trim().max(BIO_MAX_LENGTH).optional(),
   avatarUrl: uploadUrlSchema.nullable().optional(),
 });
 
