@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { FREE_POST_LENGTH, PLUS_POST_LENGTH, type PostDTO } from "@commune/shared";
@@ -22,6 +22,7 @@ import Icon from "./Icon";
 import PlusBadge from "./PlusBadge";
 import { hueFor } from "../lib/hue";
 import { timeAgo } from "../lib/time";
+import { previewText } from "../lib/preview";
 import { tap } from "../lib/haptics";
 import PostMenu, { type MenuItem } from "./PostMenu";
 import ReportForm from "./ReportForm";
@@ -51,21 +52,12 @@ export default function PostCard({
   const [popped, setPopped] = useState<"like" | "save" | null>(null);
   const [heart, setHeart] = useState(false);
   const [heartKey, setHeartKey] = useState(0);
-  const bodyRef = useRef<HTMLParagraphElement | null>(null);
   const [expanded, setExpanded] = useState(false);
-  const [overflows, setOverflows] = useState(false);
+  const preview = useMemo(() => previewText(post.content), [post.content]);
+  const collapsed = !fullText && preview.truncated && !expanded;
   useEffect(() => {
     setExpanded(false);
   }, [post.content]);
-  useEffect(() => {
-    if (fullText || expanded || editing) return;
-    const el = bodyRef.current;
-    if (!el) return;
-    const check = () => setOverflows(el.scrollHeight > el.clientHeight);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, [fullText, expanded, post.content, editing]);
 
   const mine = user?.id === post.author.id;
   const isAdmin = user?.role === "admin";
@@ -275,24 +267,44 @@ export default function PostCard({
         </div>
       ) : (
         post.content && (
-          <p
-            ref={bodyRef}
-            className={!fullText && !expanded ? "post-body clamped" : "post-body"}
-            onClick={onTextTap}
-          >
-            <RichText text={post.content} highlight={highlight} />
+          <p className="post-body" onClick={onTextTap}>
+            <RichText text={collapsed ? preview.text : post.content} highlight={highlight} />
+            {collapsed && (
+              <>
+                {"… "}
+                <button
+                  type="button"
+                  className="more-btn"
+                  aria-expanded={false}
+                  aria-label="Show more of this post"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExpanded(true);
+                  }}
+                >
+                  more
+                </button>
+              </>
+            )}
+            {!fullText && preview.truncated && expanded && (
+              <>
+                {" "}
+                <button
+                  type="button"
+                  className="more-btn"
+                  aria-expanded
+                  aria-label="Show less of this post"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExpanded(false);
+                  }}
+                >
+                  less
+                </button>
+              </>
+            )}
           </p>
         )
-      )}
-      {!editing && post.content && !fullText && overflows && (
-        <button
-          type="button"
-          className="link-btn"
-          aria-expanded={expanded}
-          onClick={() => setExpanded((value) => !value)}
-        >
-          {expanded ? "Show less" : "Show more"}
-        </button>
       )}
       {post.imageUrl && (
         <a
