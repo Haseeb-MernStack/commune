@@ -91,7 +91,7 @@ function ReportItem({ report, actionable }: { report: ReportDTO; actionable: boo
                 Remove post
               </button>
               <input
-              type="number"
+                type="number"
                 value={banDuration}
                 onChange={(e) => setBanDuration(e.target.value)}
                 min={1}
@@ -100,7 +100,7 @@ function ReportItem({ report, actionable }: { report: ReportDTO; actionable: boo
                 aria-label="Ban duration in days"
               />
               <input
-              type="checkbox"
+                type="checkbox"
                 checked={banDuration === "permanent"}
                 onChange={(e) => setBanDuration(e.target.checked ? "permanent" : "7")}
                 disabled={busy}
@@ -108,7 +108,7 @@ function ReportItem({ report, actionable }: { report: ReportDTO; actionable: boo
               />
               Permanent
               <input
-              type="text"
+                type="text"
                 value={banReason}
                 onChange={(e) => setBanReason(e.target.value)}
                 placeholder="Ban reason (optional)"
