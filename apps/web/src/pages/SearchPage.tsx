@@ -4,6 +4,7 @@ import PlusBadge from "../components/PlusBadge";
 import SearchBox from "../components/SearchBox";
 import PostList from "../components/PostList";
 import { useSearchPosts, useSearchUsers } from "../hooks/useSearch";
+import { highlightText } from "../lib/highlight";
 
 type Tab = "people" | "posts";
 
@@ -55,8 +56,8 @@ export default function SearchPage() {
             <Link key={u.id} to={`/u/${u.username}`} className="card person">
               <Avatar username={u.username} url={u.avatarUrl} size={44} />
               <div>
-                <strong>@{u.username}</strong> <PlusBadge plus={u.plus} />
-                {u.bio && <p className="muted">{u.bio}</p>}
+                <strong>@{highlightText(u.username, q)}</strong> <PlusBadge plus={u.plus} />
+                {u.bio && <p className="muted">{highlightText(u.bio, q)}</p>}
               </div>
             </Link>
           ))}
@@ -72,7 +73,9 @@ export default function SearchPage() {
         </>
       )}
 
-      {tab === "posts" && <PostList query={posts} emptyMessage="No posts match those words." />}
+      {tab === "posts" && (
+        <PostList query={posts} emptyMessage="No posts match those words." highlight={q} />
+      )}
     </>
   );
 }

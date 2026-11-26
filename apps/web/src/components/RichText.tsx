@@ -1,17 +1,18 @@
 import { memo } from "react";
 import { splitLinks } from "@commune/shared";
+import { highlightText } from "../lib/highlight";
 
 /**
  * Plain user text with web links turned into real links. Everything else stays text, so nothing a
  * person types can become markup. Links open in a new tab (or the in-app browser sheet when Commune
  * is installed on a phone) and never pass our address on to the other site.
  */
-function RichText({ text }: { text: string }) {
+function RichText({ text, highlight }: { text: string; highlight?: string }) {
   return (
     <>
       {splitLinks(text).map((part, i) =>
         part.type === "text" ? (
-          part.value
+          highlightText(part.value, highlight ?? "")
         ) : (
           <a
             key={i}
@@ -23,7 +24,7 @@ function RichText({ text }: { text: string }) {
             // The post card and comments sit inside clickable areas; a link click is only a link click.
             onClick={(e) => e.stopPropagation()}
           >
-            {part.label}
+            {highlightText(part.label, highlight ?? "")}
           </a>
         ),
       )}

@@ -56,6 +56,16 @@ body {
   color: var(--text);
 }
 
+mark {
+  background: #fde68a;
+  color: #1f2937;
+}
+
+:root[data-theme="dark"] mark {
+  background: #92400e;
+  color: #fef3c7;
+}
+
 ::selection {
   background: var(--gold);
   color: var(--gold-ink);
