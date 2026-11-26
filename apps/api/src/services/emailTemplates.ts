@@ -36,3 +36,20 @@ export function resetPasswordMail(to: string, username: string, link: string): M
   );
   return { to, subject: "Reset your Commune password", text, html };
 }
+
+export function newDeviceMail(
+  to: string,
+  username: string,
+  device: string,
+  time: string,
+  link: string,
+): Mail {
+  const { html, text } = layout(
+    "New sign-in to your account",
+    `Hi ${username}, someone signed in to your Commune account from ${device} on ${time}.`,
+    "Change your password",
+    link,
+    "If this wasn't you, change your password now to keep your account safe.",
+  );
+  return { to, subject: "New sign-in to your Commune account", text, html };
+}
