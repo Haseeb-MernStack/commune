@@ -350,6 +350,7 @@ See `apps/api/src/routes/index.ts` for the full list.
 | [Content Security Policy](docs/CSP.md) | Report-only CSP rollout |
 | [Backups](docs/BACKUPS.md) | Database backups |
 | [Development](docs/DEVELOPMENT.md) | Working on the code |
+| [First contribution](docs/FIRST_CONTRIBUTION.md) | Your first pull request, step by step. |
 | [Testing](docs/TESTING.md) | How to run unit, component and end-to-end tests, and what CI checks |
 
 ## Community
@@ -360,7 +361,7 @@ Contributors and users hang out on Discord. Come say hello, ask questions, share
 
 ## Contributing
 
-Contributions are welcome, and there are plenty of labelled beginner-friendly and frontend issues to pick from. Read [CONTRIBUTING.md](CONTRIBUTING.md), say hi on [Discord](https://discord.gg/qk2gfMaAf), open an issue to discuss larger changes, and make sure `npm run typecheck` and `npm test` pass before opening a pull request.
+Contributions are welcome, and there are plenty of labelled beginner-friendly and frontend issues to pick from. Read [CONTRIBUTING.md](CONTRIBUTING.md), say hi on [Discord](https://discord.gg/qk2gfMaAf), open an issue to discuss larger changes, and make sure `npm run typecheck` and `npm test` pass before opening a pull request. New to open source? Start with the [first-contribution walkthrough](docs/FIRST_CONTRIBUTION.md).
 
 ## License
 
