@@ -168,10 +168,7 @@ describe("feeds, search and notifications hide muted and blocked people", () => 
     await call(app, "get", "/api/search/users?q=sa", token);
     expect(find).toHaveBeenCalledWith({
       username: { $regex: "^sa", $options: "i" },
-      $or: [
-        { banned: { $ne: true } },
-        { bannedUntil: { $ne: null, $lte: expect.any(Date) } },
-    ],
+      $or: [{ banned: { $ne: true } }, { bannedUntil: { $ne: null, $lte: expect.any(Date) } }],
       _id: { $nin: [OTHER] },
     });
   });
