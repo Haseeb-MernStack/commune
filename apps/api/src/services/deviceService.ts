@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { env } from "../config/env.js";
 import { User, type UserDoc } from "../models/User.js";
 import { logger } from "../utils/logger.js";
-import { QuotaError } from "../utils/errors.js";
+import { QuotaError } from "./quota.js";
 import { newDeviceMail } from "./emailTemplates.js";
 import { reserveMail } from "./mailQuota.js";
 import { sendMail } from "./mailService.js";
