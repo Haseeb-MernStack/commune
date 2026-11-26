@@ -22,9 +22,6 @@ export function trendingScore(post: TrendingPostInput, now: Date = new Date()): 
 }
 
 /** The given posts ordered by score, highest first. The input is not changed. */
-export function sortTrending<T extends TrendingPostInput>(
-  posts: T[],
-  now: Date = new Date(),
-): T[] {
+export function sortTrending<T extends TrendingPostInput>(posts: T[], now: Date = new Date()): T[] {
   return [...posts].sort((a, b) => trendingScore(b, now) - trendingScore(a, now));
 }
