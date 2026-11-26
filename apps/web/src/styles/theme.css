@@ -49,8 +49,16 @@
   --danger: #ff7a6e;
 }
 
+/* Text size: scales everything sized in rem. data-text-size is set before first paint. */
+:root[data-text-size="small"] {
+  font-size: 93%;
+}
+:root[data-text-size="large"] {
+  font-size: 112%;
+}
+
 body {
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.5;
   background: var(--bg);
   color: var(--text);
@@ -359,7 +367,7 @@ h3,
 
 .post-body {
   margin: 4px 0 10px;
-  font-size: 15.5px;
+  font-size: 0.96875rem;
   line-height: 1.55;
 }
 
@@ -458,7 +466,7 @@ h3,
   border: 0;
   border-radius: 0;
   background: transparent;
-  font-size: 17px;
+  font-size: 1.0625rem;
   resize: none;
   box-shadow: none;
 }
@@ -2001,7 +2009,7 @@ h3,
   align-items: baseline;
   gap: 2px 12px;
   margin: -4px 0 0;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 .ig-stats a:hover {
@@ -2044,7 +2052,7 @@ h3,
   background: transparent;
   color: var(--text);
   font: inherit;
-  font-size: 15px;
+  font-size: 0.9375rem;
   text-align: left;
   cursor: pointer;
 }
@@ -2108,7 +2116,7 @@ h3,
 
   .menu-item {
     min-height: 52px;
-    font-size: 16px;
+    font-size: 0.9375rem;
   }
 }
 
