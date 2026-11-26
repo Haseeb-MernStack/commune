@@ -1815,6 +1815,11 @@ main:focus {
 .at-limit {
   color: var(--danger, #c0392b);
 }
+
+/* The bio character counter sits at the right end of the edit footer. */
+.bio-count {
+  margin-left: auto;
+}
 .post-edited {
   font-size: 0.85em;
   white-space: nowrap;
