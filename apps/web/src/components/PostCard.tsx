@@ -20,6 +20,7 @@ import { showToast } from "../lib/toast";
 import Avatar from "./Avatar";
 import Icon from "./Icon";
 import PlusBadge from "./PlusBadge";
+import PostImage from "./PostImage";
 import { hueFor } from "../lib/hue";
 import { timeAgo } from "../lib/time";
 import { previewText } from "../lib/preview";
@@ -313,13 +314,7 @@ export default function PostCard({
           rel="noopener noreferrer"
           onClick={onImageTap}
         >
-          <img
-            className="post-image"
-            src={assetUrl(post.imageUrl)}
-            alt={`Image posted by @${post.author.username}`}
-            loading="lazy"
-            decoding="async"
-          />
+          <PostImage post={post} />
         </a>
       )}
       {post.locked && post.priceCents != null && (
