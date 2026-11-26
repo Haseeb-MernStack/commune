@@ -625,6 +625,7 @@ a {
 /* ---- Search ---- */
 .search-box {
   flex: 1;
+  position: relative;
   max-width: 320px;
   margin: 0 12px;
 }
@@ -685,6 +686,56 @@ a {
     max-width: 140px;
     margin: 0 6px;
   }
+}
+
+/* ---- Search suggestions ---- */
+.suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+.suggestion {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.suggestion.active {
+  background: var(--surface-2);
+}
+.suggestion img {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.suggestion .suggestion-kind {
+  color: var(--muted);
+  font-size: 12px;
+}
+.suggestion .suggestion-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 /* ---- Installed app (PWA) ---- */
