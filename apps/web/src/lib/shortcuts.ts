@@ -25,10 +25,7 @@ export function isTypingTarget(target: EventTarget | null): boolean {
  * the user is typing, while a modifier key is held, or while a modal dialog
  * is open.
  */
-export function handleShortcutKey(
-  e: KeyboardEvent,
-  actions: Record<string, () => void>,
-): boolean {
+export function handleShortcutKey(e: KeyboardEvent, actions: Record<string, () => void>): boolean {
   if (e.ctrlKey || e.metaKey || e.altKey) return false;
   if (isTypingTarget(e.target)) return false;
   if (document.querySelector("dialog[open]")) return false;

@@ -6,13 +6,7 @@ import { SHORTCUTS } from "../lib/shortcuts";
  * Uses the native <dialog>, which traps focus while open. Focus returns to
  * the element that opened the dialog when it closes.
  */
-export default function ShortcutsDialog({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
+export default function ShortcutsDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const dialogRef = useRef<HTMLDialogElement | null>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
 
