@@ -1,5 +1,5 @@
 import RichText from "../components/RichText";
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 import { Link } from "react-router-dom";
 import Avatar from "../components/Avatar";
 import Icon from "../components/Icon";
@@ -8,7 +8,7 @@ import AdSlot, { FEED_AD_SLOT } from "../components/AdSlot";
 import { timeAgo } from "../lib/time";
 import { PostListSkeleton } from "../components/Skeleton";
 import { useLoadMoreOnVisible } from "../hooks/useInfiniteScroll";
-import { usePublicPosts } from "../hooks/usePublic";
+import { usePublicPosts, useTrendingPosts } from "../hooks/usePublic";
 import { assetUrl } from "../lib/api";
 import { useAuth } from "../store/auth";
 
@@ -22,7 +22,10 @@ const AD_EVERY = 5;
  */
 export default function ExplorePage() {
   const { user } = useAuth();
-  const query = usePublicPosts();
+  const [tab, setTab] = useState<"latest" | "trending">("latest");
+  const latest = usePublicPosts();
+  const trending = useTrendingPosts(tab === "trending");
+  const query = tab === "trending" ? trending : latest;
   const posts = query.data?.pages.flatMap((p) => p.items) ?? [];
   const { hasNextPage, isFetchingNextPage, isError, fetchNextPage } = query;
   const sentinel = useLoadMoreOnVisible(
@@ -51,13 +54,35 @@ export default function ExplorePage() {
           </div>
         )}
       </section>
-
+      <div className="tabs" role="tablist" aria-label="Explore posts">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === "latest"}
+          className={tab === "latest" ? "active" : ""}
+          onClick={() => setTab("latest")}
+        >
+          Latest
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === "trending"}
+          className={tab === "trending" ? "active" : ""}
+          onClick={() => setTab("trending")}
+        >
+          Trending
+        </button>
+      </div>
       {query.isLoading && <PostListSkeleton />}
       {query.isError && <p className="error center">{query.error.message}</p>}
       {query.isSuccess && posts.length === 0 && (
-        <p className="muted center">Nothing here yet. Be the first to post!</p>
+        <p className="muted center">
+          {tab === "trending"
+            ? "Nothing trending in the last day yet."
+            : "Nothing here yet. Be the first to post!"}
+        </p>
       )}
-
       {posts.map((post, i) => (
         <Fragment key={post.id}>
           <article className="card post post-head">
@@ -97,7 +122,6 @@ export default function ExplorePage() {
           {(i + 1) % AD_EVERY === 0 && <AdSlot slot={FEED_AD_SLOT} />}
         </Fragment>
       ))}
-
       {isFetchingNextPage && <PostListSkeleton count={1} />}
       {query.hasNextPage && <div ref={sentinel} aria-hidden="true" />}
       {query.hasNextPage && !isFetchingNextPage && (
