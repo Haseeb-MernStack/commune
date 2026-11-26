@@ -3,6 +3,7 @@ import AccountData from "../components/AccountData";
 import PrivacySettings from "../components/PrivacySettings";
 import BlockedUsers from "../components/BlockedUsers";
 import ThemeSettings from "../components/ThemeSettings";
+import TextSizeSettings from "../components/TextSizeSettings";
 
 export default function SettingsPage() {
   return (
@@ -13,6 +14,7 @@ export default function SettingsPage() {
         page.
       </p>
       <ThemeSettings />
+      <TextSizeSettings />
       <BlockedUsers />
       <PrivacySettings />
       <AccountData />

@@ -13,6 +13,14 @@
   background: var(--bg);
 }
 
+/* Text size: scales everything sized in rem. data-text-size is set before first paint. */
+:root[data-text-size="small"] {
+  font-size: 93%;
+}
+:root[data-text-size="large"] {
+  font-size: 112%;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #141412;
@@ -1144,7 +1152,7 @@ video {
   input,
   textarea,
   select {
-    font-size: 16px !important;
+    font-size: max(16px, 1rem) !important;
   }
 
   .header {

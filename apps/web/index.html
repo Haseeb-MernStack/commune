@@ -5,6 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
     <!--
+      Apply the saved text size before first paint, so there is no flash. Reads "commune_text_size"
+      from localStorage and sets data-text-size on <html>. Mirrors src/lib/textSize.ts; keep the
+      two in sync.
+    -->
+    <script>
+      (function () {
+        try {
+          var size = localStorage.getItem("commune_text_size");
+          document.documentElement.dataset.textSize =
+            size === "small" || size === "large" ? size : "default";
+        } catch (e) {}
+      })();
+    </script>
+
+    <!--
       Must stay the first script: moves a reset or confirmation token out of the address bar
       before analytics or ads can read the URL. See src/lib/linkToken.ts.
     -->
@@ -207,7 +222,10 @@
           var path = location.pathname;
           start("/news?topic=top", "/api/news?topic=top");
           if (hint !== "0")
-            start("/auth/refresh", "/api/auth/refresh", { method: "POST", credentials: "include" });
+            start("/auth/refresh", "/api/auth/refresh", {
+              method: "POST",
+              credentials: "include",
+            });
           else if (path === "/" || path === "/explore") start("/public/posts", "/api/public/posts");
         } catch (e) {}
       })();
