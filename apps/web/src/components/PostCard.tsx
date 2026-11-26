@@ -313,7 +313,7 @@ export default function PostCard({
           href={assetUrl(post.imageUrl)}
           target="_blank"
           rel="noopener noreferrer"
-                    aria-haspopup="dialog"
+          aria-haspopup="dialog"
           onClick={onImageTap}
         >
           <img
@@ -327,7 +327,7 @@ export default function PostCard({
       )}
       {post.imageUrl && (
               <ImageViewer
-                          src={assetUrl(post.imageUrl)}
+                          src={assetUrl(post.imageUrl) ?? ""}
                           alt={`Image posted by @${post.author.username}`}
                           open={viewerOpen}
                           onClose={() => setViewerOpen(false)}
