@@ -263,6 +263,26 @@ describe("AuthForm in register mode", () => {
     expect(h.register).toHaveBeenCalledWith(expect.objectContaining({ username: "sam_dev" }));
   });
 
+  it("shows live password strength feedback while typing without blocking valid server passwords", async () => {
+    h.register.mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    renderForm("register", "/register");
+
+    await user.type(ui.username(), "sam_dev");
+    await user.type(ui.email(), "sam@example.com");
+    await user.type(ui.password(), "plainwords");
+    expect(screen.getByText(/Password strength:/i).closest("[aria-live='polite']")).toBeTruthy();
+    expect(screen.getByText("Weak")).toBeInTheDocument();
+
+    // Still allows submitting a server-valid >= 8 char weak password.
+    await user.click(ui.submit("Create account"));
+    expect(h.register).toHaveBeenCalledWith({
+      username: "sam_dev",
+      email: "sam@example.com",
+      password: "plainwords",
+    });
+  });
+
   it("announces a server error such as a taken username", async () => {
     h.register.mockRejectedValue(new Error("Email or username is already taken"));
     const user = userEvent.setup();
