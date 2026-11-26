@@ -9,8 +9,7 @@ let vibrate = vi.fn();
 beforeEach(() => {
   prefersReducedMotion = false;
   vibrate = vi.fn();
-  window.matchMedia = () =>
-    ({ matches: prefersReducedMotion }) as unknown as MediaQueryList;
+  window.matchMedia = () => ({ matches: prefersReducedMotion }) as unknown as MediaQueryList;
   vi.stubGlobal("navigator", { vibrate });
 });
 
