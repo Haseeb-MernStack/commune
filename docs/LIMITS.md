@@ -19,7 +19,7 @@ Limits that protect the money, the inboxes and the storage behind Commune from b
 | All verification and reset emails | whole site | `EMAIL_DAILY_LIMIT` a day (default 100) |
 | Contact form | visitor (IP) | 5 a day (a message over the limit is not stored) |
 | Contact form | whole site | 30 a day |
-| Error alert emails to the owner | whole site | 5 an hour |
+| Error alert emails to the owner and new-device sign-in notices | whole site | 5 an hour |
 | Image uploads (Cloudinary) | account | 20 an hour, 60 a day |
 | Profile photo change or removal | account | 3 in any 24 hours |
 | Editing posts | account | 30 an hour, 100 a day |
