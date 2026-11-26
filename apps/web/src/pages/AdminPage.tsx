@@ -18,6 +18,8 @@ const TABS: Array<{ id: ReportStatus; label: string }> = [
 function ReportItem({ report, actionable }: { report: ReportDTO; actionable: boolean }) {
   const dismiss = useDismissReport();
   const resolve = useResolveReport();
+  const [banDuration, setBanDuration] = useState("7");
+  const [banReason, setBanReason] = useState("");
   const busy = dismiss.isPending || resolve.isPending;
   const error = dismiss.error ?? resolve.error;
 
@@ -31,7 +33,7 @@ function ReportItem({ report, actionable }: { report: ReportDTO; actionable: boo
       report.post &&
       window.confirm(`Remove this post and suspend @${report.post.author.username}?`)
     ) {
-      resolve.mutate({ id: report.id, action: "remove_post_and_ban" });
+      resolve.mutate({ id: report.id, action: "remove_post_and_ban" , durationDays: banDuration === "permanent" ? null : Number(banDuration), reason: banReason.trim() || undefined });
     }
   };
 
@@ -83,6 +85,10 @@ function ReportItem({ report, actionable }: { report: ReportDTO; actionable: boo
               <button className="btn btn-outline" onClick={removePost} disabled={busy}>
                 Remove post
               </button>
+<input type="number" value={banDuration} onChange={(e) => setBanDuration(e.target.value)} min={1} max={365} disabled={busy} aria-label="Ban duration in days" />
+              <input type="checkbox" checked={banDuration === "permanent"} onChange={(e) => setBanDuration(e.target.checked ? "permanent" : "7")}  disabled={busy} aria-label="Permanent ban" />
+              Permanent
+              <input type="text" value={banReason} onChange={(e) => setBanReason(e.target.value)}  placeholder="Ban reason (optional)"  aria-label="Ban reason" maxLength={200} disabled={busy} />
               <button className="btn btn-danger" onClick={removeAndSuspend} disabled={busy}>
                 Remove post and suspend author
               </button>
