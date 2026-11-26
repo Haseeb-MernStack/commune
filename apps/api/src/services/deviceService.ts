@@ -1,7 +1,8 @@
 import crypto from "node:crypto";
+import type { Types } from "mongoose";
 import { env } from "../config/env.js";
-import { User, type UserDoc } from "../models/User.js";
-import { logger } from "../utils/logger.js";
+import { logger } from "../config/logger.js";
+import { User } from "../models/User.js";
 import { QuotaError } from "./quota.js";
 import { newDeviceMail } from "./emailTemplates.js";
 import { reserveMail } from "./mailQuota.js";
@@ -21,7 +22,7 @@ export function parseDevice(userAgent: string | undefined): DeviceInfo {
   else if (/SamsungBrowser\//.test(ua)) family = "Samsung Internet";
   else if (/Chrome\//.test(ua)) family = "Chrome";
   else if (/Firefox\//.test(ua)) family = "Firefox";
-  else if (/Version\/\S+.*Safari\//.test(ua)) family = "Safari";
+  else if (/Version\//.test(ua) && /Safari\//.test(ua)) family = "Safari";
   let os = "Unknown OS";
   if (/iPhone|iPad/.test(ua)) os = "iOS";
   else if (/Android/.test(ua)) os = "Android";
@@ -38,10 +39,18 @@ export function deviceLabel(device: DeviceInfo): string {
 
 /** SHA-256 hash of the device description. Only the hash is stored, never the raw header. */
 export function deviceHash(userAgent: string | undefined): string {
-  return crypto.createHash("sha256").update(deviceLabel(parseDevice(userAgent))).digest("hex");
+  return crypto
+    .createHash("sha256")
+    .update(deviceLabel(parseDevice(userAgent)))
+    .digest("hex");
 }
 
-export type DeviceUser = Pick<UserDoc, "_id" | "email" | "username" | "knownDeviceHashes">;
+export interface DeviceUser {
+  _id: Types.ObjectId;
+  email: string;
+  username: string;
+  knownDeviceHashes?: string[];
+}
 
 /**
  * Records the device and emails the owner when it signs in for the first time.
@@ -76,20 +85,17 @@ export async function notifyNewDeviceIfNeeded(
     return true;
   } catch (error) {
     if (error instanceof QuotaError) {
-      logger.warn("Skipped the new-device notice: the mail quota is full", { error });
+      logger.warn({ error }, "Skipped the new-device notice: the mail quota is full");
     } else {
-      logger.error("Failed to send the new-device notice", { error });
+      logger.error({ error }, "Failed to send the new-device notice");
     }
     return false;
   }
 }
 
 /** Fire-and-forget wrapper so a slow or failing notice never delays sign-in. */
-export function notifyNewDeviceInBackground(
-  user: DeviceUser,
-  userAgent: string | undefined,
-): void {
+export function notifyNewDeviceInBackground(user: DeviceUser, userAgent: string | undefined): void {
   notifyNewDeviceIfNeeded(user, userAgent).catch((error: unknown) => {
-    logger.error("Failed to send the new-device notice", { error });
+    logger.error({ error }, "Failed to send the new-device notice");
   });
 }
