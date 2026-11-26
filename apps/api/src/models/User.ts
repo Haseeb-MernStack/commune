@@ -31,6 +31,9 @@ const userSchema = new Schema(
     // Brute-force protection: consecutive wrong passwords, and the end of a temporary lock.
     failedLogins: { type: Number, default: 0, select: false },
     lockUntil: { type: Date, default: null, select: false },
+  // SHA-256 hashes of the (browser family + OS) pairs this account has signed in from.
+  // A sign-in from a hash that is not here triggers a "new device" email.
+  knownDeviceHashes: { type: [String], default: [], },
   },
   { timestamps: true },
 );
