@@ -41,8 +41,8 @@ const requiredHeaders = [
         check: (value) => value === "nosniff",
         problem: "must be nosniff",
   },
-  { key: "Referrer-Policy", check: (value) => value.length > 0, problem: "must not be empty", },
-  { key: "Permissions-Policy", check: (value) => value.length > 0, problem: "must not be empty", },
+  { key: "Referrer-Policy", check: (value) => value.length > 0, problem: "must not be empty" },
+  { key: "Permissions-Policy", check: (value) => value.length > 0, problem: "must not be empty" },
   {
         key: "Content-Security-Policy",
         check: (value) => value.includes("frame-ancestors 'none'"),
