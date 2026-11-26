@@ -129,3 +129,26 @@ export async function prepareImage(file: File, options: PrepareOptions): Promise
     decoded.close();
   }
 }
+
+export interface ImageSize {
+  width: number;
+  height: number;
+}
+
+/**
+ * The pixel size of an image the browser can open, or null when it cannot be read. Posts store
+ * it so feeds can reserve the image's space before it loads; the upload keeps the same shape.
+ */
+export function measureImage(src: string): Promise<ImageSize | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () =>
+      resolve(
+        img.naturalWidth > 0 && img.naturalHeight > 0
+          ? { width: img.naturalWidth, height: img.naturalHeight }
+          : null,
+      );
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}

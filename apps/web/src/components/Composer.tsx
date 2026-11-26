@@ -3,7 +3,7 @@ import type { ChangeEvent, ClipboardEvent, DragEvent, FormEvent } from "react";
 import { useCreatePost } from "../hooks/usePosts";
 import { useUploadImage } from "../hooks/useUpload";
 import { assetUrl } from "../lib/api";
-import { validateImage } from "../lib/images";
+import { measureImage, validateImage, type ImageSize } from "../lib/images";
 import {
   FREE_POST_LENGTH,
   MAX_PREMIUM_LENGTH,
@@ -22,6 +22,7 @@ export default function Composer({ communitySlug }: { communitySlug?: string }) 
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(null); // local copy, shown instantly
+  const [imageSize, setImageSize] = useState<ImageSize | null>(null);
   const [lastFile, setLastFile] = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
   const attempt = useRef(0); // ignores the result of an upload the person has already cancelled
@@ -50,8 +51,14 @@ export default function Composer({ communitySlug }: { communitySlug?: string }) 
     setImageError(null);
     setImageUrl(null);
     setLastFile(file);
-    setPreview(URL.createObjectURL(file));
+    setImageSize(null);
+    const localUrl = URL.createObjectURL(file);
+    setPreview(localUrl);
     const mine = ++attempt.current;
+    // Sent with the post so feeds can reserve the image's space; the post works without it.
+    void measureImage(localUrl).then((size) => {
+      if (mine === attempt.current) setImageSize(size);
+    });
     upload.mutate(file, {
       onSuccess: ({ url }) => {
         if (mine !== attempt.current) return;
@@ -93,6 +100,7 @@ export default function Composer({ communitySlug }: { communitySlug?: string }) 
   const removeImage = () => {
     attempt.current++;
     setImageUrl(null);
+    setImageSize(null);
     setPreview(null);
     setLastFile(null);
     setImageError(null);
@@ -110,6 +118,9 @@ export default function Composer({ communitySlug }: { communitySlug?: string }) 
       {
         content,
         imageUrl,
+        ...(imageUrl && imageSize
+          ? { imageWidth: imageSize.width, imageHeight: imageSize.height }
+          : {}),
         ...(communitySlug ? { community: communitySlug } : {}),
         ...(paid ? { priceCents, premiumContent: premium } : {}),
       },
@@ -117,6 +128,7 @@ export default function Composer({ communitySlug }: { communitySlug?: string }) 
         onSuccess: () => {
           setContent("");
           setImageUrl(null);
+          setImageSize(null);
           setPreview(null);
           setPaid(false);
           setPremium("");

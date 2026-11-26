@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { loginSchema, registerSchema } from "@commune/shared";
+import { evaluatePasswordStrength } from "../lib/passwordStrength";
 import { useAuth } from "../store/auth";
 import GoogleButton, { GOOGLE_CLIENT_ID } from "./GoogleButton";
 
@@ -15,6 +16,11 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
   const [showPassword, setShowPassword] = useState(false);
 
   if (user) return <Navigate to="/" replace />;
+
+  const strength =
+    mode === "register" && fields.password.length > 0
+      ? evaluatePasswordStrength(fields.password)
+      : null;
 
   const set = (key: keyof typeof fields) => (e: ChangeEvent<HTMLInputElement>) =>
     setFields((f) => ({ ...f, [key]: e.target.value }));
@@ -116,9 +122,25 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
           </button>
         </span>
         {mode === "register" && (
-          <small id="password-hint" className="muted field-hint">
-            At least 8 characters.
-          </small>
+          <>
+            <small id="password-hint" className="muted field-hint">
+              At least 8 characters.
+            </small>
+            {strength && (
+              <div className="password-strength" aria-live="polite">
+                <div className="password-strength-track" aria-hidden="true">
+                  <span
+                    className={`password-strength-fill password-strength-${strength.level}`}
+                    style={{ width: `${(strength.score / 3) * 100}%` }}
+                  />
+                </div>
+                <small className="password-strength-text">
+                  Password strength: <strong>{strength.label}</strong>
+                  {strength.tip ? ` — ${strength.tip}` : ""}
+                </small>
+              </div>
+            )}
+          </>
         )}
       </label>
       {notice && mode === "login" && (

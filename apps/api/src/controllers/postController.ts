@@ -179,6 +179,10 @@ export async function createPost(req: Request, res: Response) {
     community: communityId,
     content: req.body.content,
     imageUrl: req.body.imageUrl ?? null,
+    // A size is kept only with an image, and only as a pair.
+    ...(req.body.imageUrl && req.body.imageWidth && req.body.imageHeight
+      ? { imageWidth: req.body.imageWidth, imageHeight: req.body.imageHeight }
+      : {}),
     priceCents: req.body.priceCents ?? null,
     premiumContent: req.body.priceCents != null ? req.body.premiumContent : null,
   });

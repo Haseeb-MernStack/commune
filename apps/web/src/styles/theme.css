@@ -1287,6 +1287,46 @@ h3,
   font-size: 0.8rem;
 }
 
+.password-strength {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.password-strength-track {
+  height: 6px;
+  width: 100%;
+  border-radius: 999px;
+  background: var(--border, rgba(128, 128, 128, 0.2));
+  overflow: hidden;
+}
+
+.password-strength-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 150ms ease;
+}
+
+.password-strength-weak {
+  background: #d93025;
+}
+
+.password-strength-ok {
+  background: #e37400;
+}
+
+.password-strength-strong {
+  background: #188038;
+}
+
+.password-strength-text {
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
 /* ---- Post time is a link to the post ---- */
 .post-time {
   color: var(--muted);

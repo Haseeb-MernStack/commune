@@ -83,12 +83,17 @@ export const MAX_PREMIUM_LENGTH = 5000;
 export const FREE_POST_LENGTH = 500;
 export const PLUS_POST_LENGTH = 2000;
 
+/** Pixel size of an attached image, measured in the browser so feeds can reserve its space. */
+export const imageDimensionSchema = z.number().int().min(1).max(20000);
+
 export const createPostSchema = z
   .object({
     // For a paid post this is the free teaser everyone can see. The 500 limit for free
     // accounts is enforced on the server, because it depends on the account's plan.
     content: z.string().trim().max(PLUS_POST_LENGTH),
     imageUrl: uploadUrlSchema.nullish(),
+    imageWidth: imageDimensionSchema.nullish(),
+    imageHeight: imageDimensionSchema.nullish(),
     // Setting a price makes the post paid: premiumContent is shown only after purchase.
     // Slug of a community the author belongs to; the post then appears in that community.
     community: communitySlugSchema.nullish(),
@@ -297,6 +302,9 @@ export interface PostDTO {
   id: string;
   content: string;
   imageUrl: string | null;
+  /** Size of the image in pixels when it was measured on upload; older posts have none. */
+  imageWidth?: number | null;
+  imageHeight?: number | null;
   author: AuthorDTO;
   likeCount: number;
   commentCount: number;

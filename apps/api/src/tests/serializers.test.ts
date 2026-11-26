@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { describe, expect, it } from "vitest";
+import { createPostSchema } from "@commune/shared";
 import { toPostDTO, type PopulatedPost } from "../utils/serializers.js";
 
 const POST_ID = "507f1f77bcf86cd799439012";
@@ -76,5 +77,54 @@ describe("toPostDTO premium content", () => {
     expect(dto.priceCents).toBeNull();
     expect(dto.locked).toBe(false);
     expect(dto.premiumContent).toBeNull();
+  });
+});
+
+describe("toPostDTO image size", () => {
+  const imageUrl = "/uploads/0123456789abcdef0123456789abcdef.jpg";
+
+  it("returns the stored size with the image", () => {
+    const dto = toPostDTO(makePost({ imageUrl, imageWidth: 1600, imageHeight: 900 }), false, false);
+
+    expect(dto.imageWidth).toBe(1600);
+    expect(dto.imageHeight).toBe(900);
+  });
+
+  it("returns null for an older post stored without a size", () => {
+    const dto = toPostDTO(makePost({ imageUrl }), false, false);
+
+    expect(dto.imageWidth).toBeNull();
+    expect(dto.imageHeight).toBeNull();
+  });
+
+  it("never returns a size without an image", () => {
+    const dto = toPostDTO(
+      makePost({ imageUrl: null, imageWidth: 10, imageHeight: 10 }),
+      false,
+      false,
+    );
+
+    expect(dto.imageWidth).toBeNull();
+    expect(dto.imageHeight).toBeNull();
+  });
+});
+
+describe("createPostSchema image size", () => {
+  const imageUrl = "/uploads/0123456789abcdef0123456789abcdef.jpg";
+
+  it("accepts a positive whole-pixel size and keeps posts without one valid", () => {
+    expect(
+      createPostSchema.safeParse({ content: "", imageUrl, imageWidth: 1600, imageHeight: 900 })
+        .success,
+    ).toBe(true);
+    expect(createPostSchema.safeParse({ content: "", imageUrl }).success).toBe(true);
+  });
+
+  it("rejects a size that is not a positive whole number of pixels", () => {
+    for (const imageWidth of [0, -1, 1.5, 20001]) {
+      expect(
+        createPostSchema.safeParse({ content: "", imageUrl, imageWidth, imageHeight: 900 }).success,
+      ).toBe(false);
+    }
   });
 });
