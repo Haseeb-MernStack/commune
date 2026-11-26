@@ -219,7 +219,7 @@ export default function ProfilePage() {
             maxLength={200}
             rows={2}
             placeholder="Why is this account being suspended?"
-        />
+          />
         </label>
         <label>
           Duration
@@ -234,7 +234,7 @@ export default function ProfilePage() {
               type="checkbox"
               onChange={(e) => setBanRemovePosts(e.target.checked)}
               checked={banRemovePosts}
-          />
+            />
             Also delete all of their posts
           </label>
           <span className="row">
@@ -247,7 +247,7 @@ export default function ProfilePage() {
           </span>
         </label>
       </form>
-      )}
+  )}
           {(ban.isError || unban.isError) && (
             <p className="error">{(ban.error ?? unban.error)?.message}</p>
           )}
