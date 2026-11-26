@@ -64,13 +64,7 @@ export default function ImageViewer({
       >
         ×
       </button>
-      <img
-        className="image-viewer-image"
-        src={src}
-        alt={alt}
-        loading="lazy"
-        decoding="async"
-      />
+      <img className="image-viewer-image" src={src} alt={alt} loading="lazy" decoding="async" />
     </dialog>
   );
 }
