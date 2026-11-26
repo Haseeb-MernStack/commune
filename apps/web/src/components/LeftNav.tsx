@@ -10,7 +10,7 @@ import Icon, { type IconName } from "./Icon";
 import PlusBadge from "./PlusBadge";
 
 /** Left column for members on wide screens: brand, navigation, and the account at the bottom. */
-export default function LeftNav() {
+export default function LeftNav({ onOpenShortcuts }: { onOpenShortcuts: () => void }) {
   const { user, logout } = useAuth();
   const notifications = useUnreadCount(Boolean(user));
   const messages = useUnreadMessages(Boolean(user));
@@ -62,6 +62,12 @@ export default function LeftNav() {
         {link("/settings", "gear", "Settings")}
         {link("/help", "help", "Help")}
         {link("/contact", "contact", "Contact")}
+        <button type="button" className="side-link" onClick={onOpenShortcuts}>
+          <span className="side-icon">
+            <Icon name="help" size={24} />
+          </span>
+          <span className="side-label">Keyboard shortcuts</span>
+        </button>
         <GitHubLink className="side-link" size={22} label="Star on GitHub" />
       </nav>
       <Link to="/" className="btn side-post" aria-label="Write a post">
