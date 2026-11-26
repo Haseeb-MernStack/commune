@@ -2252,3 +2252,38 @@ button.side-link {
   font-family: inherit;
   cursor: pointer;
 }
+
+/* Pull to refresh on the feed (installed app mode only). */
+.pull-refresh {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    overflow: hidden;
+}
+.pull-refresh-inner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 48px;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+.pull-refresh-spinner {
+    width: 20px;
+    height: 20px;
+    flex: none;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: pull-refresh-spin 0.8s linear infinite;
+}
+@keyframes pull-refresh-spin {
+    to {
+          transform: rotate(360deg);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .pull-refresh-spinner {
+          animation: none;
+    }
+}
