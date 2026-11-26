@@ -67,7 +67,12 @@ export async function resolveReport(req: Request, res: Response) {
   if (post) {
     // Also marks every open report about this post as resolved.
     await removePost(report.post.toString(), req.userId);
-    if (alsoBan) await banUser(post.author.toString(), { removePosts: false });
+    if (alsoBan)
+        await banUser(post.author.toString(), {
+          removePosts: false,
+          reason: req.body.reason,
+          durationDays: req.body.durationDays,
+        });
   } else {
     // The post was already deleted; just close the report.
     await Report.updateOne(
