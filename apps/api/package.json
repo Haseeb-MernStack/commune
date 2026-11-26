@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "make-admin": "tsx src/scripts/makeAdmin.ts",
-    "lowercase-usernames": "tsx src/scripts/lowercaseUsernames.ts"
+    "lowercase-usernames": "tsx src/scripts/lowercaseUsernames.ts",
+    "explain": "tsx scripts/explain.ts"
   },
   "dependencies": {
     "@commune/shared": "*",
