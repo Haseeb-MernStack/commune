@@ -54,6 +54,30 @@ Watch mode (re-runs on save) works from any workspace that uses Vitest:
 npx vitest
 ```
 
+## API coverage
+
+The API tests report coverage with `@vitest/coverage-v8`. Running the API
+tests (`npm run test -w @commune/api`) prints a coverage summary in the log
+and writes an HTML report to `apps/api/coverage/index.html` (open it in a
+browser). CI uploads that report as the `api-coverage` artifact, kept for
+7 days.
+
+The floor is 40% for lines, functions, branches and statements, set in
+`apps/api/vitest.config.ts`. It is a starting floor: it sits below the
+coverage the suite has today so it protects the level without blocking work.
+Raise it when coverage grows.
+
+### Raising the floor
+
+1. Run the API tests and read the summary (or open
+   `apps/api/coverage/index.html`).
+2. Pick a number slightly under the measured coverage, for the metric that
+   moved.
+3. Update the `thresholds` in `apps/api/vitest.config.ts` and note the new
+   number here.
+4. A pull request that lowers coverage below the floor fails CI, so a lower
+   number here means the suite got thinner, not that the floor moved.
+
 ## End-to-end tests
 
 Playwright drives a real browser against the real API and a separate
