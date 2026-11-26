@@ -31,7 +31,7 @@ export async function users(req: Request, res: Response) {
   const hidden = await hiddenAuthorIds(req.userId!);
   const rows = await User.find({
     username: { $regex: `^${escapeRegex(q)}`, $options: "i" },
-    $or: [{ banned: { $ne: true } }, { bannedUntil: { $ne: null, $lte: new Date() } },],
+    $or: [{ banned: { $ne: true } }, { bannedUntil: { $ne: null, $lte: new Date() } }],
     ...(hidden.length > 0 ? { _id: { $nin: hidden } } : {}),
   })
     .sort({ username: 1 })
