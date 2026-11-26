@@ -9,7 +9,7 @@ import { AppError, conflict, forbidden, unauthorized } from "../utils/errors.js"
 import { toPublicUser } from "../utils/serializers.js";
 import { verifyGoogleIdToken, type GoogleProfile } from "./googleAuth.js";
 import { sendVerificationEmailInBackground } from "./accountService.js";
-import { notifyNewDeviceInBackground } from "/./deviceService.js";
+import { notifyNewDeviceInBackground } from "./deviceService.js";
 import { generateRefreshToken, hashToken, signAccessToken } from "../utils/tokens.js";
 
 export const REFRESH_COOKIE = "commune_rt";
