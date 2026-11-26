@@ -2187,3 +2187,56 @@ body:has(.bottom-nav) .consent-bar {
 .comment-pending {
   opacity: 0.6;
 }
+
+/* Keyboard shortcuts dialog. */
+.shortcuts-dialog {
+  margin: auto;
+  max-width: 28rem;
+  width: calc(100% - 2rem);
+  padding: 20px 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 12px 40px rgb(0 0 0 / 0.25);
+}
+.shortcuts-dialog::backdrop {
+  background: rgb(0 0 0 / 0.45);
+}
+.shortcuts-dialog h2 {
+  margin: 0 0 12px;
+  font-size: 1.125rem;
+}
+.shortcuts-list {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.shortcuts-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.shortcuts-list kbd {
+  flex: none;
+  min-width: 2rem;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* A button in the side nav must look like the links around it. */
+button.side-link {
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
+}
