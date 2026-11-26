@@ -255,6 +255,7 @@ export default function ProfilePage() {
         </span>
           </label>
         </form>
+        )}
           {(ban.isError || unban.isError) && (
             <p className="error">{(ban.error ?? unban.error)?.message}</p>
           )}
