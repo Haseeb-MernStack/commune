@@ -14,6 +14,52 @@ if (process.env.VERCEL && !process.env.ALLOW_PLACEHOLDER_API) {
     process.exit(1);
   }
 }
+// vercel.json is the only thing that sets the security headers on the deployed
+// site. A careless edit can drop one without anyone noticing, so fail the build
+// if any required header is missing or weakened. This runs on every build.
+let vercelConfig;
+try {
+  vercelConfig = JSON.parse(readFileSync(new URL("../vercel.json", import.meta.url), "utf8"));
+} catch {
+  console.error("\nvercel.json is not valid JSON. Fix the syntax and rebuild.\n");
+  process.exit(1);
+}
+const deployedHeaders = new Map();
+for (const entry of vercelConfig.headers ?? []) {
+  for (const header of entry.headers ?? []) {
+    deployedHeaders.set(header.key.toLowerCase(), header.value ?? "");
+  }
+}
+const requiredHeaders = [
+  {
+    key: "Strict-Transport-Security",
+    check: (value) => value.includes("max-age=") && value.includes("includeSubDomains"),
+    problem: "must include max-age and includeSubDomains",
+  },
+  {
+    key: "X-Content-Type-Options",
+    check: (value) => value === "nosniff",
+    problem: "must be nosniff",
+  },
+  { key: "Referrer-Policy", check: (value) => value.length > 0, problem: "must not be empty" },
+  { key: "Permissions-Policy", check: (value) => value.length > 0, problem: "must not be empty" },
+  {
+    key: "Content-Security-Policy",
+    check: (value) => value.includes("frame-ancestors 'none'"),
+    problem: "must contain frame-ancestors 'none'",
+  },
+];
+const missingHeaders = requiredHeaders.filter(
+  ({ key, check }) => !check(deployedHeaders.get(key.toLowerCase()) ?? ""),
+);
+if (missingHeaders.length > 0) {
+  console.error(
+    "\nvercel.json is missing required security headers:\n" +
+      missingHeaders.map(({ key, problem }) => `  - ${key}: ${problem}`).join("\n") +
+      "\nRestore them in apps/web/vercel.json (see docs/CSP.md) and rebuild.\n",
+  );
+  process.exit(1);
+}
 
 // An unclosed "{" in one stylesheet silently breaks every rule after it, because the build joins
 // all the CSS into one file. Fail the build if any stylesheet has unbalanced braces.
