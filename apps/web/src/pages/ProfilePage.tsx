@@ -13,6 +13,7 @@ import { useAvatarAllowance, useProfilePhoto } from "../hooks/useProfilePhoto";
 import { useProfile, useToggleFollow, useUpdateProfile, useUserPosts } from "../hooks/useSocial";
 import { useRemoveBlock, useSetBlock } from "../hooks/useBlocks";
 import { hueFor } from "../lib/hue";
+import { sharePage } from "../lib/share";
 import { useAuth } from "../store/auth";
 
 const compact = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 });
@@ -96,7 +97,19 @@ export default function ProfilePage() {
                     to={`/messages?to=${encodeURIComponent(p.username)}`}
                   >
                     <Icon name="mail" size={18} /> Message
-                  </Link>
+              </Link>
+              <button
+                className="btn btn-outline"
+                onClick={() =>
+                  void sharePage({
+                    to: `/u/${p.username}`,
+                    title: `@${p.username} on Commune`,
+                    copiedBody: "Share this profile with anyone.",
+                  })
+                }
+              >
+                <Icon name="share" size={18} /> Share
+              </button>
 
                   {p.blockKind ? (
                     <button
