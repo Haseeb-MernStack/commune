@@ -90,10 +90,7 @@ describe("GET /api/public/posts/trending", () => {
       priceCents: null,
       createdAt: { $gte: new Date(now.getTime() - TRENDING_WINDOW_MS) },
     });
-    expect(res.body.items.map((p: { content: string }) => p.content)).toEqual([
-      "Fresh",
-      "Old hit",
-    ]);
+    expect(res.body.items.map((p: { content: string }) => p.content)).toEqual(["Fresh", "Old hit"]);
     expect(res.body.nextCursor).toBeNull();
     expect(res.headers["cache-control"]).toMatch(/max-age=60/);
   });
