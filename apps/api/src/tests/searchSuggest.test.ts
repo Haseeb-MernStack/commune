@@ -9,7 +9,7 @@ import { Like } from "../models/Like.js";
 import { Bookmark } from "../models/Bookmark.js";
 import { Purchase } from "../models/Purchase.js";
 
-vi.mock("../models/User.js", () => ({ User: { find: vi.fn() } }));
+vi.mock("../models/User.js", () => ({ User: { find: vi.fn(), findById: vi.fn() } }));
 vi.mock("../models/Post.js", () => ({ Post: { find: vi.fn() } }));
 vi.mock("../models/Like.js", () => ({ Like: { find: vi.fn() } }));
 vi.mock("../models/Bookmark.js", () => ({ Bookmark: { find: vi.fn() } }));
