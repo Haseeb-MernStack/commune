@@ -262,6 +262,8 @@ npm test
 
 API tests use Vitest and Supertest with mocked models, so they need no database. The realtime service is tested with real Socket.IO clients. GitHub Actions (Node 22) runs typecheck, tests and the build on every push and pull request, plus end-to-end tests, a security workflow (CodeQL, a dependency audit gate, dependency review on pull requests and secret scanning) and an OpenSSF Scorecard check. All workflow actions are pinned to commit SHAs, and Dependabot keeps them and the npm packages up to date.
 
+The end-to-end tests also run automated accessibility (axe) checks on the home, sign-in, explore and 404 pages, and fail on serious or critical violations.
+
 ## Security
 
 - Short-lived JWT (pinned algorithm) in memory and a rotating httpOnly refresh cookie
