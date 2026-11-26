@@ -47,8 +47,8 @@ export function useDismissReport() {
 export function useResolveReport() {
   const refresh = useRefreshAfterModeration();
   return useMutation({
-    mutationFn: ({ id, action }: { id: string } & ResolveReportInput) =>
-      api<void>(`/admin/reports/${id}/resolve`, { method: "POST", body: { action } }),
+    mutationFn: ({ id, ...input }: { id: string } & ResolveReportInput) =>
+      api<void>(`/admin/reports/${id}/resolve`, { method: "POST", body: input }),
     onSuccess: refresh,
   });
 }
