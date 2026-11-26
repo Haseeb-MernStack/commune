@@ -152,7 +152,7 @@ export async function loginWithGoogle(credential: string, res: Response, userAge
   if (!env.GOOGLE_CLIENT_ID) throw new AppError(503, "Google sign-in is not set up");
   const google = await verifyGoogleIdToken(credential);
 
-  let user = await User.findOne({ googleId: google.sub });
+  let user = await User.findOne({ googleId: String(google.sub) });
   if (!user) {
     const existing = await User.findOne({ email: String(google.email) });
     if (existing) {
