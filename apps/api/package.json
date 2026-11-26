@@ -41,7 +41,7 @@
     "@types/supertest": "^7.2.1",
     "@types/web-push": "^3.6.4",
     "supertest": "^7.0.0",
-    "tsup": "^8.3.0",
+    "tsup": "^9.0.0",
     "tsx": "^4.19.1",
     "vitest": "^5.1.1"
   }
