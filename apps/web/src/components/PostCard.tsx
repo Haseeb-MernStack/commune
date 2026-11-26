@@ -375,7 +375,23 @@ export default function PostCard({
           onClick={() => {
             if (bookmark.isPending) return;
             if (!post.bookmarkedByMe) setPopped("save");
-            bookmark.mutate(post.id);
+            bookmark.mutate(post.id, {
+        onSuccess: (fresh) => {
+          if (fresh.bookmarkedByMe) {
+            showToast({
+              title: "Saved",
+              body: "Find it on your Saved page.",
+              to: "/saved",
+            });
+          } else {
+            showToast({
+              title: "Removed from saved",
+              body: "It is no longer on your Saved page.",
+              to: "/saved",
+            });
+          }
+        },
+      });
           }}
           onAnimationEnd={() => setPopped(null)}
           aria-pressed={post.bookmarkedByMe}
