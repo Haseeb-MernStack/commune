@@ -27,7 +27,7 @@ export const requireActive: RequestHandler = async (req, _res, next) => {
   try {
     const user = await User.findById(req.userId)
       .select("role banned bannedUntil banReason emailVerified")
-    .lean();
+      .lean();
     if (!user) return next(unauthorized("Account not found"));
     if (isBanned(user)) return next(forbidden(banMessage(user)));
     if (env.REQUIRE_VERIFIED_EMAIL && !user.emailVerified) {
