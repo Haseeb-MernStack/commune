@@ -41,6 +41,8 @@ export interface PopulatedPost {
   _id: Types.ObjectId;
   content: string;
   imageUrl?: string | null;
+  imageWidth?: number | null;
+  imageHeight?: number | null;
   priceCents?: number | null;
   premiumContent?: string | null;
   community?: { slug: string; name: string } | null;
@@ -137,6 +139,8 @@ export function toPostDTO(
     id: p._id.toString(),
     content: p.content,
     imageUrl: p.imageUrl ?? null,
+    imageWidth: p.imageUrl ? (p.imageWidth ?? null) : null,
+    imageHeight: p.imageUrl ? (p.imageHeight ?? null) : null,
     author: toAuthor(p.author),
     likeCount: p.likeCount,
     commentCount: p.commentCount,
