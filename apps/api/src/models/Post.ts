@@ -24,6 +24,9 @@ const postSchema = new Schema(
 postSchema.index({ author: 1, _id: -1 });
 postSchema.index({ community: 1, _id: -1 });
 
+// Trending reads the last day's posts by age, so it needs to find them by createdAt.
+postSchema.index({ createdAt: -1 });
+
 // Full-text search over the free text only. premiumContent is deliberately NOT indexed, so
 // searching can never reveal paid content.
 postSchema.index({ content: "text" });
