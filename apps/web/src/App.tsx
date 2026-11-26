@@ -20,6 +20,7 @@ import { PageSkeleton } from "./components/Skeleton";
 import LowercaseUsername from "./components/LowercaseUsername";
 import { prefetchLikelyRoutes } from "./lib/prefetch";
 import ShortcutsDialog from "./components/ShortcutsDialog";
+import ScrollRestorer from "./components/ScrollRestorer";
 import { handleShortcutKey } from "./lib/shortcuts";
 
 const PostPage = lazy(() => import("./pages/PostPage"));
@@ -344,6 +345,7 @@ export default function App() {
       <>
         {skip}
         <RouteMeta />
+        <ScrollRestorer />
         <PwaBanner />
         <CookieNotice />
         <div className="auth-split">
@@ -363,6 +365,7 @@ export default function App() {
     <>
       {skip}
       <RouteMeta />
+      <ScrollRestorer />
       <Header />
       <VerifyBanner />
       <BadgeSync />
