@@ -200,62 +200,54 @@ export default function ProfilePage() {
                 </button>
               ) : (
                 <button
-              className="btn btn-danger"
-              onClick={() => setSuspending(true)}
-              disabled={ban.isPending}
-            >
+                  className="btn btn-danger"
+                  onClick={() => setSuspending(true)}
+                  disabled={ban.isPending}
+                >
                   Suspend user
                 </button>
               )}
             </div>
           )}
           {isAdmin && !isMe && p.role !== "admin" && suspending && !p.banned && (
-        <form onSubmit={suspend} className="report-form">
-        
+      <form onSubmit={suspend} className="report-form">
         <label>
-        Reason
-            <textarea
-              value={banReason}
-              onChange={(e) => setBanReason(e.target.value)}
-              maxLength={200}
-              rows={2}
-              placeholder="Why is this account being suspended?"
-            />
+          Reason
+          <textarea
+            value={banReason}
+            onChange={(e) => setBanReason(e.target.value)}
+            maxLength={200}
+            rows={2}
+            placeholder="Why is this account being suspended?"
+        />
         </label>
-          <label>
+        <label>
           Duration
-            <select value={banDuration} onChange={(e) => setBanDuration(e.target.value)}>
-              <option value="1">1 day</option>
-              <option value="7">7 days</option>
+          <select value={banDuration} onChange={(e) => setBanDuration(e.target.value)}>
+            <option value="1">1 day</option>
+            <option value="7">7 days</option>
             <option value="30">30 days</option>
             <option value="permanent">Permanent</option>
-            </select>
-        <label className="row">
-          <input
-            type="checkbox"
-            onChange={(e) => setBanRemovePosts(e.target.checked)}
-            checked={banRemovePosts}
+          </select>
+          <label className="row">
+            <input
+              type="checkbox"
+              onChange={(e) => setBanRemovePosts(e.target.checked)}
+              checked={banRemovePosts}
           />
-          Also delete all of their posts
-        </label>
-        <span className="row">
-          <button
-            type="button"
-            className="btn btn-ghost"
-            onClick={() => setSuspending(false)}
-          >
-            Cancel
-          </button>
-          <button
-            className="btn btn-danger"
-            disabled={ban.isPending}
-          >
-            {ban.isPending ? "Suspending…" : "Suspend user"}
-          </button>
-        </span>
+            Also delete all of their posts
           </label>
-        </form>
-        )}
+          <span className="row">
+            <button type="button" className="btn btn-ghost" onClick={() => setSuspending(false)}>
+              Cancel
+            </button>
+            <button className="btn btn-danger" disabled={ban.isPending}>
+              {ban.isPending? "Suspending…": "Suspend user"}
+            </button>
+          </span>
+        </label>
+      </form>
+      )}
           {(ban.isError || unban.isError) && (
             <p className="error">{(ban.error ?? unban.error)?.message}</p>
           )}
