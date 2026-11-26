@@ -15,7 +15,7 @@ vi.mock("../models/Like.js", () => ({ Like: { find: vi.fn() } }));
 vi.mock("../models/Bookmark.js", () => ({ Bookmark: { find: vi.fn() } }));
 vi.mock("../models/Purchase.js", () => ({ Purchase: { find: vi.fn() } }));
 
-const ME = { sub: new Types.ObjectId().toString(), role: "user" };
+const ME = new Types.ObjectId().toString();
 const token = signAccessToken(ME);
 
 function queryChain<T>(rows: T[]) {
