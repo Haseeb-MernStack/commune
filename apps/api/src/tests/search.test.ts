@@ -70,7 +70,10 @@ describe("GET /api/search/users", () => {
     expect(res.status).toBe(200);
     expect(find).toHaveBeenCalledWith({
       username: { $regex: "^sa\\.m", $options: "i" },
-      banned: { $ne: true },
+      $or: [
+        { banned: { $ne: true } },
+        { bannedUntil: { $ne: null, $lte: expect.any(Date) } },
+    ],
     });
     expect(res.body.items).toEqual([
       { id: expect.any(String), username: "sam_dev", bio: "hi", avatarUrl: null, plus: false },
