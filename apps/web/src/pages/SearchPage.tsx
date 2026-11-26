@@ -1,19 +1,29 @@
+import { useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import Avatar from "../components/Avatar";
 import PlusBadge from "../components/PlusBadge";
-import SearchBox from "../components/SearchBox";
+import SearchBox, { recordRecentSearch } from "../components/SearchBox";
 import PostList from "../components/PostList";
 import { useSearchPosts, useSearchUsers } from "../hooks/useSearch";
 import { highlightText } from "../lib/highlight";
+import { useAuth } from "../store/auth";
 
 type Tab = "people" | "posts";
 
 export default function SearchPage() {
   const [params, setParams] = useSearchParams();
   const q = (params.get("q") ?? "").trim();
+  const { user } = useAuth();
   const tab: Tab = params.get("type") === "posts" ? "posts" : "people";
   const users = useSearchUsers(q);
   const posts = useSearchPosts(q);
+
+  // Remember the search, newest first. The page is behind the auth guard, and
+  // recordRecentSearch also refuses signed-out visitors, so nothing is stored
+  // for them. Re-recording the same query is harmless: duplicates are merged.
+  useEffect(() => {
+    if (q.length >= 2) recordRecentSearch(q, Boolean(user));
+  }, [q, user]);
 
   const choose = (next: Tab) => setParams({ q, type: next });
   const people = users.data?.pages.flatMap((p) => p.items) ?? [];
