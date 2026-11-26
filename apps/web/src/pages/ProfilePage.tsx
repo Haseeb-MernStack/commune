@@ -32,6 +32,10 @@ export default function ProfilePage() {
   const photo = useProfilePhoto(allowance.data);
   const [editing, setEditing] = useState(false);
   const [bio, setBio] = useState("");
+  const [suspending, setSuspending] = useState(false);
+  const [banReason, setBanReason] = useState("");
+  const [banDuration, setBanDuration] = useState("7");
+  const [banRemovePosts, setBanRemovePosts] = useState(false);
 
   if (profile.isLoading) return <ProfileSkeleton />;
   if (profile.isError || !profile.data) return <p className="error center">User not found.</p>;
@@ -41,11 +45,16 @@ export default function ProfilePage() {
   const isAdmin = me?.role === "admin";
   const hue = hueFor(p.username);
 
-  const suspend = () => {
-    if (!window.confirm(`Suspend @${p.username}? They will be logged out and unable to post.`))
-      return;
-    const removePosts = window.confirm("Also delete all of their posts?");
-    ban.mutate(removePosts);
+  const suspend = (e: FormEvent) => {
+    e.preventDefault();
+    ban.mutate(
+      {
+        removePosts: banRemovePosts,
+        reason: banReason.trim() || undefined,
+        durationDays: banDuration === "permanent" ? null : Number(banDuration),
+      },
+      { onSuccess: () => setSuspending(false) },
+    );
   };
 
   const startEditing = () => {
@@ -179,7 +188,7 @@ export default function ProfilePage() {
             <p className="error">{(setBlock.error ?? removeBlock.error)?.message}</p>
           )}
           {p.banned && <p className="suspended">This account is suspended.</p>}
-          {isAdmin && !isMe && p.role !== "admin" && (
+          {isAdmin && !isMe && p.role !== "admin" && !suspending && (
             <div className="row">
               {p.banned ? (
                 <button
@@ -190,12 +199,62 @@ export default function ProfilePage() {
                   Lift suspension
                 </button>
               ) : (
-                <button className="btn btn-danger" onClick={suspend} disabled={ban.isPending}>
+                <button
+              className="btn btn-danger"
+              onClick={() => setSuspending(true)}
+              disabled={ban.isPending}
+            >
                   Suspend user
                 </button>
               )}
             </div>
           )}
+          {isAdmin && !isMe && p.role !== "admin" && suspending && !p.banned && (
+        <form onSubmit={suspend} className="report-form">
+        
+        <label>
+        Reason
+            <textarea
+              value={banReason}
+              onChange={(e) => setBanReason(e.target.value)}
+              maxLength={200}
+              rows={2}
+              placeholder="Why is this account being suspended?"
+            />
+        </label>
+          <label>
+          Duration
+            <select value={banDuration} onChange={(e) => setBanDuration(e.target.value)}>
+              <option value="1">1 day</option>
+              <option value="7">7 days</option>
+            <option value="30">30 days</option>
+            <option value="permanent">Permanent</option>
+            </select>
+        <label className="row">
+          <input
+            type="checkbox"
+            onChange={(e) => setBanRemovePosts(e.target.checked)}
+            checked={banRemovePosts}
+          />
+          Also delete all of their posts
+        </label>
+        <span className="row">
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={() => setSuspending(false)}
+          >
+            Cancel
+          </button>
+          <button
+            className="btn btn-danger"
+            disabled={ban.isPending}
+          >
+            {ban.isPending ? "Suspending…" : "Suspend user"}
+          </button>
+        </span>
+          </label>
+        </form>
           {(ban.isError || unban.isError) && (
             <p className="error">{(ban.error ?? unban.error)?.message}</p>
           )}
