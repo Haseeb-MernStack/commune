@@ -77,13 +77,9 @@ describe("parseDevice", () => {
 
 describe("notifyNewDeviceIfNeeded", () => {
   it("sends the notice the first time a device signs in", async () => {
-    const updateOne = vi
-      .spyOn(User, "updateOne")
-      .mockResolvedValue({ modifiedCount: 1 } as never);
+    const updateOne = vi.spyOn(User, "updateOne").mockResolvedValue({ modifiedCount: 1 } as never);
     const user = fakeUser();
-
     const sent = await notifyNewDeviceIfNeeded(user, CHROME_WINDOWS_UA);
-
     expect(sent).toBe(true);
     expect(updateOne).toHaveBeenCalledWith(
       { _id: USER_ID, knownDeviceHashes: { $ne: CHROME_WINDOWS_HASH } },
@@ -98,13 +94,11 @@ describe("notifyNewDeviceIfNeeded", () => {
         html: expect.stringContaining("Chrome on Windows"),
       }),
     );
-    expect(sendMailMock.mock.calls[0][0].text).toContain("/forgot-password");
+    expect(sendMailMock.mock.calls[0]?.[0].text).toContain("/forgot-password");
   });
 
   it("does not send again for a device it already knows", async () => {
-    const updateOne = vi
-      .spyOn(User, "updateOne")
-      .mockResolvedValue({ modifiedCount: 1 } as never);
+    const updateOne = vi.spyOn(User, "updateOne").mockResolvedValue({ modifiedCount: 1 } as never);
     const user = fakeUser({ knownDeviceHashes: [CHROME_WINDOWS_HASH] });
 
     const sent = await notifyNewDeviceIfNeeded(user, CHROME_WINDOWS_UA);
@@ -116,9 +110,7 @@ describe("notifyNewDeviceIfNeeded", () => {
 
   it("does not send when the mail quota is full", async () => {
     vi.mocked(QuotaLog.countDocuments).mockResolvedValue(6 as never);
-    const updateOne = vi
-      .spyOn(User, "updateOne")
-      .mockResolvedValue({ modifiedCount: 1 } as never);
+    const updateOne = vi.spyOn(User, "updateOne").mockResolvedValue({ modifiedCount: 1 } as never);
     const user = fakeUser();
 
     const sent = await notifyNewDeviceIfNeeded(user, CHROME_WINDOWS_UA);
@@ -146,9 +138,7 @@ describe("POST /api/auth/login", () => {
   });
 
   it("does not email again for the same device", async () => {
-    const updateOne = vi
-      .spyOn(User, "updateOne")
-      .mockResolvedValue({ modifiedCount: 1 } as never);
+    const updateOne = vi.spyOn(User, "updateOne").mockResolvedValue({ modifiedCount: 1 } as never);
     loginLookup(fakeUser({ knownDeviceHashes: [CHROME_WINDOWS_HASH] }));
 
     const res = await request(app)
