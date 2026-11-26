@@ -1,5 +1,5 @@
-import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { Suspense, lazy, useEffect } from "react";
+import { Link, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { Suspense, lazy, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { useAuth } from "./store/auth";
 import Header, { AUTH_PATHS } from "./components/Header";
@@ -19,6 +19,8 @@ import Icon from "./components/Icon";
 import { PageSkeleton } from "./components/Skeleton";
 import LowercaseUsername from "./components/LowercaseUsername";
 import { prefetchLikelyRoutes } from "./lib/prefetch";
+import ShortcutsDialog from "./components/ShortcutsDialog";
+import { handleShortcutKey } from "./lib/shortcuts";
 
 const PostPage = lazy(() => import("./pages/PostPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
@@ -297,10 +299,37 @@ export default function App() {
   const { user } = useAuth();
   const authPage = AUTH_PATHS.includes(pathname);
   const signedIn = Boolean(user);
+  const navigate = useNavigate();
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   // Once signed in, quietly download the most-used pages so tapping them is instant.
   useEffect(() => {
     if (signedIn) prefetchLikelyRoutes();
   }, [signedIn]);
+  // Global keyboard shortcuts: "?" opens this help, "n" writes a post,
+  // "/" focuses search. They never fire while typing, with a modifier key,
+  // or while a modal dialog is open.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      handleShortcutKey(e, {
+        "?": () => setShortcutsOpen(true),
+        n: () => {
+          const composer = document.querySelector<HTMLTextAreaElement>(
+            'textarea[aria-label="Write a post"]',
+          );
+          if (composer) {
+            composer.focus();
+          } else {
+            navigate("/");
+          }
+        },
+        "/": () => {
+          document.querySelector<HTMLInputElement>('input[type="search"]')?.focus();
+        },
+      });
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [navigate]);
   // Messages need room for two panes, so that page drops the news column.
   const wide = pathname.startsWith("/messages");
 
@@ -341,13 +370,14 @@ export default function App() {
       <PwaBanner />
       <CookieNotice />
       <div className={`shell${user ? " has-left" : ""}${wide ? " wide" : ""}`}>
-        {user && <LeftNav />}
+        {user && <LeftNav onOpenShortcuts={() => setShortcutsOpen(true)} />}
         <main id="main" tabIndex={-1} className="container">
           <AppRoutes />
         </main>
         {!wide && <RightRail />}
       </div>
       <BottomNav />
+      <ShortcutsDialog open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
     </>
   );
 }
