@@ -5,6 +5,7 @@ import type { AuthResponse, LoginInput, RegisterInput } from "@commune/shared";
 import { env, isProd } from "../config/env.js";
 import { RefreshToken } from "../models/RefreshToken.js";
 import { User } from "../models/User.js";
+import { banMessage, isBanned } from "../utils/ban.js";
 import { AppError, conflict, forbidden, unauthorized } from "../utils/errors.js";
 import { toPublicUser } from "../utils/serializers.js";
 import { verifyGoogleIdToken, type GoogleProfile } from "./googleAuth.js";
@@ -97,7 +98,7 @@ export async function login(input: LoginInput, res: Response) {
     await User.updateOne({ _id: user._id }, { $set: { failedLogins: 0, lockUntil: null } });
   }
   // Checked after the password so the message can't be used to discover which emails exist.
-  if (user.banned) throw forbidden("This account has been suspended");
+  if (isBanned(user)) throw forbidden(banMessage(user));
   return issueSession(res, user);
 }
 
@@ -110,7 +111,7 @@ export async function refresh(presented: string | undefined, res: Response) {
     throw unauthorized("Session expired");
   }
   const user = await User.findById(record.user);
-  if (!user || user.banned) {
+  if (!user || isBanned(user)) {
     clearRefreshCookie(res);
     throw unauthorized("Session expired");
   }
@@ -175,6 +176,6 @@ export async function loginWithGoogle(credential: string, res: Response) {
       });
     }
   }
-  if (user.banned) throw forbidden("This account has been suspended");
+  if (isBanned(user)) throw forbidden(banMessage(user));
   return issueSession(res, user);
 }
