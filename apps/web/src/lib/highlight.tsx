@@ -18,10 +18,6 @@ export function highlightText(text: string, query: string): ReactNode {
   const parts = text.split(pattern);
   const lowerTerms = new Set(terms.map((term) => term.toLowerCase()));
   return parts.map((part, index) =>
-    lowerTerms.has(part.toLowerCase()) ? (
-      <mark key={index}>{part}</mark>
-    ) : (
-      part
-    ),
+    lowerTerms.has(part.toLowerCase()) ? <mark key={index}>{part}</mark> : part,
   );
 }
