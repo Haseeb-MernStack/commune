@@ -242,7 +242,7 @@ export default function ProfilePage() {
               Cancel
             </button>
             <button className="btn btn-danger" disabled={ban.isPending}>
-              {ban.isPending? "Suspending…": "Suspend user"}
+              {ban.isPending ? "Suspending…" : "Suspend user"}
             </button>
           </span>
         </label>
