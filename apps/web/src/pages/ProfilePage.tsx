@@ -1,3 +1,4 @@
+import { BIO_MAX_LENGTH } from "@commune/shared";
 import { useState } from "react";
 import type { CSSProperties, FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
@@ -32,6 +33,7 @@ export default function ProfilePage() {
   const photo = useProfilePhoto(allowance.data);
   const [editing, setEditing] = useState(false);
   const [bio, setBio] = useState("");
+  const bioLeft = BIO_MAX_LENGTH - bio.length;
 
   if (profile.isLoading) return <ProfileSkeleton />;
   if (profile.isError || !profile.data) return <p className="error center">User not found.</p>;
@@ -145,12 +147,18 @@ export default function ProfilePage() {
               <textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                maxLength={160}
+                aria-describedby="bio-counter"
+        maxLength={BIO_MAX_LENGTH}
                 rows={3}
                 placeholder="Tell the community about yourself"
               />
               <div className="composer-footer">
-                <span className="muted">{bio.length}/160</span>
+                <span
+          id="bio-counter"
+          className={"muted bio-count" + (bioLeft <= 20 ? " at-limit" : "")}
+        >
+          {bio.length}/{BIO_MAX_LENGTH}
+        </span>
                 <span className="row">
                   <button type="button" className="btn btn-ghost" onClick={() => setEditing(false)}>
                     Done
