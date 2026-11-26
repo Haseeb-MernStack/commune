@@ -33,7 +33,7 @@ const userSchema = new Schema(
     lockUntil: { type: Date, default: null, select: false },
   // SHA-256 hashes of the (browser family + OS) pairs this account has signed in from.
   // A sign-in from a hash that is not here triggers a "new device" email.
-  knownDeviceHashes: { type: [String], default: [], },
+  knownDeviceHashes: { type: [String], default: [] },
   },
   { timestamps: true },
 );
