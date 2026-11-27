@@ -26,6 +26,7 @@
     "@playwright/test": "^1.65.0",
     "concurrently": "^9.0.0",
     "eslint": "^10.14.0",
+    "eslint-plugin-jsx-a11y-x": "^0.2.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.14.0",
     "prettier": "3.8.1",
