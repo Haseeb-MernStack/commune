@@ -40,20 +40,6 @@ export const globalLimiter = rateLimit({
   message: { error: "Too many requests, slow down." },
 });
 
-/**
- * Keeping a session alive. Every signed-in tab refreshes about every 15 minutes, so many people
- * behind one address would hit the strict sign-in limit and be logged out. Sign-in itself stays
- * on the stricter authLimiter.
- */
-export const refreshLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 300,
-  standardHeaders: "draft-7",
-  legacyHeaders: false,
-  skip,
-  message: { error: "Too many attempts, try again later." },
-});
-
 export const uploadLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 30,
@@ -72,9 +58,16 @@ export const reportLimiter = rateLimit({
   message: { error: "You're reporting too fast, try again later." },
 });
 
+/**
+ * Sign in, register and Google sign in are strict. Keeping a session alive (`/auth/refresh`) gets
+ * a wider allowance and its own count: every signed-in tab refreshes about every 15 minutes, so
+ * many people behind one address would otherwise hit the sign-in limit and be logged out.
+ */
+const isRefresh = (req: Pick<Request, "path">) => req.path.endsWith("/auth/refresh");
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 20,
+  limit: (req) => (isRefresh(req) ? 300 : 20),
+  keyGenerator: (req) => `${isRefresh(req) ? "refresh" : "auth"}:${req.ip ?? "unknown"}`,
   standardHeaders: "draft-7",
   legacyHeaders: false,
   skip,
