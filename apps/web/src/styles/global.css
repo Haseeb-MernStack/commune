@@ -90,6 +90,16 @@ a {
   text-align: center;
 }
 
+.feed-end {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 16px 0;
+  font-size: 0.9rem;
+}
+
 .error {
   color: var(--danger);
   margin: 0;
