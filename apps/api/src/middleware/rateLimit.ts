@@ -1,11 +1,39 @@
+import type { Request } from "express";
 import rateLimit from "express-rate-limit";
 import { env } from "../config/env.js";
+import { verifyAccessToken } from "../utils/tokens.js";
 
 const skip = () => env.NODE_ENV === "test";
 
+/** Requests per 15 minutes for one signed-in account, and for one address that is not signed in. */
+export const SIGNED_IN_LIMIT = 1500;
+export const ANONYMOUS_LIMIT = 300;
+
+/**
+ * Who a request counts against. A valid access token counts against its account, so people who
+ * share one address (a campus, an office, a mobile carrier) do not use up each other's allowance.
+ * Anything else counts against the address. Checking the token needs no database lookup, and a
+ * forged or expired token is simply treated as anonymous.
+ */
+export function requestIdentity(req: Pick<Request, "headers" | "ip">): {
+  key: string;
+  signedIn: boolean;
+} {
+  const header = req.headers.authorization;
+  if (header?.startsWith("Bearer ")) {
+    try {
+      return { key: `user:${verifyAccessToken(header.slice(7))}`, signedIn: true };
+    } catch {
+      // Expired or invalid: counted by address below.
+    }
+  }
+  return { key: `ip:${req.ip ?? "unknown"}`, signedIn: false };
+}
+
 export const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 300,
+  limit: (req) => (requestIdentity(req).signedIn ? SIGNED_IN_LIMIT : ANONYMOUS_LIMIT),
+  keyGenerator: (req) => requestIdentity(req).key,
   standardHeaders: "draft-7",
   legacyHeaders: false,
   skip,
@@ -30,9 +58,16 @@ export const reportLimiter = rateLimit({
   message: { error: "You're reporting too fast, try again later." },
 });
 
+/**
+ * Sign in, register and Google sign in are strict. Keeping a session alive (`/auth/refresh`) gets
+ * a wider allowance and its own count: every signed-in tab refreshes about every 15 minutes, so
+ * many people behind one address would otherwise hit the sign-in limit and be logged out.
+ */
+const isRefresh = (req: Pick<Request, "path">) => req.path.endsWith("/auth/refresh");
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 20,
+  limit: (req) => (isRefresh(req) ? 300 : 20),
+  keyGenerator: (req) => `${isRefresh(req) ? "refresh" : "auth"}:${req.ip ?? "unknown"}`,
   standardHeaders: "draft-7",
   legacyHeaders: false,
   skip,

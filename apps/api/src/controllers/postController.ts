@@ -108,12 +108,11 @@ export async function sendPostPage(
   const hasMore = rows.length > limit;
   const posts = hasMore ? rows.slice(0, limit) : rows;
   const ids = posts.map((p) => p._id);
-  const [liked, saved] = await Promise.all([
+  const [liked, saved, unlocked] = await Promise.all([
     likedSet(req.userId!, ids),
     bookmarkedSet(req.userId!, ids),
+    unlockedPostIds(req.userId!, posts),
   ]);
-
-  const unlocked = await unlockedPostIds(req.userId!, posts);
   const body: Page<PostDTO> = {
     items: posts.map((p) => {
       const key = p._id.toString();
