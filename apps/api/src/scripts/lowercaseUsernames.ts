@@ -13,6 +13,7 @@
  */
 import mongoose from "mongoose";
 import { env } from "../config/env.js";
+import { logger } from "../config/logger.js";
 import { User } from "../models/User.js";
 
 const notLowercase = { $expr: { $ne: ["$username", { $toLower: "$username" }] } };
@@ -23,16 +24,16 @@ async function main() {
 
   const count = await User.countDocuments(notLowercase);
   if (count === 0) {
-    console.log("Every username is already lowercase. Nothing to do.");
+    logger.info("Every username is already lowercase. Nothing to do.");
     return;
   }
 
   const sample = await User.find(notLowercase).select("username").limit(10).lean();
-  console.log(`${count} username(s) are not lowercase. Examples:`);
-  for (const u of sample) console.log(`  ${u.username}  ->  ${u.username.toLowerCase()}`);
+  logger.info(`${count} username(s) are not lowercase. Examples:`);
+  for (const u of sample) logger.info(`  ${u.username}  ->  ${u.username.toLowerCase()}`);
 
   if (!apply) {
-    console.log("\nDry run: nothing was changed. Run again with --apply to make the change.");
+    logger.info("\nDry run: nothing was changed. Run again with --apply to make the change.");
     return;
   }
 
@@ -40,12 +41,12 @@ async function main() {
   const result = await User.updateMany(notLowercase, [
     { $set: { username: { $toLower: "$username" } } },
   ]);
-  console.log(`\nDone. Updated ${result.modifiedCount} account(s).`);
+  logger.info(`\nDone. Updated ${result.modifiedCount} account(s).`);
 }
 
 main()
   .catch((err: unknown) => {
-    console.error("Migration failed:", err);
+    logger.error({ err }, "Migration failed");
     process.exitCode = 1;
   })
   .finally(() => mongoose.disconnect());

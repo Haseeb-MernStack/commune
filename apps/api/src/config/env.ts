@@ -7,6 +7,9 @@ dotenv.config({ path: path.resolve(process.cwd(), "../../.env") });
 
 const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+    // Log level for the API logger (see config/logger.ts). Unset = silent in tests, info in
+    // production, debug in development.
+    LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).optional(),
   PORT: z.coerce.number().int().default(4000),
   MONGODB_URI: z.string().min(1),
   // The web app's address. A trailing slash is removed: browsers send Origin without one, and
@@ -113,9 +116,9 @@ const schema = z.object({
 
 const parsed = schema.safeParse(process.env);
 if (!parsed.success) {
-  console.error("Invalid environment configuration:");
+    process.stderr.write("Invalid environment configuration:\n");
   for (const issue of parsed.error.issues) {
-    console.error(`  ${issue.path.join(".")}: ${issue.message}`);
+      process.stderr.write(`  ${issue.path.join(".")}: ${issue.message}\n`);
   }
   process.exit(1);
 }
