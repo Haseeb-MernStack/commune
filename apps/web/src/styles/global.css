@@ -2284,3 +2284,30 @@ button.side-link {
   font-family: inherit;
   cursor: pointer;
 }
+
+.empty-state {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 40px 20px;
+}
+.empty-state-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  background: var(--surface-2, rgba(128, 128, 128, 0.12));
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.empty-state-title {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+.empty-state-body {
+  margin: 0 0 8px;
+  max-width: 34ch;
+}
