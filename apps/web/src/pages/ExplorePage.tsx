@@ -77,7 +77,7 @@ export default function ExplorePage() {
                 <img
                   className="post-image"
                   src={assetUrl(post.imageUrl)}
-                  alt={`Image posted by @${post.author.username}`}
+                  alt={`Post by @${post.author.username}`}
                   loading="lazy"
                 />
               )}

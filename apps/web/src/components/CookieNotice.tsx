@@ -40,16 +40,13 @@ export default function CookieNotice() {
   const pressed = (option: Choice) => (reopened && choice ? choice === option : undefined);
 
   return (
-    <div
-      className="consent-bar"
-      role="dialog"
-      aria-label="Cookies"
-      aria-live="polite"
-      onKeyDown={onKeyDown}
-    >
+    <div className="consent-bar" role="dialog" aria-label="Cookies" aria-live="polite">
       <p>
         We use cookies to keep you signed in, and, with your OK, for analytics and ads. See the{" "}
-        <Link to="/privacy">Privacy Policy</Link>.
+        <Link to="/privacy" onKeyDown={onKeyDown}>
+          Privacy Policy
+        </Link>
+        .
       </p>
       <span className="row">
         <button
@@ -57,6 +54,7 @@ export default function CookieNotice() {
           className="btn"
           aria-pressed={pressed("all")}
           onClick={() => pick("all")}
+          onKeyDown={onKeyDown}
         >
           Accept all
         </button>
@@ -65,6 +63,7 @@ export default function CookieNotice() {
           className="btn btn-outline"
           aria-pressed={pressed("essential")}
           onClick={() => pick("essential")}
+          onKeyDown={onKeyDown}
         >
           Essential only
         </button>

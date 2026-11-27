@@ -1,4 +1,3 @@
-
 // ESLint (flat config). Catches real mistakes that TypeScript alone does not: unused code, rules of React
 // hooks, stray console output. Formatting is Prettier's job, not ESLint's.
 import js from "@eslint/js";
@@ -49,16 +48,16 @@ export default [
     },
   },
 
-// Web app: JSX accessibility rules.
-{
-  files: ["apps/web/**/*.tsx"],
-  plugins: {
-    "jsx-a11y-x": jsxA11y,
+  // Web app: JSX accessibility rules.
+  {
+    files: ["apps/web/**/*.tsx"],
+    plugins: {
+      "jsx-a11y-x": jsxA11y,
+    },
+    rules: {
+      ...jsxA11y.configs.recommended.rules,
+    },
   },
-  rules: {
-    ...jsxA11y.configs.recommended.rules,
-  },
-},
 
   // Servers, shared code and scripts: Node globals.
   {

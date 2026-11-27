@@ -79,6 +79,7 @@ describe("PostMenu", () => {
     expect(selectTwo).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     expect(button).toHaveAttribute("aria-expanded", "false");
+    expect(button).toHaveFocus();
   });
 
   it("Escape closes the menu and returns focus to the button", async () => {
@@ -109,6 +110,36 @@ describe("PostMenu", () => {
     await user.keyboard("{ArrowDown}");
     expect(button).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByRole("menu", { name: LABEL })).toBeInTheDocument();
+  });
+
+  it("opens from the keyboard, activates a menu item, and restores trigger focus", async () => {
+    const { user, button } = renderMenu();
+    button.focus();
+    await user.keyboard("{Enter}");
+    await user.keyboard("{ArrowDown}{Enter}");
+
+    expect(selectTwo).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    expect(button).toHaveFocus();
+  });
+
+  it("closes on Tab and continues focus after the trigger without tabbing through menu items", async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <PostMenu items={defaultItems} label={LABEL} />
+        <button type="button">Next control</button>
+      </>,
+    );
+    await user.click(screen.getByRole("button", { name: LABEL }));
+    const menuItems = screen.getAllByRole("menuitem");
+    expect(menuItems[0]).toHaveAttribute("tabindex", "-1");
+    expect(screen.getByRole("menu")).toHaveAttribute("tabindex", "-1");
+
+    await user.tab();
+
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Next control" })).toHaveFocus();
   });
 
   it("a click outside closes the menu", async () => {
