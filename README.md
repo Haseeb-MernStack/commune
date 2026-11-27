@@ -347,6 +347,7 @@ See `apps/api/src/routes/index.ts` for the full list.
 | [Performance](docs/PERFORMANCE.md) | Loading and caching |
 | [Design](docs/DESIGN.md) | Tokens and components |
 | [Limits](docs/LIMITS.md) | Fair-use quotas |
+| [Scaling](docs/SCALING.md) | Preparing for traffic spikes |
 | [Content Security Policy](docs/CSP.md) | Report-only CSP rollout |
 | [Backups](docs/BACKUPS.md) | Database backups |
 | [Development](docs/DEVELOPMENT.md) | Working on the code |

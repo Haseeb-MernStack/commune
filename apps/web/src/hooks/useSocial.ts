@@ -17,6 +17,7 @@ import type {
   UpdateProfileInput,
 } from "@commune/shared";
 import { api, ApiError, withQuery } from "../lib/api";
+import { isRealtimeConnected } from "../lib/realtime";
 import { useAuth } from "../store/auth";
 
 export function useProfile(username: string) {
@@ -125,13 +126,13 @@ export function useNotifications() {
   });
 }
 
-/** Polls every 30 seconds while the tab is open. */
+/** Polls every 30 seconds while the tab is open, and rarely while live updates are connected. */
 export function useUnreadCount(enabled: boolean) {
   return useQuery({
     queryKey: ["unread-count"],
     queryFn: () => api<{ count: number }>("/notifications/unread-count"),
     enabled,
-    refetchInterval: 30_000,
+    refetchInterval: () => (isRealtimeConnected() ? 180_000 : 30_000),
   });
 }
 

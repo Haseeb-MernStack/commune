@@ -58,6 +58,7 @@ import * as blocks from "../controllers/blockController.js";
 import { requireActive, requireAdmin, requireAuth, requirePlus } from "../middleware/auth.js";
 import {
   authLimiter,
+  refreshLimiter,
   clientErrorLimiter,
   pushLimiter,
   readLimiter,
@@ -137,7 +138,7 @@ router.post(
 router.post("/auth/register", authLimiter, validate(registerSchema), asyncHandler(auth.register));
 router.post("/auth/login", authLimiter, validate(loginSchema), asyncHandler(auth.login));
 router.post("/auth/google", authLimiter, validate(googleLoginSchema), asyncHandler(auth.google));
-router.post("/auth/refresh", authLimiter, asyncHandler(auth.refresh));
+router.post("/auth/refresh", refreshLimiter, asyncHandler(auth.refresh));
 router.post("/auth/logout", asyncHandler(auth.logout));
 
 // Email verification and password reset
