@@ -13,6 +13,7 @@ import { useAvatarAllowance, useProfilePhoto } from "../hooks/useProfilePhoto";
 import { useProfile, useToggleFollow, useUpdateProfile, useUserPosts } from "../hooks/useSocial";
 import { useRemoveBlock, useSetBlock } from "../hooks/useBlocks";
 import { hueFor } from "../lib/hue";
+import { shareContent } from "../lib/share";
 import { useAuth } from "../store/auth";
 
 const compact = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 });
@@ -58,6 +59,27 @@ export default function ProfilePage() {
     update.mutate({ bio }, { onSuccess: () => setEditing(false) });
   };
 
+  const shareProfile = () => {
+    const profilePath = `/u/${p.username}`;
+    void shareContent({
+      title: `@${p.username} on Commune`,
+      url: `${window.location.origin}${profilePath}`,
+      to: profilePath,
+      copiedBody: "Share this profile with anyone.",
+    });
+  };
+
+  const shareButton = (
+    <button
+      type="button"
+      className="btn btn-outline"
+      onClick={shareProfile}
+      aria-label={`Share @${p.username}'s profile`}
+    >
+      <Icon name="share" size={18} /> Share
+    </button>
+  );
+
   const joined = new Date(p.createdAt).toLocaleDateString("en", { month: "long", year: "numeric" });
 
   return (
@@ -78,9 +100,12 @@ export default function ProfilePage() {
             <div className="profile-actions">
               {isMe ? (
                 !editing && (
-                  <button className="btn btn-outline" onClick={startEditing}>
-                    Edit profile
-                  </button>
+                  <>
+                    <button className="btn btn-outline" onClick={startEditing}>
+                      Edit profile
+                    </button>
+                    {shareButton}
+                  </>
                 )
               ) : (
                 <>
@@ -97,6 +122,7 @@ export default function ProfilePage() {
                   >
                     <Icon name="mail" size={18} /> Message
                   </Link>
+                  {shareButton}
 
                   {p.blockKind ? (
                     <button
