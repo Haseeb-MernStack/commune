@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { env } from "../config/env.js";
 import { logger } from "../config/logger.js";
 import { ErrorEvent } from "../models/ErrorEvent.js";
+import { validRequestId } from "../utils/requestId.js";
 import { reserveMail } from "./mailQuota.js";
 import { sendMail } from "./mailService.js";
 
@@ -12,6 +13,7 @@ export interface ErrorReport {
   stack?: string;
   route?: string;
   status?: number | null;
+  requestId?: string | null;
 }
 
 /** Stored errors never contain tokens, emails or query strings, even if the message did. */
@@ -72,18 +74,27 @@ function canAlert(): boolean {
 export async function recordError(report: ErrorReport): Promise<void> {
   if (env.NODE_ENV === "test") return;
   try {
+    const requestId = validRequestId(report.requestId) ?? null;
     const clean = {
       source: report.source,
       message: scrub(report.message).slice(0, 300),
       stack: scrub(report.stack ?? "").slice(0, 2000),
       route: scrub(report.route ?? "").slice(0, 200),
       status: report.status ?? null,
+      requestId,
     };
     const fingerprint = fingerprintOf(clean);
     const now = new Date();
     const known = await ErrorEvent.findOneAndUpdate(
       { fingerprint },
-      { $inc: { count: 1 }, $set: { lastSeen: now, resolved: false } },
+      {
+        $inc: { count: 1 },
+        $set: {
+          lastSeen: now,
+          resolved: false,
+          ...(requestId ? { requestId } : {}),
+        },
+      },
     ).lean();
     if (known) return;
     if ((await eventCount()) >= MAX_EVENTS) return;

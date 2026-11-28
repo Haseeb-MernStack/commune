@@ -36,13 +36,21 @@ a phone alert, add UptimeRobot or Better Stack (both have free plans) on the sam
 
 ## 2. Error tracking
 
-- **API:** every unexpected 500 is recorded (message, short stack, route). The response contains a
-  `requestId`, also sent as the `X-Request-Id` header and written to the server log, so a user's
-  report can be matched to the exact log line.
+- **Request IDs:** every API request receives an ID attached to `req.id`, logged with Pino, and
+  returned in the `X-Request-Id` response header (visible in browser DevTools under Network →
+  Response Headers, or in the JSON body of 5xx responses as `requestId`). If a client sends an
+  incoming `X-Request-Id` header, it is reused only when it is a single string of 1–64 ASCII
+  letters, numbers or hyphens (`[a-zA-Z0-9-]`); missing, empty, oversized, ambiguous or malformed
+  values are replaced with a fresh UUID v4 and never echoed.
+- **API:** every unexpected 500 is recorded (message, short stack, route, latest `requestId`). The
+  JSON response for 5xx errors contains `requestId`, matching the `X-Request-Id` header and the
+  server log (`req.id` / `requestId`), so a user's report can be matched to the exact log line and
+  error tracker record.
 - **Browser:** uncaught errors, unhandled promise rejections and React render crashes are sent to
   `POST /api/client-errors`. Noise from the visitor's network, browser extensions and
   `ResizeObserver` is ignored; at most 5 different errors are sent per visit.
-- Errors are grouped by fingerprint (the same bug for different ids is one line with a counter).
+- Errors are grouped by fingerprint (the same bug for different ids or request IDs is one line
+  with a counter; for repeated API errors, `requestId` keeps the latest associated request ID).
   Tokens, emails and query strings are removed before storing. Rows are deleted 30 days after
   they last happened, and the table is capped at 2000 kinds of error.
 
