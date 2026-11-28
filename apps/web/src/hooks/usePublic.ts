@@ -12,3 +12,15 @@ export function usePublicPosts() {
     getNextPageParam: (last) => last.nextCursor ?? undefined,
   });
 }
+
+/** Trending free posts from the last day, readable without logging in. */
+export function useTrendingPosts(enabled = true) {
+  return useInfiniteQuery({
+    queryKey: ["public", "posts", "trending"],
+    initialPageParam: undefined as string | undefined,
+    queryFn: ({ pageParam }) =>
+      api<Page<PostDTO>>(withQuery("/public/posts/trending", { cursor: pageParam })),
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
+    enabled,
+  });
+}
