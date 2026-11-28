@@ -4,6 +4,7 @@ import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 import reactHooks from "eslint-plugin-react-hooks";
 import globals from "globals";
+import jsxA11y from "eslint-plugin-jsx-a11y-x";
 
 export default [
   {
@@ -44,6 +45,17 @@ export default [
     rules: {
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
+    },
+  },
+
+  // Web app: JSX accessibility rules.
+  {
+    files: ["apps/web/**/*.tsx"],
+    plugins: {
+      "jsx-a11y-x": jsxA11y,
+    },
+    rules: {
+      ...jsxA11y.configs.recommended.rules,
     },
   },
 

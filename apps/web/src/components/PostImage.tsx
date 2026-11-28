@@ -25,7 +25,7 @@ export default function PostImage({
     <img
       className={className}
       src={assetUrl(post.imageUrl)}
-      alt={`Image posted by @${post.author.username}`}
+      alt={`Post by @${post.author.username}`}
       width={width}
       height={height}
       style={sized ? { aspectRatio: `${width} / ${height}` } : undefined}

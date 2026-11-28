@@ -50,8 +50,14 @@ export default function PostMenu({ items, label }: { items: MenuItem[]; label: s
       ?.querySelector<HTMLElement>('[role="menuitem"]:not(:disabled)')
       ?.focus({ preventScroll: true });
     const onPointerDown = (e: PointerEvent) => {
-      const t = e.target as Node;
-      if (!menu.current?.contains(t) && !button.current?.contains(t)) close(false);
+      const target = e.target;
+      if (
+        target instanceof Element &&
+        !menu.current?.contains(target) &&
+        !button.current?.contains(target)
+      ) {
+        close(target.closest(".menu-backdrop") !== null);
+      }
     };
     const away = () => close(false);
     document.addEventListener("pointerdown", onPointerDown);
@@ -69,7 +75,7 @@ export default function PostMenu({ items, label }: { items: MenuItem[]; label: s
       e.preventDefault();
       return close(true);
     }
-    if (e.key === "Tab") return close(false);
+    if (e.key === "Tab") return close(true);
     const all = [
       ...(menu.current?.querySelectorAll<HTMLElement>('[role="menuitem"]:not(:disabled)') ?? []),
     ];
@@ -113,11 +119,12 @@ export default function PostMenu({ items, label }: { items: MenuItem[]; label: s
       {open &&
         createPortal(
           <>
-            <div className="menu-backdrop" onClick={() => close(false)} aria-hidden="true" />
+            <div className="menu-backdrop" onClick={() => close(true)} aria-hidden="true" />
             <div
               ref={menu}
               id={id}
               role="menu"
+              tabIndex={-1}
               aria-label={label}
               className="post-menu"
               style={pos}
@@ -131,8 +138,9 @@ export default function PostMenu({ items, label }: { items: MenuItem[]; label: s
                   role="menuitem"
                   className={`menu-item${item.danger ? " danger" : ""}`}
                   disabled={item.disabled}
+                  tabIndex={-1}
                   onClick={() => {
-                    close(false);
+                    close(true);
                     item.onSelect();
                   }}
                 >

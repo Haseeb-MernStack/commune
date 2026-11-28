@@ -8,7 +8,7 @@ const imageUrl = "/uploads/0123456789abcdef0123456789abcdef.jpg";
 describe("PostImage", () => {
   it("reserves the image's own shape when its size is known", () => {
     render(<PostImage post={{ author, imageUrl, imageWidth: 1600, imageHeight: 900 }} />);
-    const img = screen.getByRole("img", { name: "Image posted by @sam" });
+    const img = screen.getByRole("img", { name: "Post by @sam" });
 
     expect(img).toHaveAttribute("width", "1600");
     expect(img).toHaveAttribute("height", "900");
@@ -37,6 +37,16 @@ describe("PostImage", () => {
     expect(img).not.toHaveClass("is-loaded");
     fireEvent.load(img);
     expect(img).toHaveClass("is-loaded");
+  });
+
+  it("provides an accessible name when the image is linked", () => {
+    render(
+      <a href={imageUrl}>
+        <PostImage post={{ author, imageUrl }} />
+      </a>,
+    );
+
+    expect(screen.getByRole("link", { name: "Post by @sam" })).toBeInTheDocument();
   });
 
   it("renders nothing for a post without an image", () => {

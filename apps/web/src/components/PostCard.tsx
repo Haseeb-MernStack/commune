@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { FREE_POST_LENGTH, PLUS_POST_LENGTH, type PostDTO } from "@commune/shared";
@@ -48,6 +48,8 @@ export default function PostCard({
   const bookmark = useToggleBookmark();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(post.content);
+  const cardRef = useRef<HTMLElement>(null);
+  const restoreEditFocus = useRef(false);
   const [reporting, setReporting] = useState(false);
   // Plays the small "pop" only right after a tap, never when a post first appears.
   const [popped, setPopped] = useState<"like" | "save" | null>(null);
@@ -59,6 +61,11 @@ export default function PostCard({
   useEffect(() => {
     setExpanded(false);
   }, [post.content]);
+  useEffect(() => {
+    if (editing || !restoreEditFocus.current) return;
+    restoreEditFocus.current = false;
+    cardRef.current?.querySelector<HTMLButtonElement>('[aria-haspopup="menu"]')?.focus();
+  }, [editing]);
 
   const mine = user?.id === post.author.id;
   const isAdmin = user?.role === "admin";
@@ -69,11 +76,15 @@ export default function PostCard({
     update.reset();
     setEditing(true);
   };
+  const closeEdit = () => {
+    restoreEditFocus.current = true;
+    setEditing(false);
+  };
   const save = () => {
     const next = draft.trim();
     if (update.isPending) return;
-    if (next === post.content) return setEditing(false);
-    update.mutate({ id: post.id, content: next }, { onSuccess: () => setEditing(false) });
+    if (next === post.content) return closeEdit();
+    update.mutate({ id: post.id, content: next }, { onSuccess: closeEdit });
   };
 
   const copyLink = async () => {
@@ -170,7 +181,7 @@ export default function PostCard({
   if (hidden.has(post.id)) return null;
 
   return (
-    <article className="card post ig-post">
+    <article ref={cardRef} className="card post ig-post">
       <header className="ig-head">
         <Link
           to={`/u/${post.author.username}`}
@@ -227,12 +238,13 @@ export default function PostCard({
       </header>
       {editing ? (
         <div className="post-edit">
+          {/* eslint-disable jsx-a11y-x/no-autofocus -- Editing starts only after the user selects Edit post, so focusing the editor is intentional. */}
           <textarea
             className="input"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Escape") setEditing(false);
+              if (e.key === "Escape") closeEdit();
               if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) save();
             }}
             maxLength={max}
@@ -240,6 +252,7 @@ export default function PostCard({
             aria-label="Edit your post"
             autoFocus
           />
+          {/* eslint-enable jsx-a11y-x/no-autofocus */}
           <div className="post-edit-bar">
             <span
               className={`muted small${draft.length >= max ? " at-limit" : ""}`}
@@ -248,7 +261,7 @@ export default function PostCard({
               {draft.length}/{max}
             </span>
             <span className="row">
-              <button className="btn btn-outline" onClick={() => setEditing(false)}>
+              <button className="btn btn-outline" onClick={closeEdit}>
                 Cancel
               </button>
               <button
@@ -268,6 +281,7 @@ export default function PostCard({
         </div>
       ) : (
         post.content && (
+          /* eslint-disable-next-line jsx-a11y-x/click-events-have-key-events, jsx-a11y-x/no-noninteractive-element-interactions -- Double-tap is an optional pointer shortcut; the native Like button provides equivalent keyboard-accessible functionality. */
           <p className="post-body" onClick={onTextTap}>
             <RichText text={collapsed ? preview.text : post.content} highlight={highlight} />
             {collapsed && (
