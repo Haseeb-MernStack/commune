@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties } from "react";
+import type { CSSProperties, MouseEvent } from "react";
 import { Link } from "react-router-dom";
 import { FREE_POST_LENGTH, PLUS_POST_LENGTH, type PostDTO } from "@commune/shared";
 import { useAuth } from "../store/auth";
@@ -20,6 +20,7 @@ import { copyLink, shareContent } from "../lib/share";
 import Avatar from "./Avatar";
 import Icon from "./Icon";
 import PlusBadge from "./PlusBadge";
+import ImageViewer from "./ImageViewer";
 import PostImage from "./PostImage";
 import { hueFor } from "../lib/hue";
 import { timeAgo } from "../lib/time";
@@ -113,11 +114,14 @@ export default function PostCard({
     if (!post.likedByMe && !like.isPending) like.mutate(post.id);
   };
   const onTextTap = useDoubleTap(showHeart);
-  // A plain click on the image still opens it in a new tab, but only after the short wait that
-  // tells one tap from two. Clicks with Ctrl, Cmd or Shift are left to the browser.
-  const onImageTap = useDoubleTap(showHeart, () => {
-    if (post.imageUrl) window.open(assetUrl(post.imageUrl), "_blank", "noopener,noreferrer");
-  });
+  // A tap on the image opens it full screen inside the app, after the short wait that tells one
+  // tap from two (two taps like the post). Clicks with Ctrl, Cmd or Shift open it straight away.
+  const [viewing, setViewing] = useState(false);
+  const tapImage = useDoubleTap(showHeart, () => setViewing(true));
+  const onImageTap = (e: MouseEvent<HTMLButtonElement>) => {
+    if (e.ctrlKey || e.metaKey || e.shiftKey) return setViewing(true);
+    tapImage(e);
+  };
   const menuItems: MenuItem[] = [
     { key: "copy", label: "Copy link", icon: "link", onSelect: () => void copyPostLink() },
   ];
@@ -306,14 +310,24 @@ export default function PostCard({
         )
       )}
       {post.imageUrl && (
-        <a
-          href={assetUrl(post.imageUrl)}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={onImageTap}
-        >
-          <PostImage post={post} />
-        </a>
+        <>
+          <button
+            type="button"
+            className="image-open"
+            aria-label={`View the picture by @${post.author.username} full screen`}
+            onClick={onImageTap}
+          >
+            <PostImage post={post} />
+          </button>
+          {viewing && (
+            <ImageViewer
+              src={assetUrl(post.imageUrl)}
+              alt={`Post by @${post.author.username}`}
+              caption={`@${post.author.username}`}
+              onClose={() => setViewing(false)}
+            />
+          )}
+        </>
       )}
       {post.locked && post.priceCents != null && (
         <div className="paywall">

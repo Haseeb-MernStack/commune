@@ -2311,3 +2311,96 @@ button.side-link {
   margin: 0 0 8px;
   max-width: 34ch;
 }
+
+/* The post picture is a button that opens the viewer; it must look exactly like the picture. */
+.image-open {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+  cursor: zoom-in;
+}
+.image-open:focus-visible {
+  outline: 2px solid var(--gold, #ffb224);
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+
+/* Full-screen picture viewer. */
+.viewer {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: rgb(0 0 0 / 0.94);
+  color: #fff;
+}
+.viewer[open] {
+  display: flex;
+  flex-direction: column;
+}
+.viewer::backdrop {
+  background: rgb(0 0 0 / 0.94);
+}
+.viewer-close {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  left: max(12px, env(safe-area-inset-left));
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.16);
+  color: #fff;
+  cursor: pointer;
+}
+.viewer-close:hover {
+  background: rgb(255 255 255 / 0.28);
+}
+.viewer-close:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+.viewer-stage {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  overflow: auto;
+  /* Lets a phone pinch to zoom and drag around a zoomed picture. */
+  touch-action: pinch-zoom pan-x pan-y;
+}
+/* margin: auto centres the picture and still lets a zoomed one scroll from its top-left corner. */
+.viewer-img {
+  display: block;
+  margin: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  cursor: zoom-in;
+  user-select: none;
+}
+.viewer-img.is-zoomed {
+  max-width: none;
+  max-height: none;
+  cursor: zoom-out;
+}
+.viewer-caption {
+  margin: 0;
+  padding: 10px 16px max(14px, env(safe-area-inset-bottom));
+  text-align: center;
+  font-size: 0.9rem;
+  color: rgb(255 255 255 / 0.85);
+}
