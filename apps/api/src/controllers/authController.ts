@@ -7,7 +7,7 @@ export async function register(req: Request, res: Response) {
 }
 
 export async function login(req: Request, res: Response) {
-  res.json(await authService.login(req.body, res));
+  res.json(await authService.login(req.body, res, req.get("user-agent")));
 }
 
 export async function refresh(req: Request, res: Response) {
@@ -22,5 +22,5 @@ export async function logout(req: Request, res: Response) {
 }
 
 export async function google(req: Request, res: Response) {
-  res.json(await authService.loginWithGoogle(req.body.credential, res));
+  res.json(await authService.loginWithGoogle(req.body.credential, res, req.get("user-agent")));
 }
