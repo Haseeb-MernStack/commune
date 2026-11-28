@@ -16,7 +16,7 @@ import { useDoubleTap } from "../hooks/useDoubleTap";
 import { formatPrice, useCheckout } from "../hooks/usePayments";
 import { useSetBlock } from "../hooks/useBlocks";
 import { assetUrl } from "../lib/api";
-import { showToast } from "../lib/toast";
+import { copyLink, shareContent } from "../lib/share";
 import Avatar from "./Avatar";
 import Icon from "./Icon";
 import PlusBadge from "./PlusBadge";
@@ -76,38 +76,22 @@ export default function PostCard({
     update.mutate({ id: post.id, content: next }, { onSuccess: () => setEditing(false) });
   };
 
-  const copyLink = async () => {
-    const to = `/posts/${post.id}`;
-    try {
-      if (!navigator.clipboard?.writeText) {
-        throw new Error("Clipboard is not available");
-      }
-      await navigator.clipboard.writeText(`${window.location.origin}${to}`);
-      showToast({ title: "Link copied", body: "Share this post with anyone.", to });
-    } catch {
-      showToast({
-        title: "Could not copy the link",
-        body: "Copy this page's address from the address bar instead.",
-        to,
-      });
-    }
+  const postPath = `/posts/${post.id}`;
+  const shareTarget = {
+    to: postPath,
+    url: `${window.location.origin}${postPath}`,
+    copiedBody: "Share this post with anyone.",
   };
 
-  const share = async () => {
-    // Paid posts never put their text in a share sheet.
-    const text = post.priceCents == null ? post.content.slice(0, 120) : undefined;
-    const url = `${window.location.origin}/posts/${post.id}`;
-    if (typeof navigator.share === "function") {
-      try {
-        await navigator.share({ title: `@${post.author.username} on Commune`, text, url });
-        return;
-      } catch (err) {
-        // Closing the share sheet is not an error; any other failure falls back to copying.
-        if ((err as DOMException).name === "AbortError") return;
-      }
-    }
-    await copyLink();
-  };
+  const copyPostLink = () => copyLink(shareTarget);
+
+  const share = () =>
+    shareContent({
+      ...shareTarget,
+      title: `@${post.author.username} on Commune`,
+      // Paid posts never put their text in a share sheet.
+      text: post.priceCents == null ? post.content.slice(0, 120) : undefined,
+    });
 
   // Tapping twice quickly likes the post (and never un-likes it). Works with a mouse and on touch.
   const showHeart = () => {
@@ -124,7 +108,7 @@ export default function PostCard({
     if (post.imageUrl) window.open(assetUrl(post.imageUrl), "_blank", "noopener,noreferrer");
   });
   const menuItems: MenuItem[] = [
-    { key: "copy", label: "Copy link", icon: "link", onSelect: () => void copyLink() },
+    { key: "copy", label: "Copy link", icon: "link", onSelect: () => void copyPostLink() },
   ];
   if (mine && !editing) {
     menuItems.push({ key: "edit", label: "Edit post", icon: "pencil", onSelect: startEdit });
