@@ -321,7 +321,7 @@ export default function PostCard({
           </button>
           {viewing && (
             <ImageViewer
-              src={assetUrl(post.imageUrl)}
+              src={assetUrl(post.imageUrl) ?? ""}
               alt={`Post by @${post.author.username}`}
               caption={`@${post.author.username}`}
               onClose={() => setViewing(false)}
