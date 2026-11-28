@@ -302,6 +302,13 @@ router.get(
   validate(searchQuerySchema, "query"),
   asyncHandler(search.posts),
 );
+router.get(
+  "/search/suggest",
+  requireAuth,
+  searchLimiter,
+  validate(searchQuerySchema, "query"),
+  asyncHandler(search.suggest),
+);
 
 // Communities
 router.get(

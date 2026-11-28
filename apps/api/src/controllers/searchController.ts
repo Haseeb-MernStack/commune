@@ -73,3 +73,42 @@ export async function posts(req: Request, res: Response) {
   const body: Page<PostDTO> = { items: await presentPosts(req.userId!, items), nextCursor };
   res.json(body);
 }
+
+const SUGGEST_USER_LIMIT = 5;
+const SUGGEST_POST_LIMIT = 3;
+
+/** Up to 5 people and 3 posts matching the text, for live search suggestions. */
+export async function suggest(req: Request, res: Response) {
+  const { q } = readQuery(res);
+  const hidden = await hiddenAuthorIds(req.userId!);
+  const [userRows, postRows] = await Promise.all([
+    User.find({
+      username: { $regex: `^${escapeRegex(q)}`, $options: "i" },
+      banned: { $ne: true },
+      ...(hidden.length > 0 ? { _id: { $nin: hidden } } : {}),
+    })
+      .sort({ username: 1 })
+      .limit(SUGGEST_USER_LIMIT)
+      .select("username bio avatarUrl plusUntil")
+      .lean(),
+    Post.find(
+      { $text: { $search: q }, ...(hidden.length > 0 ? { author: { $nin: hidden } } : {}) },
+      { score: { $meta: "textScore" } },
+    )
+      .sort({ score: { $meta: "textScore" } })
+      .limit(SUGGEST_POST_LIMIT)
+      .populate("author", "username avatarUrl plusUntil")
+      .populate("community", "slug name")
+      .lean(),
+  ]);
+  res.json({
+    users: userRows.map((u) => ({
+      id: u._id.toString(),
+      username: u.username,
+      bio: u.bio ?? "",
+      avatarUrl: u.avatarUrl ?? null,
+      plus: isPlusActive(u.plusUntil),
+    })),
+    posts: await presentPosts(req.userId!, postRows as unknown as PopulatedPost[]),
+  });
+}
