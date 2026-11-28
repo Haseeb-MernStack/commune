@@ -7,6 +7,7 @@ import { uploadUrlSchema } from "@commune/shared";
 import { env } from "./config/env.js";
 import { logger } from "./config/logger.js";
 import { asyncHandler } from "./utils/errors.js";
+import { resolveRequestId } from "./utils/requestId.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.js";
 import { blockAiBots, noStore, originGuard } from "./middleware/security.js";
 import { globalLimiter } from "./middleware/rateLimit.js";
@@ -27,6 +28,7 @@ export function createApp() {
   app.use(
     pinoHttp({
       logger,
+      genReqId: (req) => resolveRequestId(req.headers["x-request-id"]),
       serializers: {
         req: (req: { id?: unknown; method?: string; url?: string }) => ({
           id: req.id,

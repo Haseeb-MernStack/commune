@@ -11,6 +11,7 @@ const errorEventSchema = new Schema({
   route: { type: String, default: "", maxlength: 200 },
   status: { type: Number, default: null },
   stack: { type: String, default: "", maxlength: 2000 },
+  requestId: { type: String, default: null, maxlength: 64 },
   count: { type: Number, default: 1 },
   firstSeen: { type: Date, default: Date.now },
   lastSeen: { type: Date, default: Date.now, expires: 60 * 60 * 24 * 30 },

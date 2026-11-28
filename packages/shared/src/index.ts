@@ -507,6 +507,7 @@ export interface ErrorEventDTO {
   message: string;
   route: string;
   status: number | null;
+  requestId?: string | null;
   stack: string;
   count: number;
   firstSeen: string;
